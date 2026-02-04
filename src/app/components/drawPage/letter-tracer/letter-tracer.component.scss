@@ -1,0 +1,74 @@
+.tracer-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.canvas-container {
+  position: relative;
+  /* Debe coincidir con el valor de canvasSize en el .ts */
+  width: 500px;
+  height: 500px;
+  border: 5px solid #28a745;
+  border-radius: 20px;
+  background-color: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.canvas-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.background {
+  z-index: 1; /* Fondo abajo */
+}
+
+.drawing {
+  z-index: 2; /* Dibujo arriba */
+  cursor: crosshair;
+  touch-action: none; /* Importante para celular */
+}
+
+.controls {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+}
+
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: white;
+  transition: transform 0.1s;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.btn-verify { background-color: #27ae60; }
+.btn-clear { background-color: #f39c12; }
+
+.result-box {
+  font-size: 1.3rem;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  min-height: 1.5em;
+}
+
+.playwrite-cu-guides-regular {
+  font-family: "Playwrite CU";
+  font-weight: 400;
+  font-style: normal;
+}
+

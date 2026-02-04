@@ -1,0 +1,25 @@
+.selector-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 1.2rem;
+}
+
+.styled-select {
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 2px solid #2ecc71;
+  border-radius: 8px;
+  background-color: #d1f2eb;
+  cursor: pointer;
+  outline: none;
+
+  &:hover {
+    background-color: #a3e4d7;
+  }
+
+  &:focus {
+    box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
+  }
+}
