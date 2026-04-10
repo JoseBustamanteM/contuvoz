@@ -1,0 +1,31 @@
+<!-- talk.component.html (sin cambios necesarios, pero actualizado p para nota sobre modelo) -->
+
+<div class="talk-container">
+  <h1>¡Practica tu pronunciación!</h1>
+  <p>Di una vocal fuerte y claro. Este juego es para ayudarte a hablar vocales. Si 'u' se detecta como 'o', prueba pronunciando más claro o usa el modelo Vosk más grande para mejor precisión.</p>
+  <div class="result-card">
+    <span class="label">RECONOCÍ:</span>
+    <div class="vocal-display" aria-live="polite">
+      {{ voskSvc.transcript() || '...' }}
+    </div>
+  </div>
+  <button
+    (click)="handleMicClick()"
+    [class.active]="voskSvc.isListening()"
+    [disabled]="!voskSvc.isReady()"
+    class="mic-button"
+    aria-label="Toca para hablar o detener">
+    @if (!voskSvc.isReady()) {
+      <span>Cargando motor...</span>
+    } @else if (voskSvc.isListening()) {
+      <span>🛑 Detener</span>
+    } @else {
+      <span>🎙️ Toca para hablar</span>
+    }
+  </button>
+  @if (voskSvc.error()) {
+    <div class="error-message" role="alert">
+      {{ voskSvc.error() }}
+    </div>
+  }
+</div>

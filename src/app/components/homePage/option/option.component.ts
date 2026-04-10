@@ -25,14 +25,16 @@ export class OptionComponent {
       name: 'Hablemos!',
       img: 'images/gecko habla.png',
       alt: 'Gecko enseñando',
-      icon: '🗣️'
+      icon: '🗣️',
+      url: '/talkPage'
     },
     {
       id: 3,
       name: 'Comunícate',
       img: 'images/gecko comunicate.png',
       alt: 'Gecko saludando',
-      icon: '🤝'
+      icon: '🤝',
+      url: '/signPage'
     },
     {
       id: 4,
