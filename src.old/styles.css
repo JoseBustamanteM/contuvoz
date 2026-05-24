@@ -1,0 +1,13 @@
+/* You can add global styles to this file, and also import other style files */
+
+@import "tailwindcss";
+
+body {
+  background-image: url('/images/fondo.jpg');
+  background-size: cover;      /* Para que cubra toda la pantalla */
+  background-position: center; /* Para que la imagen quede centrada */
+  background-attachment: fixed; /* Para que el fondo no se mueva al hacer scroll */
+  background-repeat: no-repeat;
+  margin: 0;                   /* Quita márgenes por defecto */
+  min-height: 100vh;           /* Asegura que el body use todo el alto de la pantalla */
+}

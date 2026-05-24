@@ -1,0 +1,103 @@
+<section class="ht-page">
+
+  <!-- Header -->
+  <header class="ht-page__header">
+    <div class="ht-page__header-inner">
+      <div class="ht-page__title-group">
+        <span class="ht-page__badge">LSCh</span>
+        <h1 class="ht-page__title">Reconocedor de señas</h1>
+      </div>
+      <p class="ht-page__subtitle">Lengua de Señas Chilena · Dactilológico</p>
+    </div>
+    <div class="ht-page__controls">
+      <button
+        class="ht-page__btn ht-page__btn--ghost"
+        (click)="tracker.toggleDebug()"
+        [class.ht-page__btn--active]="tracker.debugMode()"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-3V3a1 1 0 00-1-1H8zm0 2h4v1H8V4zM5 8a1 1 0 011-1h8a1 1 0 010 2H6a1 1 0 01-1-1zm0 4a1 1 0 011-1h4a1 1 0 010 2H6a1 1 0 01-1-1z" clip-rule="evenodd"/>
+        </svg>
+        Debug
+      </button>
+    </div>
+  </header>
+
+  @if (hasError()) {
+    <div class="ht-page__error">
+      <svg viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+      </svg>
+      {{ errorMsg() }}
+    </div>
+  }
+
+  <main class="ht-page__main">
+
+    <!-- Cámara -->
+    <div class="ht-page__camera-col">
+      <div class="ht-page__camera-wrapper">
+        <app-camera-feed [mirrored]="true" />
+        <app-hand-canvas [width]="640" [height]="480" />
+
+        <!-- Objetivo de letra encima de la cámara -->
+        @if (selectedLetter()) {
+          <div class="ht-page__target-badge">
+            <span class="ht-page__target-label">Practica</span>
+            <span class="ht-page__target-letter">{{ selectedLetter() }}</span>
+          </div>
+
+          <!-- Barra de progreso -->
+          <div class="ht-page__progress-wrap">
+            <div class="ht-page__progress-bar" [style.width.%]="progressPct()"></div>
+          </div>
+        }
+
+        @if (!selectedLetter()) {
+          <div class="ht-page__hint">
+            Selecciona una letra del abecedario para comenzar
+          </div>
+        }
+      </div>
+
+      <app-landmark-debug />
+    </div>
+
+    <!-- Panel lateral -->
+    <aside class="ht-page__side">
+
+      @if (selectedLetter()) {
+        <app-sign-reference [letter]="selectedLetter()!" />
+      }
+
+      <!-- Display de letra detectada -->
+      <app-letter-display />
+
+      <!-- Abecedario seleccionable -->
+      <div class="ht-page__alphabet">
+        <span class="ht-page__alphabet-title">Elige una letra para practicar</span>
+        <div class="ht-page__alphabet-grid">
+          @for (letter of alphabet; track letter) {
+            <button
+              class="ht-page__alpha-chip"
+              [class.ht-page__alpha-chip--selected]="selectedLetter() === letter"
+              [class.ht-page__alpha-chip--correct]="tracker.letter() === letter"
+              (click)="selectLetter(letter)"
+            >
+              {{ letter }}
+            </button>
+          }
+        </div>
+      </div>
+
+    </aside>
+  </main>
+
+  <!-- Gecko celebración -->
+  <app-gecko-celebration
+    [show]="showGecko()"
+    [letter]="selectedLetter() ?? ''"
+    (hidden)="onGeckoHidden()"
+  />
+
+</section>

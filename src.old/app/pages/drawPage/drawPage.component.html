@@ -1,0 +1,24 @@
+
+
+<section class="bg-white p-4 rounded-3xl shadow-xl max-w-xl w-full border-4 border-green-300 text-center mx-auto">
+
+  <main class="main-layout">
+    <p class="text-lg font-semibold mb-2 text-green-800 flex items-center justify-center gap-2">
+
+    🦎 ¡Hola! Ayúdame a pintar esta letra
+  </p>
+  <h1 class="text-xl font-bold text-green-700 mb-2">🎨 ¡Dibuja la letra!</h1>
+
+
+
+    <letter-selector
+      (letterSelected)="currentLetter = $event">
+    </letter-selector>
+
+    <letter-tracer
+      [letter]="currentLetter">
+    </letter-tracer>
+
+  </main>
+
+</section>
