@@ -17,11 +17,11 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasElement') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly LEVELS: VowelLevel[] = [
-    { letter: 'A', image: 'assets/signs/lsh-a.png', description: 'Cierra el puño con el pulgar al lado.' },
-    { letter: 'E', image: 'assets/signs/lsh-e.png', description: 'Encoge tus dedos como una garra.' },
-    { letter: 'I', image: 'assets/signs/lsh-i.png', description: 'Levanta solo el dedo meñique.' },
-    { letter: 'O', image: 'assets/signs/lsh-o.png', description: 'Forma un círculo con tus dedos.' },
-    { letter: 'U', image: 'assets/signs/lsh-u.png', description: 'Levanta el índice y el meñique (cachos).' }
+    { letter: 'A', image: '/images/lsh-a.png', description: 'Cierra el puño con el pulgar al lado.' },
+    { letter: 'E', image: '/images/lsh-e.png', description: 'Encoge tus dedos como una garra.' },
+    { letter: 'I', image: '/images/signs/lsh-i.png', description: 'Levanta solo el dedo meñique.' },
+    { letter: 'O', image: '/images/signs/lsh-o.png', description: 'Forma un círculo con tus dedos.' },
+    { letter: 'U', image: '/images/lsh-u.png', description: 'Levanta el índice y el meñique (cachos).' }
   ];
 
 
