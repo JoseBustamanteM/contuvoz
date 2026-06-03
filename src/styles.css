@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 body {
-  background-color: red !important;
+  background-image: url('/contuvoz/images/fondo.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
