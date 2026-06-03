@@ -3,6 +3,7 @@ import { HomePageComponent } from './pages/homePage/homePage.component';
 import { DrawPageComponent } from './pages/drawPage/drawPage.component';
 import { SignLanguageComponent } from './pages/signLanguage/signLanguage.component';
 import { TalkPageComponent } from './pages/talkPage/talkpage.component';
+import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,10 @@ export const routes: Routes = [
    {
     path: 'talkPage',
     component: TalkPageComponent
+  },
+  {
+    path: 'dashboard-page',
+    component: DashboardPageComponent
   },
   {
     path: '**',

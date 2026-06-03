@@ -49,7 +49,9 @@ export class OptionComponent {
       name: 'Mi progreso',
       img: 'images/gecko logistico.png',
       alt: 'Gecko con libro y gráficas',
-      icon: '📐'
-    }
+      icon: '📐',
+      url: 'dashboard-page'
+    }, 
+
   ];
  }

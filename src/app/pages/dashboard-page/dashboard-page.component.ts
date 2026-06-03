@@ -1,11 +1,10 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StatsHeaderComponent }     from '../../components/stats-header/stats-header.component';
-import { ProgressChartComponent }   from '../../components/progress-chart/progress-chart.component';
-import { StudyHoursChartComponent } from '../../components/study-hours-chart/study-hours-chart.component';
-import { ActivityDonutComponent }   from '../../components/activity-donut/activity-donut.component';
-import { AchievementCardComponent } from '../../components/achievement-card/achievement-card.component';
-import { UnlockedPipe }             from '../../pipes/unlocked.pipe';
+import { StatsHeaderComponent }     from '../../components/dashboard-page/stats-header/stats-header.component';
+import { ProgressChartComponent }   from '../../components/dashboard-page/progress-chart/progress-chart.component';
+import { StudyHoursChartComponent } from '../../components/dashboard-page/study-hours-chart/study-hours-chart.component';
+import { ActivityDonutComponent }   from '../../components/dashboard-page/activity-donut/activity-donut.component';
+import { AchievementCardComponent } from '../../components/dashboard-page/achievement-card/achievement-card.component';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -17,7 +16,7 @@ import { UnlockedPipe }             from '../../pipes/unlocked.pipe';
     StudyHoursChartComponent,
     ActivityDonutComponent,
     AchievementCardComponent,
-    UnlockedPipe,
+
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrls: ['./dashboard-page.component.scss'],
