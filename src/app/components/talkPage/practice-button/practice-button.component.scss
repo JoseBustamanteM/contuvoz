@@ -1,0 +1,120 @@
+// =========================================================
+//  PracticeButton — Botón principal + barra de 5 segundos
+// =========================================================
+
+.practice-button-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.practice-button {
+  // Layout
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 64px;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+
+  // Apariencia
+  background: #2dba6a;
+  color: #fff;
+  font-size: clamp(1rem, 4vw, 1.15rem);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-align: center;
+  box-shadow:
+    0 6px 0 #1e8a4c,
+    0 8px 20px rgba(45, 186, 106, 0.4);
+
+  // Transiciones
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.2s ease;
+
+  // ── Label interno ────────────────────────────────────────
+  &__content {
+    position: relative;
+    z-index: 2;
+  }
+
+  // ── Ondas de audio (animadas) ────────────────────────────
+  &__wave {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    animation: ripple 1.5s ease-out infinite;
+    z-index: 1;
+
+    &--1 { width: 100%; height: 100%; animation-delay: 0s; }
+    &--2 { width: 100%; height: 100%; animation-delay: 0.4s; }
+    &--3 { width: 100%; height: 100%; animation-delay: 0.8s; }
+  }
+
+  // ── Hover ────────────────────────────────────────────────
+  &:hover:not(&--disabled) {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 0 #1e8a4c,
+      0 12px 28px rgba(45, 186, 106, 0.45);
+  }
+
+  // ── Active (tap) ─────────────────────────────────────────
+  &:active:not(&--disabled) {
+    transform: translateY(3px);
+    box-shadow:
+      0 3px 0 #1e8a4c,
+      0 4px 10px rgba(45, 186, 106, 0.3);
+  }
+
+  // ── Estado: escuchando ───────────────────────────────────
+  &--listening {
+    background: #ff6b6b;
+    box-shadow:
+      0 6px 0 #c94040,
+      0 8px 20px rgba(255, 107, 107, 0.4);
+    cursor: default;
+  }
+
+  // ── Estado: deshabilitado ────────────────────────────────
+  &--disabled:not(&--listening) {
+    background: #b0c4b1;
+    box-shadow: 0 4px 0 #8a9e8b, 0 6px 14px rgba(0, 0, 0, 0.1);
+    cursor: not-allowed;
+    opacity: 0.75;
+  }
+
+  // ── Barra de progreso ────────────────────────────────────
+  &__progress-track {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.45);
+    border-radius: 50px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  &__progress-bar {
+    height: 100%;
+    background: #fff;
+    border-radius: 50px;
+    // Sin transition aquí: se actualiza cada 50ms desde el signal, es suave de por sí
+    transition: width 0.05s linear;
+    box-shadow: 0 0 6px rgba(255,255,255,0.7);
+  }
+}
+
+// ── Animación de ondas ────────────────────────────────────
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 0.5; }
+  100% { transform: scale(2); opacity: 0; }
+}

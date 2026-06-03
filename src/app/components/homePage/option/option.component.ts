@@ -25,9 +25,18 @@ export class OptionComponent {
       name: 'Comunícate',
       img: 'images/gecko comunicate.png',
       alt: 'Gecko saludando',
-      icon: '🤝',
+      icon: '✋',
       url: '/signPage'
     },
+    {
+      id: 3,
+      name: 'Hablemos',
+      img: 'images/gecko-hablemos.png',
+      alt: 'Gecko saludando',
+      icon: '👨‍🏫',
+      url: '/talkPage'
+    },
+
     {
       id: 4,
       name: 'Biblioteca',

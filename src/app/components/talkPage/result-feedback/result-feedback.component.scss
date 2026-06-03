@@ -1,0 +1,90 @@
+// =========================================================
+//  ResultFeedback — Tarjeta de resultado (aprobado/reprobado)
+// =========================================================
+
+.result-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.75rem 1.5rem;
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+
+  // ── Éxito ───────────────────────────────────────────────
+  &--success {
+    background: #e8f9ee;
+    border: 3px solid #2dba6a;
+
+    .result-feedback__title  { color: #1a7a45; }
+    .result-feedback__subtitle { color: #2dba6a; }
+
+    .result-feedback__retry-btn {
+      background: #2dba6a;
+      box-shadow: 0 4px 0 #1e8a4c;
+    }
+  }
+
+  // ── Fallo ────────────────────────────────────────────────
+  &--failure {
+    background: #fff5e6;
+    border: 3px solid #ff922b;
+
+    .result-feedback__title  { color: #b05c00; }
+    .result-feedback__subtitle { color: #e07a1a; }
+
+    .result-feedback__retry-btn {
+      background: #ff922b;
+      box-shadow: 0 4px 0 #c06800;
+    }
+  }
+
+  // ── Ícono ────────────────────────────────────────────────
+  &__icon {
+    font-size: 3.5rem;
+    line-height: 1;
+    animation: pop-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  // ── Textos ───────────────────────────────────────────────
+  &__title {
+    font-size: clamp(1.2rem, 5vw, 1.5rem);
+    font-weight: 900;
+    margin: 0;
+  }
+
+  &__subtitle {
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    font-weight: 500;
+    margin: 0;
+  }
+
+  // ── Botón de reintento ───────────────────────────────────
+  &__retry-btn {
+    margin-top: 0.5rem;
+    padding: 0.75rem 1.75rem;
+    border: none;
+    border-radius: 50px;
+    color: #fff;
+    font-size: clamp(0.9rem, 3.5vw, 1rem);
+    font-weight: 800;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(2px);
+      box-shadow: none !important;
+    }
+  }
+}
+
+// ── Animaciones ───────────────────────────────────────────
+@keyframes pop-in {
+  from { transform: scale(0) rotate(-15deg); opacity: 0; }
+  to   { transform: scale(1) rotate(0deg);   opacity: 1; }
+}

@@ -1,0 +1,79 @@
+// =========================================================
+//  TalkPage — Pantalla principal de práctica de vocales
+//  Paleta verde vibrante (consistente con la app principal)
+// =========================================================
+
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100dvh;
+}
+
+.talk-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  padding: 1.5rem 1rem 3rem;
+  min-height: 100dvh;
+
+  // Fondo degradado suave del cielo — igual al de la app madre
+  background: linear-gradient(180deg, #a8e6cf 0%, #7ecfc9 40%, #56b8d4 100%);
+
+  // ── Sección del selector de vocales ──────────────────────
+  &__selector-section {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__section-label {
+    font-size: clamp(1rem, 4vw, 1.25rem);
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  // ── Sección del botón de práctica ────────────────────────
+  &__action-section {
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    justify-content: center;
+  }
+
+  // ── Sección de feedback (resultado) ──────────────────────
+  &__feedback-section {
+    width: 100%;
+    max-width: 440px;
+
+    // Entrada animada
+    animation: slide-up 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+
+// Animación reutilizable
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ── Responsive: tablets/escritorio ───────────────────────────
+@media (min-width: 600px) {
+  .talk-page {
+    padding: 2rem 2rem 4rem;
+    gap: 2.5rem;
+  }
+}

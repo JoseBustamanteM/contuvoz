@@ -1,0 +1,25 @@
+<div
+  class="result-feedback"
+  [class.result-feedback--success]="isSuccess()"
+  [class.result-feedback--failure]="!isSuccess()"
+  role="status"
+>
+  <!-- Ícono grande -->
+  <div class="result-feedback__icon" aria-hidden="true">
+    {{ isSuccess() ? '🌟' : '🔄' }}
+  </div>
+
+  <!-- Texto de resultado -->
+  <h3 class="result-feedback__title">{{ title() }}</h3>
+  <p class="result-feedback__subtitle">{{ subtitle() }}</p>
+
+  <!-- Botón de reintento -->
+  <!-- <button
+    class="result-feedback__retry-btn"
+    (click)="onRetry()"
+    type="button"
+    aria-label="Intentar de nuevo"
+  >
+    {{ isSuccess() ? '🎤 Practicar otra vocal' : '🎤 Intentar de nuevo' }}
+  </button> -->
+</div>

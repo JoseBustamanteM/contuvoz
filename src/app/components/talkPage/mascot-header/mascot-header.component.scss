@@ -1,0 +1,95 @@
+// =========================================================
+//  MascotHeader — Encabezado con mascota y mensaje dinámico
+// =========================================================
+
+.mascot-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+
+  // ── Título ────────────────────────────────────────────
+  &__title {
+    font-size: clamp(1.6rem, 6vw, 2rem);
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  // ── Mascota ───────────────────────────────────────────
+  &__mascot {
+    font-size: clamp(3.5rem, 14vw, 5rem);
+    line-height: 1;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    // Estado: escuchando — vibración
+    &.mascot--listening {
+      animation: shake 0.5s ease-in-out infinite alternate;
+    }
+
+    // Estado: éxito — salto de alegría
+    &.mascot--success {
+      animation: jump 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite alternate;
+    }
+
+    // Estado: fallo — sacudida lateral
+    &.mascot--failure {
+      animation: wiggle 0.4s ease-in-out 2;
+    }
+  }
+
+  &__mascot-placeholder {
+    display: block;
+    // En producción: display: none; cuando se use <img>
+  }
+
+  // ── Burbuja de diálogo ────────────────────────────────
+  &__bubble {
+    background: white;
+    border-radius: 20px;
+    padding: 0.6rem 1.2rem;
+    position: relative;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    max-width: 90%;
+
+    // Triángulo decorativo apuntando a la mascota
+    &::after {
+      content: '';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 10px solid transparent;
+      border-bottom-color: white;
+      border-top: 0;
+    }
+  }
+
+  &__message {
+    font-size: clamp(0.85rem, 3.5vw, 1rem);
+    font-weight: 700;
+    color: #444;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+// ── Animaciones de la mascota ─────────────────────────────
+@keyframes shake {
+  from { transform: rotate(-5deg) scale(1.05); }
+  to   { transform: rotate(5deg) scale(1.05); }
+}
+
+@keyframes jump {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-12px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-6px); }
+  75%       { transform: translateX(6px); }
+}

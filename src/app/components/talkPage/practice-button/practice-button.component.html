@@ -1,0 +1,37 @@
+<div class="practice-button-wrapper">
+
+  <button
+    class="practice-button"
+    [class.practice-button--listening]="isListening()"
+    [class.practice-button--disabled]="isDisabled()"
+    [disabled]="isDisabled()"
+    [attr.aria-label]="buttonLabel()"
+    (click)="onButtonClick()"
+    type="button"
+  >
+    <!-- Ondas animadas (solo al escuchar) -->
+    @if (isListening()) {
+      <span class="practice-button__wave practice-button__wave--1" aria-hidden="true"></span>
+      <span class="practice-button__wave practice-button__wave--2" aria-hidden="true"></span>
+      <span class="practice-button__wave practice-button__wave--3" aria-hidden="true"></span>
+    }
+
+    <span class="practice-button__content">
+      {{ buttonLabel() }}
+    </span>
+  </button>
+
+  <!-- Barra de progreso de los 5 segundos -->
+  @if (isListening()) {
+    <div class="practice-button__progress-track" role="progressbar"
+         [attr.aria-valuenow]="countdown()"
+         aria-valuemin="0" aria-valuemax="5"
+         aria-label="Tiempo restante de escucha">
+      <div
+        class="practice-button__progress-bar"
+        [style.width.%]="progressWidth()"
+      ></div>
+    </div>
+  }
+
+</div>

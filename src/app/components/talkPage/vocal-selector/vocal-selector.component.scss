@@ -1,0 +1,128 @@
+// =========================================================
+//  VocalSelector — Tarjetas de selección de vocal
+//  Layout: 3 arriba + 2 abajo centradas
+// =========================================================
+
+.vocal-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 340px;
+
+  // Las dos últimas tarjetas van en la segunda fila centradas
+  // col 1 de 3 se usa para centrar el par: posicionamos en col 1 y 2
+  .vocal-card:nth-child(4) {
+    grid-column: 1 / 2;
+    justify-self: end;
+  }
+
+  .vocal-card:nth-child(5) {
+    grid-column: 2 / 3;
+    justify-self: start;
+  }
+}
+
+.vocal-card {
+  // Layout
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+
+  // Tamaño base (mobile-first)
+  width: clamp(80px, 20vw, 100px);
+  height: clamp(96px, 24vw, 116px);
+  border-radius: 20px;
+  padding: 0.5rem 0.25rem;
+
+  // Apariencia
+  background: white;
+  border: 3px solid transparent;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  // Transiciones
+  transition:
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+
+  // ── Elementos internos ──────────────────────────────────
+  &__emoji {
+    font-size: clamp(1.5rem, 5vw, 1.8rem);
+    line-height: 1;
+    display: block;
+  }
+
+  &__letter {
+    font-size: clamp(1.6rem, 6vw, 2rem);
+    font-weight: 900;
+    color: var(--card-color, #333);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  &__word {
+    font-size: clamp(0.6rem, 2vw, 0.9rem);
+    font-weight: 800;
+    color: #888;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+
+  &__check {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    font-size: 0.85rem;
+    font-weight: 900;
+    color: var(--card-color, #33aa44);
+  }
+
+  // ── Estado: hover ───────────────────────────────────────
+  &:hover:not(&--disabled) {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+  }
+
+  // ── Estado: activo (tap) ────────────────────────────────
+  &:active:not(&--disabled) {
+    transform: scale(0.95);
+  }
+
+  // ── Estado: seleccionado ────────────────────────────────
+  &--selected {
+    border-color: var(--card-color, #33aa44);
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--card-color, #33aa44) 25%, transparent),
+      0 6px 18px rgba(0, 0, 0, 0.15);
+    transform: scale(1.06);
+
+    &:hover {
+      transform: scale(1.06) translateY(-2px);
+    }
+  }
+
+  // ── Estado: deshabilitado (escuchando) ──────────────────
+  &--disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+}
+
+// ── Responsive: pantallas más anchas ─────────────────────
+@media (min-width: 420px) {
+  .vocal-selector {
+    gap: 1rem;
+    max-width: 380px;
+  }
+}

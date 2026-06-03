@@ -1,0 +1,15 @@
+<header class="mascot-header">
+  <!-- Mascota (lagartija, igual que en la app principal) -->
+  <div class="mascot-header__mascot" [ngClass]="mascotStateClass()" aria-hidden="true">
+    <!-- TODO: reemplazar por <img> con el asset real de la lagartija -->
+    <span class="mascot-header__mascot-placeholder">🦎</span>
+  </div>
+
+  <!-- Burbuja de diálogo con mensaje dinámico -->
+  <div class="mascot-header__bubble" role="status" aria-live="polite">
+    <p class="mascot-header__message">{{ message() }}</p>
+  </div>
+
+  <!-- Título de la pantalla -->
+  <h1 class="mascot-header__title">¡Hablemos!</h1>
+</header>

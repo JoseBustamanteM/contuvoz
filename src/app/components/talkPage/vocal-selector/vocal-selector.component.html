@@ -1,0 +1,23 @@
+<div class="vocal-selector" role="group" aria-label="Vocales para practicar">
+  @for (vocal of vocals; track vocal.letter) {
+    <button
+      class="vocal-card"
+      [class.vocal-card--selected]="isSelected(vocal.letter)"
+      [class.vocal-card--disabled]="isDisabled()"
+      [attr.aria-pressed]="isSelected(vocal.letter)"
+      [attr.aria-label]="'Vocal ' + vocal.letter + ', ejemplo: ' + vocal.word"
+      [style.--card-color]="vocal.color"
+      (click)="selectVocal(vocal.letter)"
+      type="button"
+    >
+      <span class="vocal-card__emoji" aria-hidden="true">{{ vocal.emoji }}</span>
+      <span class="vocal-card__letter">{{ vocal.letter }}</span>
+      <span class="vocal-card__word">{{ vocal.word }}</span>
+
+      <!-- Indicador de selección -->
+      @if (isSelected(vocal.letter)) {
+        <span class="vocal-card__check" aria-hidden="true">✓</span>
+      }
+    </button>
+  }
+</div>
