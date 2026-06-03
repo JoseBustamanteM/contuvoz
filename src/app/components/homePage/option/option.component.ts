@@ -14,7 +14,7 @@ export class OptionComponent {
     {
       id: 1,
       name: 'Pinta Letras',
-      img: '/images/gecko dibujando.png',
+      img: 'assets/images/gecko dibujando.png',      
       alt: 'Gecko con pincel',
       icon: '🎨',
       url: '/drawPage'
