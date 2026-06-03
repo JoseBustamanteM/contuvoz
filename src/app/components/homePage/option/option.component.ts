@@ -13,7 +13,7 @@ export class OptionComponent {
   images: ImageItem[] = [
     {
       id: 1,
-      name: 'Pinta Letras',
+      name: 'Pinta',
       img: 'images/gecko dibujando.png',      
       alt: 'Gecko con pincel',
       icon: '🎨',
