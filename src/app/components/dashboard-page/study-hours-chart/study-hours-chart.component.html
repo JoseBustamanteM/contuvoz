@@ -1,0 +1,20 @@
+<div class="chart-card">
+  <div class="card-header">
+    <span class="card-icon">📚</span>
+    <div>
+      <h3 class="card-title">Mis horas de estudio</h3>
+      <p class="card-sub">Esta semana · {{ totalHours }}h en total</p>
+    </div>
+    <div class="best-day-badge">
+      <span class="badge-label">🔥 Mejor día</span>
+      <span class="badge-value">{{ bestDay }}</span>
+    </div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas #chartCanvas role="img"
+      aria-label="Gráfico de líneas con horas de estudio por día de la semana">
+      Lunes 0.5h, Martes 1.2h, Miércoles 0.8h, Jueves 1.5h, Viernes 1.0h, Sábado 0.3h, Domingo 0.7h.
+    </canvas>
+  </div>
+</div>

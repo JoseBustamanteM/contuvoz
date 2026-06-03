@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap');
+
+// ── Page shell ─────────────────────────────────────────────────────────────────
+.page-wrapper {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+  font-family: 'Nunito', sans-serif;
+}
+
+// ── Animated sky background ───────────────────────────────────────────────────
+.bg-sky {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #4DD0E1 0%, #80DEEA 40%, #B2EBF2 100%);
+  z-index: 0;
+}
+
+// ── Hills ─────────────────────────────────────────────────────────────────────
+.hill {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1;
+}
+
+.hill-back {
+  height: 220px;
+  animation: hillSway 9s ease-in-out infinite;
+}
+
+.hill-front {
+  height: 180px;
+  animation: hillSway 6s ease-in-out infinite reverse;
+}
+
+@keyframes hillSway {
+  0%, 100% { transform: translateX(0); }
+  50%       { transform: translateX(8px); }
+}
+
+// ── Main content ───────────────────────────────────────────────────────────────
+.dashboard-content {
+  position: relative;
+  z-index: 10;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Hero header ───────────────────────────────────────────────────────────────
+.hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  border-radius: 24px;
+  padding: 18px 24px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.10);
+}
+
+.hero-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  font-size: 3rem;
+  line-height: 1;
+  background: #E8F5E9;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 0 rgba(0,0,0,0.10);
+  flex-shrink: 0;
+}
+
+.hero-greeting {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #1b5e20;
+  margin: 0;
+}
+
+.hero-sub {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 3px 0 0;
+  font-weight: 700;
+}
+
+// ── Level / XP pill ───────────────────────────────────────────────────────────
+.level-pill {
+  background: #E8F5E9;
+  border-radius: 18px;
+  padding: 12px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  min-width: 140px;
+}
+
+.level-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #2e7d32;
+}
+
+.xp-track {
+  width: 100%;
+  height: 10px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #66BB6A, #43A047);
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(.4, 0, .2, 1);
+}
+
+.xp-label {
+  font-size: 0.72rem;
+  color: #555;
+  font-weight: 700;
+}
+
+// ── Section wrapper ───────────────────────────────────────────────────────────
+.section {
+  width: 100%;
+}
+
+.grid-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}

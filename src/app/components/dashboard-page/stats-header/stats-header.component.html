@@ -1,0 +1,12 @@
+<div class="stats-grid">
+  @for (stat of stats; track stat.label) {
+    <div class="stat-card">
+      <span class="stat-icon">{{ stat.icon }}</span>
+      <div class="stat-body">
+        <span class="stat-label">{{ stat.label }}</span>
+        <span class="stat-value" [style.color]="stat.color">{{ stat.value }}</span>
+        <span class="stat-sub">{{ stat.sublabel }}</span>
+      </div>
+    </div>
+  }
+</div>

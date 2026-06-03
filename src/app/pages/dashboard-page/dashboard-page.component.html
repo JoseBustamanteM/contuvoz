@@ -1,0 +1,50 @@
+<div class="page-wrapper">
+
+  <!-- Fondo animado igual que la app -->
+  <div class="bg-sky" aria-hidden="true"></div>
+  <svg class="hill hill-back"  viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,220 C240,100 480,320 720,200 C960,80 1200,280 1440,160 L1440,320 L0,320 Z" fill="#81C784"/>
+  </svg>
+  <svg class="hill hill-front" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0,260 C200,140 440,320 720,240 C1000,160 1240,300 1440,200 L1440,320 L0,320 Z" fill="#4CAF50"/>
+  </svg>
+
+  <main class="dashboard-content">
+
+    <!-- Hero -->
+    <header class="hero-header">
+      <div class="hero-left">
+        <span class="avatar">{{ avatarEmoji }}</span>
+        <div class="hero-text">
+          <h1 class="hero-greeting">¡Hola, {{ studentName }}! 👋</h1>
+          <p class="hero-sub">Mira todo lo que has aprendido esta semana</p>
+        </div>
+      </div>
+      <div class="level-pill">
+        <span class="level-label">Nivel {{ level }}</span>
+        <div class="xp-track">
+          <div class="xp-fill" [style.width]="xpPct + '%'"></div>
+        </div>
+        <span class="xp-label">{{ xp }} / {{ xpNext }} XP</span>
+      </div>
+    </header>
+
+    <!-- Métricas rápidas -->
+    <section class="section" aria-label="Resumen">
+      <app-stats-header />
+    </section>
+
+    <!-- Barras de aprobación + líneas de horas -->
+    <section class="section grid-two" aria-label="Progreso y horas de estudio">
+      <app-progress-chart />
+      <app-study-hours-chart />
+    </section>
+
+    <!-- Dona de actividades + logros -->
+    <section class="section grid-two" aria-label="Actividades y logros">
+      <app-activity-donut />
+      <app-achievement-card />
+    </section>
+
+  </main>
+</div>

@@ -1,0 +1,26 @@
+<div class="chart-card">
+  <div class="card-header">
+    <span class="card-icon">🏆</span>
+    <div>
+      <h3 class="card-title">Mi aprobación</h3>
+      <p class="card-sub">¿Qué tan bien lo estoy haciendo?</p>
+    </div>
+  </div>
+
+  <div class="legend-row">
+    @for (act of activities; track act.label) {
+      <div class="legend-item">
+        <span class="legend-dot" [style.background]="act.color"></span>
+        <span class="legend-label">{{ act.label }}</span>
+        <span class="legend-pct" [style.color]="act.color">{{ act.pct }}%</span>
+      </div>
+    }
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas #chartCanvas role="img"
+      aria-label="Gráfico de barras horizontales con porcentaje de aprobación por actividad">
+      Pinta Letras 88%, Lengua de Señas 74%, Vocales 90%.
+    </canvas>
+  </div>
+</div>

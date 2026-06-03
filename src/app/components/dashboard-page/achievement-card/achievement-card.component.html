@@ -1,0 +1,24 @@
+<div class="achieve-card">
+  <div class="card-header">
+    <span class="card-icon">🏅</span>
+    <div>
+      <h3 class="card-title">Mis logros</h3>
+      <p class="card-sub">
+        {{ achievements }}
+        de {{ achievements.length }} desbloqueados
+      </p>
+    </div>
+  </div>
+
+  <div class="achieve-grid">
+    @for (a of achievements; track a.title) {
+      <div class="achieve-item" [class.locked]="!a.unlocked" [title]="a.desc">
+        <span class="achieve-icon">{{ a.icon }}</span>
+        <span class="achieve-title">{{ a.title }}</span>
+        @if (!a.unlocked) {
+          <span class="lock-icon">🔒</span>
+        }
+      </div>
+    }
+  </div>
+</div>

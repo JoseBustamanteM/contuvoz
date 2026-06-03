@@ -1,0 +1,43 @@
+<div class="chart-card">
+  <div class="card-header">
+    <span class="card-icon">🎯</span>
+    <div>
+      <h3 class="card-title">Mis actividades</h3>
+      <p class="card-sub">{{ totalSessions }} sesiones completadas</p>
+    </div>
+  </div>
+
+  <div class="donut-row">
+    <div class="canvas-wrap">
+      <canvas #chartCanvas role="img"
+        aria-label="Gráfico de dona con distribución de sesiones por actividad">
+        Pinta Letras 34, Comunícate 21, Hablemos 28, Biblioteca 15.
+      </canvas>
+      <div class="donut-center">
+        <span class="donut-icon">{{ favoriteActivity.icon }}</span>
+        <span class="donut-label">favorita</span>
+      </div>
+    </div>
+
+    <div class="legend-col">
+      @for (act of activities; track act.label) {
+        <div class="legend-row">
+          <span class="legend-icon">{{ act.icon }}</span>
+          <div class="legend-info">
+            <span class="legend-name">{{ act.label }}</span>
+            <div class="legend-bar-track">
+              <div
+                class="legend-bar-fill"
+                [style.width]="getPct(act.sessions) + '%'"
+                [style.background]="act.color">
+              </div>
+            </div>
+          </div>
+          <span class="legend-pct" [style.color]="act.color">
+            {{ getPct(act.sessions) }}%
+          </span>
+        </div>
+      }
+    </div>
+  </div>
+</div>
