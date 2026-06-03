@@ -3,6 +3,7 @@
 @import "tailwindcss";
 
 body {
+
   background-image: url('/images/fondo.jpg');
   background-size: cover;      /* Para que cubra toda la pantalla */
   background-position: center; /* Para que la imagen quede centrada */
