@@ -1,16 +1,15 @@
 import { Component } from '@angular/core';
-import { LetterSelectorComponent} from "../../components/drawPage/letter-selector/letter-selector.component";
-import { LetterTracerComponent} from "../../components/drawPage/letter-tracer/letter-tracer.component";
-
+import { LetterSelectorComponent } from '../../components/drawPage/letter-selector/letter-selector.component';
+import { LetterTracerComponent } from '../../components/drawPage/letter-tracer/letter-tracer.component';
+import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
 
 @Component({
-  selector: 'app-root',
+  selector: 'app-draw-page',
   standalone: true,
-  imports: [LetterTracerComponent, LetterSelectorComponent],
+  imports: [LetterTracerComponent, LetterSelectorComponent, BackButtonComponent],
   templateUrl: './drawPage.component.html',
-  styleUrls: ['./drawPage.component.scss']
+  styleUrls: ['./drawPage.component.scss'],
 })
 export class DrawPageComponent {
-  // Letra seleccionada por defecto
   currentLetter: string = 'A';
 }

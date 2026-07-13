@@ -10,14 +10,12 @@ import { VocalLetter, PracticeState } from '../../../pages/talkPage/talkpage.com
   styleUrl: './result-feedback.component.scss',
 })
 export class ResultFeedbackComponent {
-  // ── Inputs ──────────────────────────────────────────────
   practiceState = input<PracticeState>('idle');
   selectedVocal = input<VocalLetter | null>(null);
+  detectedVocal = input<VocalLetter | null>(null);   // 👈 NUEVO
 
-  // ── Outputs ─────────────────────────────────────────────
   retry = output<void>();
 
-  // ── Computados ──────────────────────────────────────────
   isSuccess = computed(() => this.practiceState() === 'success');
 
   title = computed(() =>
@@ -25,13 +23,18 @@ export class ResultFeedbackComponent {
   );
 
   subtitle = computed(() => {
-    const vocal = this.selectedVocal();
-    return this.isSuccess()
-      ? `Dijiste la "${vocal}" perfectamente`
-      : `La vocal "${vocal}" suena un poco diferente`;
+    const target = this.selectedVocal();
+    const said = this.detectedVocal();
+
+    if (this.isSuccess()) {
+      return `Dijiste la "${target}" perfectamente`;
+    }
+    if (!said) {
+      return 'No te escuché bien. Acércate al micrófono e inténtalo 🎤';
+    }
+    return `Dijiste la "${said}" en lugar de la "${target}"`;
   });
 
-  // ── Handler ──────────────────────────────────────────────
   onRetry(): void {
     this.retry.emit();
   }

@@ -5,6 +5,7 @@ import { ProgressChartComponent }   from '../../components/dashboard-page/progre
 import { StudyHoursChartComponent } from '../../components/dashboard-page/study-hours-chart/study-hours-chart.component';
 import { ActivityDonutComponent }   from '../../components/dashboard-page/activity-donut/activity-donut.component';
 import { AchievementCardComponent } from '../../components/dashboard-page/achievement-card/achievement-card.component';
+import { BackButtonComponent }      from '../../components/shared/back-button/back-button.component';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -16,7 +17,7 @@ import { AchievementCardComponent } from '../../components/dashboard-page/achiev
     StudyHoursChartComponent,
     ActivityDonutComponent,
     AchievementCardComponent,
-
+    BackButtonComponent,
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrls: ['./dashboard-page.component.scss'],
@@ -25,7 +26,7 @@ export class DashboardPageComponent {
   readonly studentName = 'Sofía';
   readonly avatarEmoji = '🦎';
   readonly level = 5;
-  readonly xp    = 320;
+  readonly xp = 320;
   readonly xpNext = 500;
 
   get xpPct(): number {
