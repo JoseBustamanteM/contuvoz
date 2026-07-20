@@ -1,0 +1,155 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:C:/Users/Diego/Desktop/bdcontuvoz/bdcontuvoz"
+}
+
+model actividad {
+  id_actividad            Int                       @id @default(autoincrement())
+  id_usuario              Int
+  id_tipo_actividad       Int
+  fecha_actividad         DateTime                  @default(now())
+  tipo_actividad          tipo_actividad            @relation(fields: [id_tipo_actividad], references: [id_tipo_actividad], onDelete: NoAction, onUpdate: NoAction)
+  usuario                 usuario                   @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+  resultado_pintado       resultado_pintado[]
+  resultado_pronunciacion resultado_pronunciacion[]
+  resultado_sign          resultado_sign[]
+}
+
+model archivo_biblioteca {
+  id_archivo             Int      @id @default(autoincrement())
+  titulo_archivo         String
+  descripcion_archivo    String?
+  ruta_archivo_url       String
+  tipo_archivo           String
+  date_subido            DateTime @default(now())
+  id_usuario             Int
+  imagen_url             String
+  imagen_descripcion_url String
+  usuario                usuario  @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model ciudad {
+  id_ciudad  Int      @id
+  nom_ciudad String
+  id_region  Int
+  region     region   @relation(fields: [id_region], references: [id_region], onDelete: NoAction, onUpdate: NoAction)
+  comuna     comuna[]
+}
+
+model colegio {
+  id_colegio     Int       @id
+  nom_colegio    String
+  direc_colegio  String
+  colegio_normal String
+  date_registro  DateTime  @default(now())
+  id_comuna      Int
+  comuna         comuna    @relation(fields: [id_comuna], references: [id_comuna], onDelete: NoAction, onUpdate: NoAction)
+  usuario        usuario[]
+}
+
+model comuna {
+  id_comuna  Int       @id
+  nom_comuna String
+  id_ciudad  Int
+  colegio    colegio[]
+  ciudad     ciudad    @relation(fields: [id_ciudad], references: [id_ciudad], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model pais {
+  id_pais  Int      @id
+  nom_pais String
+  region   region[]
+}
+
+model region {
+  id_region  Int      @id
+  nom_region String
+  id_pais    Int
+  ciudad     ciudad[]
+  pais       pais     @relation(fields: [id_pais], references: [id_pais], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model resultado_pintado {
+  id_res_pintado   Int       @id @default(autoincrement())
+  id_actividad     Int
+  trazo_interno    Float
+  trazo_externo    Float
+  area_completada  Float
+  aprobado_pintado Int       @default(0)
+  duracion_pintado Int
+  actividad        actividad @relation(fields: [id_actividad], references: [id_actividad], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model resultado_pronunciacion {
+  id_res_pronun   Int       @id @default(autoincrement())
+  id_actividad    Int
+  texto_esperado  String
+  texto_detectado String
+  porc_confianza  Float
+  aprobado_pronun Int       @default(0)
+  actividad       actividad @relation(fields: [id_actividad], references: [id_actividad], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model resultado_sign {
+  id_res_sign     Int       @id @default(autoincrement())
+  id_actividad    Int
+  letra_esperada  String
+  letra_detectada String
+  porc_confianza  Float
+  aprobado_sign   Int       @default(0)
+  actividad       actividad @relation(fields: [id_actividad], references: [id_actividad], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model rol {
+  id_rol  Int       @id
+  nom_rol String
+  usuario usuario[]
+}
+
+model sesion {
+  id_sesion     Int       @id @default(autoincrement())
+  id_usuario    Int?
+  rut_intentado String
+  exitosa       Int
+  fecha_inicio  DateTime  @default(now())
+  fecha_fin     DateTime?
+  ip_origen     String?
+  user_agent    String?
+  motivo_fin    String?
+  usuario       usuario?  @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model tipo_actividad {
+  id_tipo_actividad Int         @id
+  nom_actividad     String
+  actividad_on      String
+  actividad         actividad[]
+}
+
+model usuario {
+  id_usuario         Int                  @id @default(autoincrement())
+  id_rol             Int
+  id_colegio         Int
+  nom_usuario        String
+  segun_nombre       String
+  rut_usuario        String
+  a_paterno          String
+  a_materno          String
+  telefono_usuario   String
+  email              String
+  url_avatar         String?
+  activo             Int                  @default(1)
+  ult_actividad      DateTime?            @default(now())
+  date_registro      DateTime             @default(now())
+  created_by         String
+  disabled_by        String?
+  actividad          actividad[]
+  archivo_biblioteca archivo_biblioteca[]
+  sesion             sesion[]
+  rol                rol                  @relation(fields: [id_rol], references: [id_rol], onDelete: NoAction, onUpdate: NoAction)
+  colegio            colegio              @relation(fields: [id_colegio], references: [id_colegio], onDelete: NoAction, onUpdate: NoAction)
+}

@@ -4,7 +4,7 @@ import { DrawPageComponent } from './pages/drawPage/drawPage.component';
 import { SignLanguageComponent } from './pages/signLanguage/signLanguage.component';
 import { TalkPageComponent } from './pages/talkPage/talkpage.component';
 import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
-
+import { DbTestComponent } from './pages/db-test/db-test.component';
 export const routes: Routes = [
   {
     path: '',
@@ -25,6 +25,10 @@ export const routes: Routes = [
   {
     path: 'dashboard-page',
     component: DashboardPageComponent
+  },
+    {
+    path: 'test-db',
+    component: DbTestComponent,
   },
   {
     path: '**',
