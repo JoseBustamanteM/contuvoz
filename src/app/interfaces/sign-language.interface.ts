@@ -19,3 +19,16 @@ export interface VowelLevel {
   image: string;
   description: string;
 }
+
+
+export interface ResultadoSign {
+  letraEsperada: string;
+  letraDetectada: string;
+  porcConfianza: number;
+}
+
+export interface ResultadoSignGuardado extends ResultadoSign {
+  idResSign: number;
+  idActividad: number;
+  aprobadoSign: boolean;
+}

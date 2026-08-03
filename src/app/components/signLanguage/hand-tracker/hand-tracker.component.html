@@ -1,31 +1,56 @@
 <div class="ls-chile-container">
   <div class="status-bar">
-    @for(v of VOWELS; track v; let i = $index) {
-      <div class="dot" [class.active]="i === currentIndex()" [class.done]="i < currentIndex()">
-        {{ v }}
+    @for (letra of ['A','E','I','O','U']; track letra; let i = $index) {
+      <div class="dot" [class.active]="i === indiceActual() && !testFinalizado()" [class.done]="i < indiceActual()">
+        {{ letra }}
       </div>
     }
   </div>
-
-  <div class="reference-box">
-      <img [src]="currentLevel().image" [alt]="'Cómo hacer la ' + currentLevel().letter">
-      <p>Copia esta posición</p>
-    </div>
 
   <div class="camera-card" [class.win]="isCorrect()">
     <video #videoElement autoplay playsinline muted></video>
     <canvas #canvasElement></canvas>
 
-    <div class="instruction-overlay">
-      Haz la letra <span>{{ VOWELS[currentIndex()] }}</span>
-    </div>
+    @if (!isModelReady()) {
+      <div class="instruction-overlay">Cargando cámara...</div>
+    } @else if (!testFinalizado()) {
+      <div class="instruction-overlay">
+        Haz la letra <span>{{ currentLevel().letter }}</span>
+      </div>
+      <div class="timer-badge">{{ tiempoRestante() }}s</div>
+    }
 
-    @if(isCorrect()) {
-      <div class="win-msg">¡Excelente! </div>
+    @if (isCorrect()) {
+      <div class="win-msg">¡Bien! 🎉</div>
+    }
+
+    @if (testFinalizado()) {
+      <div class="win-msg">¡Evaluación completa! 🏆</div>
     }
   </div>
 
-  <div class="hint-box">
-    LSCh - Lengua de Señas Chilena
+  <p class="hint-box">{{ currentLevel().description }}</p>
+
+  @if (debug) {
+    <div class="debug-panel">
+      @for (item of puntajesDebug() | keyvalue; track item.key) {
+        <span>{{ item.key }}: {{ item.value }}%</span>
+      }
+    </div>
+  }
+
+  @if (debug) {
+  <div class="debug-panel">
+    @for (item of puntajesDebug() | keyvalue; track item.key) {
+      <span>{{ item.key }}: {{ item.value }}%</span>
+    }
   </div>
+
+  <div class="debug-panel raw">
+    <strong>Medidas crudas para {{ currentLevel().letter }}:</strong>
+    @for (item of medidasCrudasDebug() | keyvalue; track item.key) {
+      <span>{{ item.key }}: {{ item.value }}</span>
+    }
+  </div>
+}
 </div>

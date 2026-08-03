@@ -1,7 +1,7 @@
 <div class="h-[100dvh] overflow-hidden flex flex-col p-2">
   <app-back-button />
 
-  <section class="bg-white p-3 rounded-3xl shadow-xl max-w-xl w-full border-4 border-green-300
+  <section class="bg-white p-3 rounded-3xl shadow-xl max-w-3xl w-full border-4 border-green-300
                   text-center mx-auto flex-1 min-h-0 flex flex-col overflow-hidden">
     <main class="main-layout">
       <p class="text-base font-semibold text-green-800 flex items-center justify-center gap-2">
@@ -9,8 +9,36 @@
       </p>
       <h1 class="text-lg font-bold text-green-700">🎨 ¡Dibuja la letra!</h1>
 
-      <letter-selector (letterSelected)="currentLetter = $event"></letter-selector>
-      <letter-tracer [letter]="currentLetter"></letter-tracer>
+      <letter-selector (letterSelected)="onLetraCambiada($event)"></letter-selector>
+      <letter-tracer
+        [letter]="currentLetter"
+        (resultadoListo)="onResultadoListo($event)">
+      </letter-tracer>
+
+      @if (ultimoResultado(); as r) {
+        <div class="resultado-box" [class.aprobado]="r.aprobadoPintado" [class.reprobado]="!r.aprobadoPintado">
+          @if (r.aprobadoPintado) {
+            <p class="titulo">🎉 ¡Lo lograste con la letra {{ r.letraEsperada }}!</p>
+          } @else {
+            <p class="titulo">💪 Casi lo tienes con la letra {{ r.letraEsperada }}</p>
+          }
+          <p class="detalle">Puntaje: {{ r.puntajeFinal }}%</p>
+        </div>
+      }
+
+      @if (estadoGuardado() === 'guardando') {
+        <p class="text-sm text-gray-500">Guardando tu progreso...</p>
+      }
+
+
+      @if (estadoGuardado() === 'error') {
+  <div class="error-guardado">
+    <p class="text-sm text-red-500">No se pudo guardar tu progreso 😕</p>
+    <button (click)="reintentarManualmente()" class="btn-reintentar">
+      Reintentar
+    </button>
+  </div>
+}
     </main>
   </section>
 </div>

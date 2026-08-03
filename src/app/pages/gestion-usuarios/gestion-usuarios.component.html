@@ -1,0 +1,63 @@
+<div class="h-[100dvh] overflow-y-auto flex flex-col p-4">
+  <app-back-button />
+
+  <div class="max-w-4xl w-full mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-xl font-bold text-green-700">👥 Gestión de usuarios</h1>
+      <button (click)="abrirCreacion()" class="btn-crear">+ Nuevo usuario</button>
+    </div>
+
+    @if (error()) {
+      <p class="text-red-500 mb-3">{{ error() }}</p>
+    }
+
+    @if (cargando()) {
+      <p class="text-gray-500">Cargando usuarios...</p>
+    } @else {
+      <table class="tabla-usuarios">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>RUT</th>
+            <th>Rol</th>
+            <th>Correo</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of usuarios(); track u.idUsuario) {
+            <tr [class.fila-inactiva]="!u.activo">
+              <td>{{ u.primerNombre }} {{ u.aPaterno }}</td>
+              <td>{{ u.rutUsuario }}</td>
+              <td>{{ nombreRol[u.idRol] }}</td>
+              <td>{{ u.correo }}</td>
+              <td>
+                <span [class.badge-activo]="u.activo" [class.badge-inactivo]="!u.activo">
+                  {{ u.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="acciones">
+                <button (click)="abrirEdicion(u)" class="btn-link">Editar</button>
+                <button (click)="alternarActivo(u)" class="btn-link">
+                  {{ u.activo ? 'Desactivar' : 'Reactivar' }}
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6" class="text-center text-gray-400">No hay usuarios registrados</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
+  @if (mostrarFormulario()) {
+    <usuario-form
+      [usuario]="usuarioEnEdicion()"
+      [rolesDisponibles]="rolesQuePuedeCrear()"
+      (guardado)="onGuardado()"
+      (cancelado)="cerrarFormulario()">
+    </usuario-form>
+  }
+</div>

@@ -1,5 +1,11 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, signal, Input } from '@angular/core';
+import {
+  Component, ElementRef, ViewChild, AfterViewInit,
+  signal, Input, Output, EventEmitter,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ResultadoPintado } from '../../../interfaces/actividad.interface';
+
+const UMBRAL_GUARDADO = 50;
 
 @Component({
   selector: 'letter-tracer',
@@ -12,24 +18,26 @@ export class LetterTracerComponent implements AfterViewInit {
   @ViewChild('bgCanvas') bgCanvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('drawCanvas') drawCanvasRef!: ElementRef<HTMLCanvasElement>;
 
+  @Output() resultadoListo = new EventEmitter<ResultadoPintado>();
+
   private bgCtx!: CanvasRenderingContext2D;
   private drawCtx!: CanvasRenderingContext2D;
 
-  private canvasSize = 500;
-
+  private canvasSize = 700;
   private _currentLetter = 'A';
   private isDrawing = false;
   private isViewInitialized = false;
 
+  private inicioTrazado: number | null = null;
+
   public resultMessage = signal<string>('');
   public resultColor = signal<string>('black');
+  public tieneTrazo = signal<boolean>(false);
 
   @Input()
   set letter(value: string) {
     this._currentLetter = value;
-    if (this.isViewInitialized) {
-      this.resetCanvas();
-    }
+    if (this.isViewInitialized) this.resetCanvas();
   }
 
   ngAfterViewInit(): void {
@@ -50,7 +58,7 @@ export class LetterTracerComponent implements AfterViewInit {
     this.bgCtx = bgCanvas.getContext('2d', { willReadFrequently: true })!;
     this.drawCtx = drawCanvas.getContext('2d', { willReadFrequently: true })!;
 
-    this.drawCtx.lineWidth = 20;
+    this.drawCtx.lineWidth = 28;
     this.drawCtx.lineCap = 'round';
     this.drawCtx.lineJoin = 'round';
     this.drawCtx.strokeStyle = 'rgba(0, 0, 255, 0.6)';
@@ -58,25 +66,34 @@ export class LetterTracerComponent implements AfterViewInit {
 
   private drawGuideLetter() {
     const fontName = 'Playwrite CU';
-    const fontSize = '220px';
+    const fontSize = '310px';
     const letterToDraw = this._currentLetter.toLowerCase();
 
-    document.fonts.load(`${fontSize} "${fontName}"`).then(() => {
-      this.bgCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
-      this.bgCtx.fillStyle = '#e0e0ff';
-      this.bgCtx.strokeStyle = '#e0e0ff';
-      this.bgCtx.lineWidth = 5;
-      this.bgCtx.textAlign = 'center';
-      this.bgCtx.textBaseline = 'middle';
-      this.bgCtx.font = `${fontSize} "${fontName}"`;
-
-      const x = this.canvasSize / 2;
-      const y = this.canvasSize / 2 - 30;
-
-      this.bgCtx.fillText(letterToDraw, x, y);
-      this.bgCtx.strokeText(letterToDraw, x, y);
-    });
+    document.fonts
+      .load(`${fontSize} "${fontName}"`)
+      .then(() => this.pintarGuia(letterToDraw, fontSize, fontName))
+      .catch(() => this.pintarGuia(letterToDraw, fontSize, 'sans-serif'));
   }
+
+  private pintarGuia(letra: string, fontSize: string, fontName: string) {
+    this.bgCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    this.bgCtx.fillStyle = '#e0e0ff';
+    this.bgCtx.strokeStyle = '#e0e0ff';
+    this.bgCtx.lineWidth = 5;
+    this.bgCtx.textAlign = 'center';
+    this.bgCtx.textBaseline = 'middle';
+    this.bgCtx.font = `${fontSize} "${fontName}"`;
+
+    const x = this.canvasSize / 2;
+    const y = this.canvasSize / 2 - 30;
+
+    this.bgCtx.fillText(letra, x, y);
+    this.bgCtx.strokeText(letra, x, y);
+    this.bgCtx.font = `${fontSize} "${fontName}"`;
+console.log('Font aplicado:', this.bgCtx.font);
+  }
+
+
 
   private resetCanvas() {
     this.clear();
@@ -85,7 +102,12 @@ export class LetterTracerComponent implements AfterViewInit {
   }
 
   startDrawing(event: MouseEvent | TouchEvent) {
+    // El cronómetro parte con el primer trazo, no al abrir la página
+    if (this.inicioTrazado === null) this.inicioTrazado = Date.now();
+
     this.isDrawing = true;
+    this.tieneTrazo.set(true);
+
     const { x, y } = this.getCoordinates(event);
     this.drawCtx.beginPath();
     this.drawCtx.moveTo(x, y);
@@ -104,7 +126,6 @@ export class LetterTracerComponent implements AfterViewInit {
     this.drawCtx.closePath();
   }
 
-  // 👇 Escala las coordenadas: el canvas mide 500px pero en pantalla se ve más chico.
   private getCoordinates(event: MouseEvent | TouchEvent) {
     const canvas = this.drawCanvasRef.nativeElement;
     const rect = canvas.getBoundingClientRect();
@@ -118,16 +139,15 @@ export class LetterTracerComponent implements AfterViewInit {
       clientY = event.touches[0].clientY;
     }
 
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY,
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top) * (canvas.height / rect.height),
     };
   }
 
   verify() {
+    if (!this.tieneTrazo()) return;
+
     const bgData = this.bgCtx.getImageData(0, 0, this.canvasSize, this.canvasSize).data;
     const drawData = this.drawCtx.getImageData(0, 0, this.canvasSize, this.canvasSize).data;
 
@@ -147,14 +167,49 @@ export class LetterTracerComponent implements AfterViewInit {
       }
     }
 
-    if (targetPixels === 0) return;
+    if (targetPixels === 0) {
+      this.resultMessage.set('No se pudo cargar la letra, recarga la página');
+      this.resultColor.set('#e74c3c');
+      return;
+    }
 
-    const coveragePercent = (coveredPixels / targetPixels) * 100;
+    const totalPintado = coveredPixels + outsidePixels;
+
+    // Cuánto de la letra alcanzó a cubrir
+    const areaCompletada = (coveredPixels / targetPixels) * 100;
+
+    // De todo lo que pintó, cuánto cayó dentro y cuánto fuera (suman 100)
+    const trazoInterno = totalPintado > 0 ? (coveredPixels / totalPintado) * 100 : 0;
+    const trazoExterno = totalPintado > 0 ? (outsidePixels / totalPintado) * 100 : 0;
+
+    // Puntaje con penalización (fórmula original)
     const penaltyPercent = (outsidePixels / targetPixels) * 100;
-    let finalScore = coveragePercent - penaltyPercent * 0.75;
-    if (finalScore < 0) finalScore = 0;
+    const puntajeFinal = Math.max(0, Math.min(100, areaCompletada - penaltyPercent * 0.75));
 
-    this.showResult(finalScore);
+    const duracionPintado = this.inicioTrazado
+      ? Math.round((Date.now() - this.inicioTrazado) / 1000)
+      : 0;
+
+    this.showResult(puntajeFinal);
+
+    if (areaCompletada >= UMBRAL_GUARDADO) {
+      this.resultadoListo.emit({
+        letraEsperada: this._currentLetter,
+        trazoInterno: this.redondear(trazoInterno),
+        trazoExterno: this.redondear(trazoExterno),
+        areaCompletada: this.redondear(areaCompletada),
+        puntajeFinal: this.redondear(puntajeFinal),
+        duracionPintado,
+      });
+
+      // Se guardó: dejamos el lienzo limpio para el próximo intento,
+      // pero mantenemos el mensaje de resultado a la vista
+      this.limpiarTrazo();
+    }
+  }
+
+  private redondear(valor: number): number {
+    return Math.round(valor * 100) / 100;
   }
 
   private showResult(score: number) {
@@ -170,10 +225,17 @@ export class LetterTracerComponent implements AfterViewInit {
     this.resultColor.set(color);
   }
 
+  /** Borra el trazo y reinicia el cronómetro, sin tocar el mensaje */
+  private limpiarTrazo() {
+    if (!this.drawCtx) return;
+    this.drawCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    this.tieneTrazo.set(false);
+    this.inicioTrazado = null;
+  }
+
+  /** Botón "Borrar": limpia todo, incluido el mensaje */
   clear() {
-    if (this.drawCtx) {
-      this.drawCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
-      this.resultMessage.set('');
-    }
+    this.limpiarTrazo();
+    this.resultMessage.set('');
   }
 }

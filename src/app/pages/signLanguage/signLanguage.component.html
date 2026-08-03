@@ -3,9 +3,31 @@
 <div class="talk-page-container">
   <h1>¡Hora de Practicar! 👋</h1>
 
-  <div class="camera-area">
-    <hand-tracker></hand-tracker>
-  </div>
+  @if (!evaluacionActiva()) {
+    <button (click)="iniciarEvaluacion()" class="btn-iniciar">🎥 Iniciar evaluación</button>
 
-  <div class="controls"></div>
+    @if (resumen().length > 0) {
+      <div class="resumen-box">
+        <h3>Resultado de tu última evaluación:</h3>
+        @for (r of resumen(); track r.idResSign) {
+          <p [class.ok]="r.aprobadoSign" [class.fail]="!r.aprobadoSign">
+            {{ r.letraEsperada }}: {{ r.aprobadoSign ? '✅' : '❌' }} ({{ r.porcConfianza }}%)
+          </p>
+        }
+      </div>
+    }
+  } @else {
+    <div class="camera-area">
+      <hand-tracker
+        (resultadoListo)="onResultadoListo($event)"
+        (testTerminado)="onTestTerminado()">
+      </hand-tracker>
+    </div>
+
+    <button (click)="volverAIntentar()" class="btn-volver">Volver</button>
+  }
+
+  @if (errorGuardado()) {
+    <p class="text-red-500">No se pudo guardar uno de los resultados 😕</p>
+  }
 </div>

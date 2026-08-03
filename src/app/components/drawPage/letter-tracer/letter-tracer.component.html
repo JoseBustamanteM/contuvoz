@@ -22,8 +22,12 @@
   }
 
   <div class="controls">
-    <button (click)="verify()" class="btn btn-verify">Verificar ✅</button>
-    <button (click)="clear()" class="btn btn-clear">Borrar 🧹</button>
-  </div>
+  <button (click)="verify()" [disabled]="!tieneTrazo()" class="btn btn-verify">
+    Verificar ✅
+  </button>
+  <button (click)="clear()" [disabled]="!tieneTrazo()" class="btn btn-clear">
+    Borrar 🧹
+  </button>
+</div>
 
 </div>
