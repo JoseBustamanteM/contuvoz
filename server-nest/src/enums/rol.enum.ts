@@ -1,0 +1,7 @@
+export enum Rol {
+  ADMINISTRADOR = 1,
+  ADMIN_COLEGIO = 2,
+  PROFESOR = 3,
+  APODERADO = 4,
+  ESTUDIANTE = 5,
+}

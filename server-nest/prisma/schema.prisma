@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Rol {
+  idRol    Int       @id @map("id_rol")
+  nomRol   String    @map("nom_rol") @db.VarChar(100)
+  activo   Boolean   @default(true)
+  usuarios Usuario[]
+
+  @@map("rol")
+}
+
+model Pais {
+  idPais   Int      @id @map("id_pais")
+  nomPais  String   @map("nom_pais") @db.VarChar(100)
+  activo   Boolean  @default(true)
+  regiones Region[]
+
+  @@map("pais")
+}
+
+model Region {
+  idRegion  Int      @id @map("id_region")
+  nomRegion String   @map("nom_region") @db.VarChar(100)
+  idPais    Int      @map("id_pais")
+  activo    Boolean  @default(true)
+  ciudades  Ciudad[]
+  pais      Pais     @relation(fields: [idPais], references: [idPais], map: "region_ibfk_1")
+
+  @@index([idPais], map: "idx_region_pais")
+  @@map("region")
+}
+
+model Ciudad {
+  idCiudad  Int      @id @map("id_ciudad")
+  nomCiudad String   @map("nom_ciudad") @db.VarChar(100)
+  idRegion  Int      @map("id_region")
+  activo    Boolean  @default(true)
+  region    Region   @relation(fields: [idRegion], references: [idRegion], map: "ciudad_ibfk_1")
+  comunas   Comuna[]
+
+  @@index([idRegion], map: "idx_ciudad_region")
+  @@map("ciudad")
+}
+
+model Comuna {
+  idComuna  Int       @id @map("id_comuna")
+  nomComuna String    @map("nom_comuna") @db.VarChar(100)
+  idCiudad  Int       @map("id_ciudad")
+  activo    Boolean   @default(true)
+  colegios  Colegio[]
+  ciudad    Ciudad    @relation(fields: [idCiudad], references: [idCiudad], map: "comuna_ibfk_1")
+
+  @@index([idCiudad], map: "idx_comuna_ciudad")
+  @@map("comuna")
+}
+
+model Colegio {
+  idColegio     Int       @id @map("id_colegio")
+  nomColegio    String    @map("nom_colegio") @db.VarChar(200)
+  direcColegio  String    @map("direc_colegio") @db.VarChar(255)
+  colegioNormal Boolean   @map("colegio_normal")
+  activo        Boolean   @default(true)
+  fechaRegistro DateTime  @default(now()) @map("fecha_registro") @db.DateTime(0)
+  idComuna      Int       @map("id_comuna")
+  comuna        Comuna    @relation(fields: [idComuna], references: [idComuna], map: "colegio_ibfk_1")
+  usuarios      Usuario[]
+
+  @@index([idComuna], map: "idx_colegio_comuna")
+  @@map("colegio")
+}
+
+model TipoActividad {
+  idTipoActividad Int         @id @map("id_tipo_actividad")
+  nomActividad    String      @map("nom_actividad") @db.VarChar(150)
+  activa          Boolean     @default(true)
+  actividades     Actividad[]
+
+  @@map("tipo_actividad")
+}
+
+model Usuario {
+  idUsuario              Int                 @id @default(autoincrement()) @map("id_usuario")
+  idRol                  Int                 @map("id_rol")
+  idColegio              Int                 @map("id_colegio")
+  rutUsuario             String              @unique(map: "rut_usuario") @map("rut_usuario") @db.VarChar(20)
+  claveHash              String              @map("clave_hash") @db.VarChar(255)
+  primerNombre           String              @map("primer_nombre") @db.VarChar(100)
+  segundoNombre          String              @map("segundo_nombre") @db.VarChar(100)
+  aPaterno               String              @map("a_paterno") @db.VarChar(100)
+  aMaterno               String              @map("a_materno") @db.VarChar(100)
+  telefonoUsuario        String              @map("telefono_usuario") @db.VarChar(20)
+  correo                 String              @unique(map: "correo") @db.VarChar(150)
+  urlAvatar              String?             @map("url_avatar") @db.VarChar(255)
+  activo                 Boolean             @default(true)
+  ultActividad           DateTime?           @default(now()) @map("ult_actividad") @db.DateTime(0)
+  fechaRegistro          DateTime            @default(now()) @map("fecha_registro") @db.DateTime(0)
+  creadoPor              Int                 @map("creado_por")
+  deshabilitadoPor       Int?                @map("deshabilitado_por")
+  actividades            Actividad[]
+  archivos               ArchivoBiblioteca[]
+  sesiones               Sesion[]
+  sesionTokens           SesionToken[]
+  colegio                Colegio             @relation(fields: [idColegio], references: [idColegio], map: "usuario_ibfk_1")
+  rol                    Rol                 @relation(fields: [idRol], references: [idRol], map: "usuario_ibfk_2")
+  creador                Usuario             @relation("UsuarioCreador", fields: [creadoPor], references: [idUsuario], map: "usuario_ibfk_3")
+  usuariosCreados        Usuario[]           @relation("UsuarioCreador")
+  deshabilitador         Usuario?            @relation("UsuarioDeshabilitador", fields: [deshabilitadoPor], references: [idUsuario], onDelete: Restrict, map: "usuario_ibfk_4")
+  usuariosDeshabilitados Usuario[]           @relation("UsuarioDeshabilitador")
+
+  @@index([idColegio], map: "idx_usuario_colegio")
+  @@index([creadoPor], map: "idx_usuario_creado_por")
+  @@index([deshabilitadoPor], map: "idx_usuario_deshabilitado_por")
+  @@index([idRol], map: "idx_usuario_rol")
+  @@map("usuario")
+}
+
+model Actividad {
+  idActividad            Int                     @id @default(autoincrement()) @map("id_actividad")
+  idUsuario              Int                     @map("id_usuario")
+  idTipoActividad        Int                     @map("id_tipo_actividad")
+  fechaActividad         DateTime                @default(now()) @map("fecha_actividad") @db.DateTime(0)
+  usuario                Usuario                 @relation(fields: [idUsuario], references: [idUsuario], map: "actividad_ibfk_1")
+  tipoActividad          TipoActividad           @relation(fields: [idTipoActividad], references: [idTipoActividad], map: "actividad_ibfk_2")
+  resultadoPintado       ResultadoPintado?
+  resultadoPronunciacion ResultadoPronunciacion?
+  resultadoSign          ResultadoSign?
+
+  @@index([idTipoActividad], map: "idx_actividad_tipo")
+  @@index([idUsuario], map: "idx_actividad_usuario")
+  @@map("actividad")
+}
+
+model ResultadoPintado {
+  idResPintado    Int       @id @default(autoincrement()) @map("id_res_pintado")
+  idActividad     Int       @unique(map: "id_actividad") @map("id_actividad")
+  letraEsperada   String    @map("letra_esperada") @db.VarChar(10)
+  trazoInterno    Float     @map("trazo_interno")
+  trazoExterno    Float     @map("trazo_externo")
+  areaCompletada  Float     @map("area_completada")
+  puntajeFinal    Float     @map("puntaje_final")
+  aprobadoPintado Boolean   @default(false) @map("aprobado_pintado")
+  duracionPintado Int       @map("duracion_pintado")
+  actividad       Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_pintado_ibfk_1")
+
+  @@map("resultado_pintado")
+}
+
+model ResultadoPronunciacion {
+  idResPronun    Int       @id @default(autoincrement()) @map("id_res_pronun")
+  idActividad    Int       @unique(map: "id_actividad") @map("id_actividad")
+  textoEsperado  String    @map("texto_esperado") @db.Text
+  textoDetectado String    @map("texto_detectado") @db.Text
+  porcConfianza  Float     @map("porc_confianza")
+  aprobadoPronun Boolean   @default(false) @map("aprobado_pronun")
+  actividad      Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_pronunciacion_ibfk_1")
+
+  @@map("resultado_pronunciacion")
+}
+
+model ResultadoSign {
+  idResSign      Int       @id @default(autoincrement()) @map("id_res_sign")
+  idActividad    Int       @unique(map: "id_actividad") @map("id_actividad")
+  letraEsperada  String    @map("letra_esperada") @db.VarChar(10)
+  letraDetectada String    @map("letra_detectada") @db.VarChar(10)
+  porcConfianza  Float     @map("porc_confianza")
+  aprobadoSign   Boolean   @default(false) @map("aprobado_sign")
+  actividad      Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_sign_ibfk_1")
+
+  @@map("resultado_sign")
+}
+
+model ArchivoBiblioteca {
+  idArchivo            Int      @id @default(autoincrement()) @map("id_archivo")
+  tituloArchivo        String   @map("titulo_archivo") @db.VarChar(200)
+  descripcionArchivo   String?  @map("descripcion_archivo") @db.Text
+  rutaArchivoUrl       String   @map("ruta_archivo_url") @db.VarChar(500)
+  tipoArchivo          String   @map("tipo_archivo") @db.VarChar(50)
+  fechaSubido          DateTime @default(now()) @map("fecha_subido") @db.DateTime(0)
+  idUsuario            Int      @map("id_usuario")
+  imagenUrl            String   @map("imagen_url") @db.VarChar(500)
+  imagenDescripcionUrl String   @map("imagen_descripcion_url") @db.VarChar(500)
+  usuario              Usuario  @relation(fields: [idUsuario], references: [idUsuario], map: "archivo_biblioteca_ibfk_1")
+
+  @@index([idUsuario], map: "idx_archivo_usuario")
+  @@map("archivo_biblioteca")
+}
+
+model Sesion {
+  idSesion     Int           @id @default(autoincrement()) @map("id_sesion")
+  idUsuario    Int?          @map("id_usuario")
+  rutIntentado String        @map("rut_intentado") @db.VarChar(20)
+  exitosa      Boolean
+  fechaInicio  DateTime      @default(now()) @map("fecha_inicio") @db.DateTime(0)
+  fechaFin     DateTime?     @map("fecha_fin") @db.DateTime(0)
+  ipOrigen     String?       @map("ip_origen") @db.VarChar(45)
+  userAgent    String?       @map("user_agent") @db.VarChar(255)
+  motivoFin    String?       @map("motivo_fin") @db.VarChar(255)
+  usuario      Usuario?      @relation(fields: [idUsuario], references: [idUsuario], onDelete: Restrict, map: "sesion_ibfk_1")
+  sesionTokens SesionToken[]
+
+  @@index([idUsuario], map: "idx_sesion_usuario")
+  @@map("sesion")
+}
+
+model SesionToken {
+  idSesionToken    Int      @id @default(autoincrement()) @map("id_sesion_token")
+  idUsuario        Int      @map("id_usuario")
+  idSesion  Int?     @map("id_sesion")
+  refreshTokenHash String   @unique(map: "refresh_token_hash") @map("refresh_token_hash") @db.VarChar(255)
+  fechaCreacion    DateTime @default(now()) @map("fecha_creacion") @db.DateTime(0)
+  fechaExpiracion  DateTime @map("fecha_expiracion") @db.DateTime(0)
+  revocado         Boolean  @default(false)
+  ipOrigen         String?  @map("ip_origen") @db.VarChar(45)
+  userAgent        String?  @map("user_agent") @db.VarChar(255)
+  usuario          Usuario  @relation(fields: [idUsuario], references: [idUsuario], map: "sesion_token_ibfk_1")
+  sesion    Sesion?  @relation(fields: [idSesion], references: [idSesion], map: "sesion_token_ibfk_2")
+
+  @@index([idUsuario], map: "idx_sesion_token_usuario")
+  @@index([idSesion], map: "sesion_token_ibfk_2")
+  @@map("sesion_token")
+}
