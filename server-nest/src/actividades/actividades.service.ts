@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { GuardarPintadoDto } from '../../src/auth/dto/guardar-pintado.dto';
+import { GuardarPintadoDto } from './dto/guardar-pintado.dto';
 import { GuardarSignDto } from './dto/guardar-sign.dto';
 
 
@@ -57,7 +57,7 @@ export class ActividadesService {
         letraEsperada: dto.letraEsperada.toUpperCase(),
         letraDetectada: dto.letraDetectada.toUpperCase(),
         porcConfianza: dto.porcConfianza,
-        aprobadoSign: dto.porcConfianza >= UMBRAL_APROBADO_SIGN,
+        aprobadoSign: dto.porcConfianza >= UMBRAL_APROBADO_SIGN && dto.sostenida,
       },
     });
 

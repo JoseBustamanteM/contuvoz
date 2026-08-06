@@ -4,15 +4,52 @@
   <h1>¡Hora de Practicar! 👋</h1>
 
   @if (!evaluacionActiva()) {
-    <button (click)="iniciarEvaluacion()" class="btn-iniciar">🎥 Iniciar evaluación</button>
+    <button (click)="iniciarEvaluacion()" class="btn-iniciar">🤟 Iniciar evaluación</button>
 
-    @if (resumen().length > 0) {
+    @if (mostrarResumen()) {
       <div class="resumen-box">
         <h3>Resultado de tu última evaluación:</h3>
-        @for (r of resumen(); track r.idResSign) {
-          <p [class.ok]="r.aprobadoSign" [class.fail]="!r.aprobadoSign">
-            {{ r.letraEsperada }}: {{ r.aprobadoSign ? '✅' : '❌' }} ({{ r.porcConfianza }}%)
+
+        <!-- track por letraEsperada: son las 5 vocales, no se repiten en una corrida.
+             Antes se usaba idResSign, que solo existía si el servidor respondía. -->
+        @for (r of resumen(); track r.letraEsperada) {
+          <p [class.ok]="r.aprobado" [class.fail]="!r.aprobado">
+            {{ r.letraEsperada }}: {{ r.aprobado ? '✅' : '❌' }}
+            <span class="veredicto">{{ r.aprobado ? '¡Lo lograste!' : 'Sigamos practicando' }}</span>
+
+            @if (!r.aprobado && r.letraDetectada !== 'NINGUNA') {
+              <span class="detectada">— vimos una {{ r.letraDetectada }}</span>
+            }
+
+            <!-- Estado de guardado, separado del resultado pedagógico: el niño ve
+                 su nota aunque la BD no haya respondido. -->
+            @switch (r.guardado) {
+              @case ('pendiente') {
+                <span class="estado-guardado pendiente" title="Guardando…">⏳</span>
+              }
+              @case ('error') {
+                <span class="estado-guardado error" title="No se pudo guardar">⚠️</span>
+              }
+            }
           </p>
+        }
+
+        @if (fallosDeGuardado() > 0) {
+          <div class="aviso-guardado">
+            <p>
+              No pudimos guardar
+              {{ fallosDeGuardado() === 1 ? 'un resultado' : fallosDeGuardado() + ' resultados' }}.
+              Tu evaluación está completa, solo falta registrarla.
+            </p>
+            <button
+              type="button"
+              class="btn-reintentar"
+              [disabled]="reintentando()"
+              (click)="reintentarGuardado()"
+            >
+              {{ reintentando() ? 'Reintentando…' : 'Reintentar guardado' }}
+            </button>
+          </div>
         }
       </div>
     }
@@ -20,14 +57,11 @@
     <div class="camera-area">
       <hand-tracker
         (resultadoListo)="onResultadoListo($event)"
-        (testTerminado)="onTestTerminado()">
+        (testTerminado)="onTestTerminado()"
+      >
       </hand-tracker>
     </div>
 
     <button (click)="volverAIntentar()" class="btn-volver">Volver</button>
-  }
-
-  @if (errorGuardado()) {
-    <p class="text-red-500">No se pudo guardar uno de los resultados 😕</p>
   }
 </div>

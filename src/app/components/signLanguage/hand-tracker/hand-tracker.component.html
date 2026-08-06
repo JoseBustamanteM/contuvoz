@@ -1,7 +1,11 @@
 <div class="ls-chile-container">
   <div class="status-bar">
-    @for (letra of ['A','E','I','O','U']; track letra; let i = $index) {
-      <div class="dot" [class.active]="i === indiceActual() && !testFinalizado()" [class.done]="i < indiceActual()">
+    @for (letra of VOCALES; track letra; let i = $index) {
+      <div
+        class="dot"
+        [class.active]="i === indiceActual() && !testFinalizado()"
+        [class.done]="i < indiceActual()"
+      >
         {{ letra }}
       </div>
     }
@@ -11,8 +15,21 @@
     <video #videoElement autoplay playsinline muted></video>
     <canvas #canvasElement></canvas>
 
-    @if (!isModelReady()) {
-      <div class="instruction-overlay">Cargando cámara...</div>
+    @if (errorCamara()) {
+      <div class="instruction-overlay error">
+        {{ errorCamara() }}
+      </div>
+    } @else if (errorModelo()) {
+      <div class="instruction-overlay error">
+        {{ errorModelo() }}
+        <button type="button" class="btn-reintentar" (click)="reintentarModelo()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (cargandoModelo()) {
+      <!-- Mientras baja el modelo NO se muestra el cronómetro: no había empezado
+           a contar todavía, y verlo congelado confunde. -->
+      <div class="instruction-overlay">Preparando la cámara…</div>
     } @else if (!testFinalizado()) {
       <div class="instruction-overlay">
         Haz la letra <span>{{ currentLevel().letter }}</span>
@@ -29,7 +46,18 @@
     }
   </div>
 
-  <p class="hint-box">{{ currentLevel().description }}</p>
+  <!-- Referencia visual de la seña. El campo `image` de VowelLevel existía pero
+       no se mostraba en ningún lado: el niño solo tenía la descripción escrita. -->
+  @if (!testFinalizado() && !errorCamara() && !errorModelo() && !cargandoModelo()) {
+    <div class="referencia">
+      <img
+        class="referencia-img"
+        [src]="currentLevel().image"
+        [alt]="'Seña de la letra ' + currentLevel().letter + ' en lengua de señas chilena'"
+      />
+      <p class="hint-box">{{ currentLevel().description }}</p>
+    </div>
+  }
 
   @if (debug) {
     <div class="debug-panel">
@@ -37,20 +65,12 @@
         <span>{{ item.key }}: {{ item.value }}%</span>
       }
     </div>
+
+    <div class="debug-panel raw">
+      <strong>Medidas crudas para {{ currentLevel().letter }}:</strong>
+      @for (item of medidasCrudasDebug() | keyvalue; track item.key) {
+        <span>{{ item.key }}: {{ item.value }}</span>
+      }
+    </div>
   }
-
-  @if (debug) {
-  <div class="debug-panel">
-    @for (item of puntajesDebug() | keyvalue; track item.key) {
-      <span>{{ item.key }}: {{ item.value }}%</span>
-    }
-  </div>
-
-  <div class="debug-panel raw">
-    <strong>Medidas crudas para {{ currentLevel().letter }}:</strong>
-    @for (item of medidasCrudasDebug() | keyvalue; track item.key) {
-      <span>{{ item.key }}: {{ item.value }}</span>
-    }
-  </div>
-}
 </div>
