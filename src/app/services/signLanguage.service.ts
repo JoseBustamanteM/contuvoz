@@ -9,27 +9,78 @@ export class SignLanguageService {
   private handLandmarker?: HandLandmarker;
   isModelReady = signal(false);
 
+  /** Mensaje de error si el modelo no pudo cargarse. El componente lo muestra en pantalla. */
+  errorModelo = signal<string | null>(null);
+
+  /** Promesa de la carga en curso, para que el componente pueda esperarla
+   *  en vez de arrancar el cronómetro a ciegas. */
+  private cargaEnCurso?: Promise<void>;
+
+  /** El modelo son varios MB desde un CDN externo. En una red escolar lenta o con
+   *  filtros, el fetch puede quedarse colgado sin lanzar error nunca. */
+  private static readonly TIMEOUT_CARGA_MS = 30_000;
+
   constructor() {
-    this.initModel();
+    this.cargaEnCurso = this.initModel();
   }
 
-  private async initModel() {
-    const vision = await FilesetResolver.forVisionTasks(
-      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm',
-    );
-    this.handLandmarker = await HandLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath:
-          'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-        delegate: 'GPU',
-      },
-      runningMode: 'VIDEO',
-      numHands: 1,
-      minHandDetectionConfidence: 0.6,
-      minHandPresenceConfidence: 0.6,
-      minTrackingConfidence: 0.6,
-    });
-    this.isModelReady.set(true);
+  private async initModel(): Promise<void> {
+    this.errorModelo.set(null);
+
+    const conTimeout = <T>(promesa: Promise<T>): Promise<T> =>
+      Promise.race([
+        promesa,
+        new Promise<T>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('timeout')),
+            SignLanguageService.TIMEOUT_CARGA_MS,
+          ),
+        ),
+      ]);
+
+    try {
+      const vision = await conTimeout(
+        FilesetResolver.forVisionTasks(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm',
+        ),
+      );
+
+      this.handLandmarker = await conTimeout(
+        HandLandmarker.createFromOptions(vision, {
+          baseOptions: {
+            modelAssetPath:
+              'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+            delegate: 'GPU',
+          },
+          runningMode: 'VIDEO',
+          numHands: 1,
+          minHandDetectionConfidence: 0.6,
+          minHandPresenceConfidence: 0.6,
+          minTrackingConfidence: 0.6,
+        }),
+      );
+
+      this.isModelReady.set(true);
+    } catch (e) {
+      console.error('Error cargando el modelo de manos', e);
+      this.isModelReady.set(false);
+      this.errorModelo.set(
+        'No pudimos cargar el detector de manos. Revisa la conexión a internet e inténtalo de nuevo.',
+      );
+    }
+  }
+
+  /** Espera a que termine la carga. Devuelve false si falló: el componente NO debe
+   *  arrancar el cronómetro en ese caso. */
+  async esperarModelo(): Promise<boolean> {
+    await this.cargaEnCurso;
+    return this.isModelReady();
+  }
+
+  /** Reintento manual, para el botón de la pantalla de error. */
+  async reintentarCarga(): Promise<boolean> {
+    this.cargaEnCurso = this.initModel();
+    return this.esperarModelo();
   }
 
   detect(video: HTMLVideoElement): HandLandmarkerResult | null {

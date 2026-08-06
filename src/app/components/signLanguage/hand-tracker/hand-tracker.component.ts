@@ -8,7 +8,7 @@ import { DrawingUtils, HandLandmarker } from '@mediapipe/tasks-vision';
 import { Landmark, VowelLevel, ResultadoSign } from '../../../interfaces/sign-language.interface';
 
 const VOCALES = ['A', 'E', 'I', 'O', 'U'];
-const SEGUNDOS_POR_LETRA = 5;
+const SEGUNDOS_POR_LETRA = 7;
 const UMBRAL_APROBADO = 70;
 
 /** Diferencia mínima entre la letra objetivo y la rival más parecida, EN EL MISMO FRAME.
@@ -53,6 +53,15 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
 
   isModelReady = computed(() => this.signService.isModelReady());
 
+  /** Mientras esto sea true, el HTML debe mostrar "Preparando la cámara…" y NO
+   *  el cronómetro: el modelo todavía se está descargando del CDN. */
+  cargandoModelo = computed(
+    () => !this.signService.isModelReady() && !this.signService.errorModelo(),
+  );
+
+  /** Error de carga del modelo (red del colegio, CDN caído). Separado del de cámara. */
+  errorModelo = computed(() => this.signService.errorModelo());
+
   indiceActual = signal(0);
   tiempoRestante = signal(SEGUNDOS_POR_LETRA);
   isCorrect = signal(false);
@@ -74,6 +83,7 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
   private loopIniciado = false;
   private letraCerrada = false;
   private framesValidos = 0;
+  private destruido = false;
 
   private mejorConfianza = 0;
   /** Rival más parecida EN EL FRAME donde la objetivo puntuó mejor. Guardarla acá
@@ -89,16 +99,31 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
         video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
       });
 
+      if (this.destruido) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
       this.videoRef.nativeElement.srcObject = stream;
 
-      this.videoRef.nativeElement.onloadedmetadata = () => {
+      this.videoRef.nativeElement.onloadedmetadata = async () => {
         // onloadedmetadata puede dispararse más de una vez en algunos navegadores.
         // Sin este guard quedarían dos bucles de rAF corriendo en paralelo.
         if (this.loopIniciado) return;
         this.loopIniciado = true;
 
         this.videoRef.nativeElement.play();
+
+        // El loop arranca ya: mientras el modelo no esté, detect() devuelve null y
+        // solo se ve el video. Lo que NO puede arrancar es el cronómetro.
         this.startLoop();
+
+        // ⚠️ Antes el cronómetro partía acá mismo. Como el modelo se descarga de un
+        // CDN externo (varios MB), en una red lenta el niño perdía la letra A entera
+        // sin que se evaluara un solo frame.
+        const modeloOk = await this.signService.esperarModelo();
+        if (this.destruido || !modeloOk) return;
+
         this.iniciarLetraActual();
       };
     } catch (e) {
@@ -106,6 +131,14 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
       this.errorCamara.set(
         'No pudimos usar la cámara. Revisa que le hayas dado permiso al navegador.',
       );
+    }
+  }
+
+  /** Reintento manual de la carga del modelo, para el botón de la pantalla de error. */
+  async reintentarModelo() {
+    const ok = await this.signService.reintentarCarga();
+    if (ok && !this.destruido && !this.letraCerrada && this.tiempoRestante() === SEGUNDOS_POR_LETRA) {
+      this.iniciarLetraActual();
     }
   }
 
@@ -269,6 +302,7 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destruido = true;
     this.detenerLoop();
     if (this.intervaloTimer) clearInterval(this.intervaloTimer);
     // Sin esto, si el niño sale durante la pausa de 1.5s el callback igual se ejecuta
