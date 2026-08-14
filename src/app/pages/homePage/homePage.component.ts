@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { OptionComponent } from "../../components/homePage/option/option.component";
-import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
-import { LogoutButtonComponent } from '../../components/logout-button/logout-button.component';
 import { AuthService } from '../../services/auth.service';
-import { RouterLink } from '@angular/router';
+
 @Component({
   selector: 'homePage',
-  imports: [OptionComponent, LogoutButtonComponent, RouterLink,],
+  imports: [OptionComponent,],
   templateUrl: './homePage.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -17,10 +15,5 @@ export class HomePageComponent {
 }
 
 
-private authService = inject(AuthService);
-  usuario = this.authService.usuario;
 
-  ngOnInit() {
-    this.authService.cargarUsuario().subscribe();
-  }
 }

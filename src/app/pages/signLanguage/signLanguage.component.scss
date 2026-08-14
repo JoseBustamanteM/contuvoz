@@ -55,3 +55,98 @@ $text-color: #2d3436;
   75%  { transform: rotate(-15deg); }
   100% { transform: rotate(0deg); }
 }
+
+// ============================================================
+// Pegar al FINAL de signLanguage.component.scss
+// Estilos del resumen: veredicto por letra, estado de guardado
+// y aviso de reintento.
+// ============================================================
+
+.resumen-box {
+  p {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    font-size: 1.15rem;
+    margin: 0.35rem 0;
+  }
+}
+
+.veredicto {
+  font-weight: 700;
+}
+
+// El color acompaña al ✅/❌, nunca lo reemplaza: quien no distingue
+// rojo de verde igual lee el símbolo y la palabra.
+.resumen-box p.ok .veredicto {
+  color: #2e7d32;
+}
+
+.resumen-box p.fail .veredicto {
+  color: #c62828;
+}
+
+// "— vimos una O": secundario, no compite con el veredicto.
+.detectada {
+  font-size: 0.95rem;
+  color: #616161;
+  font-style: italic;
+}
+
+// Estado de guardado en la BD. Deliberadamente discreto: al niño le importa
+// su resultado, no si el POST respondió.
+.estado-guardado {
+  font-size: 0.9rem;
+  opacity: 0.75;
+
+  &.pendiente {
+    // Animación suave para que se note que algo está en curso.
+    animation: parpadeo 1.4s ease-in-out infinite;
+  }
+}
+
+@keyframes parpadeo {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .estado-guardado.pendiente {
+    animation: none;
+  }
+}
+
+.aviso-guardado {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  text-align: center;
+
+  p {
+    display: block;
+    margin: 0 0 0.7rem;
+    font-size: 1rem;
+    color: #6d4c41;
+    line-height: 1.4;
+  }
+
+  .btn-reintentar {
+    min-height: 44px;
+    padding: 0.55rem 1.3rem;
+    border: none;
+    border-radius: 999px;
+    background: #f57c00;
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+  }
+}

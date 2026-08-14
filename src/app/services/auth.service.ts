@@ -43,14 +43,19 @@ export class AuthService {
     return this.accessToken() !== null;
   }
 
-  login(rutUsuario: string, password: string): Observable<LoginResponse> {
+login(rutUsuario: string, password: string): Observable<UsuarioActual | null> {
     return this.http
       .post<LoginResponse>(
         `${this.API}/login`,
         { rutUsuario, password },
         { withCredentials: true },
       )
-      .pipe(tap((res) => this.accessToken.set(res.accessToken)));
+      .pipe(
+        tap((res) => this.accessToken.set(res.accessToken)),
+        // El token solo no alcanza: el header, el rolGuard y cualquier vista que
+        // dependa de usuario() necesitan el perfil cargado ANTES de navegar.
+        switchMap(() => this.cargarUsuario()),
+      );
   }
 
   refresh(): Observable<LoginResponse | null> {
@@ -77,9 +82,13 @@ restaurarSesion(): Observable<UsuarioActual | null> {
     return this.http
       .post(`${this.API}/logout`, {}, { withCredentials: true })
       .pipe(
-        tap(() => this.accessToken.set(null)),
+        tap(() => {
+          this.accessToken.set(null);
+          this.usuario.set(null);      // 👈 falta esto
+        }),
         catchError(() => {
           this.accessToken.set(null);
+          this.usuario.set(null);      // 👈 y acá también
           return of(null);
         }),
       );

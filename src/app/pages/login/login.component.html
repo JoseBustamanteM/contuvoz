@@ -1,37 +1,91 @@
-<div class="login-container">
-  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-card">
-    <h1>Iniciar sesión</h1>
+<div class="min-h-[100dvh] flex items-center justify-center px-4 py-8">
 
+  <form [formGroup]="form" (ngSubmit)="onSubmit()"
+        class="w-full max-w-md rounded-3xl bg-white/95 backdrop-blur-sm
+               p-6 sm:p-8 ring-4 ring-white/70
+               shadow-[0_10px_0_rgba(16,185,129,0.45),0_20px_40px_rgba(0,0,0,0.15)]">
 
-    <label for="rut">RUT</label>
-    <input
-      id="rut"
-      type="text"
-      formControlName="rutUsuario"
-      placeholder="11111111-1"
-      autocomplete="username"
-    />
-    @if (form.controls.rutUsuario.touched && form.controls.rutUsuario.invalid) {
-      <small class="error">El RUT es obligatorio</small>
-    }
+    <!-- Mascota + título -->
+    <div class="flex flex-col items-center text-center mb-6">
+      <img src="images/gecko cara.png" alt=""
+           class="w-24 sm:w-28 mb-2 drop-shadow-md" />
+      <h1 class="font-infantil text-3xl sm:text-4xl font-extrabold text-emerald-500
+                 [-webkit-text-stroke:5px_white] [paint-order:stroke_fill]">
+        ¡Hola de nuevo!
+      </h1>
+      <p class="text-sm font-semibold text-emerald-800/70 mt-1">
+        Ingresa para empezar a jugar
+      </p>
+    </div>
 
-    <label for="password">Contraseña</label>
-    <input
-      id="password"
-      type="password"
-      formControlName="password"
-      autocomplete="current-password"
-    />
-    @if (form.controls.password.touched && form.controls.password.invalid) {
-      <small class="error">La contraseña es obligatoria</small>
-    }
+    <!-- RUT -->
+    <div class="mb-4">
+      <label for="rut" class="block text-left text-sm font-bold text-emerald-900 mb-1.5 pl-1">
+        👤 RUT
+      </label>
+      <input id="rut" type="text" formControlName="rutUsuario"
+             placeholder="11111111-1" autocomplete="username"
+             class="w-full rounded-2xl border-2 border-emerald-200 bg-emerald-50/60
+                    px-4 py-3 text-base font-semibold text-emerald-900
+                    placeholder:font-normal placeholder:text-emerald-400
+                    transition outline-none
+                    focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-200"
+             [class.!border-rose-400]="form.controls.rutUsuario.touched && form.controls.rutUsuario.invalid" />
+      @if (form.controls.rutUsuario.touched && form.controls.rutUsuario.invalid) {
+        <small class="mt-1 block pl-1 text-left text-xs font-bold text-rose-600">
+          El RUT es obligatorio
+        </small>
+      }
+    </div>
 
+    <!-- Contraseña -->
+    <div class="mb-5">
+      <label for="password" class="block text-left text-sm font-bold text-emerald-900 mb-1.5 pl-1">
+        🔒 Contraseña
+      </label>
+      <input id="password" type="password" formControlName="password"
+             placeholder="••••••••" autocomplete="current-password"
+             class="w-full rounded-2xl border-2 border-emerald-200 bg-emerald-50/60
+                    px-4 py-3 text-base font-semibold text-emerald-900
+                    placeholder:text-emerald-400
+                    transition outline-none
+                    focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-200"
+             [class.!border-rose-400]="form.controls.password.touched && form.controls.password.invalid" />
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small class="mt-1 block pl-1 text-left text-xs font-bold text-rose-600">
+          La contraseña es obligatoria
+        </small>
+      }
+    </div>
+
+    <!-- Error del servidor -->
     @if (error()) {
-      <p class="error-box">{{ error() }}</p>
+      <p class="mb-4 rounded-2xl bg-rose-100 px-4 py-3 text-sm font-bold text-rose-700
+                ring-2 ring-rose-200" role="alert">
+        😕 {{ error() }}
+      </p>
     }
 
-    <button type="submit" [disabled]="cargando()">
-      {{ cargando() ? 'Ingresando...' : 'Ingresar' }}
+    <!-- Botón -->
+    <button type="submit" [disabled]="cargando()"
+            class="w-full inline-flex items-center justify-center gap-2
+                   rounded-2xl bg-emerald-500 px-6 py-3.5
+                   text-lg font-extrabold text-white
+                   shadow-[0_5px_0_rgb(4,120,87)]
+                   transition active:translate-y-[3px] active:shadow-[0_2px_0_rgb(4,120,87)]
+                   hover:bg-emerald-400
+                   focus:outline-none focus-visible:ring-4 focus-visible:ring-emerald-200
+                   disabled:cursor-not-allowed disabled:opacity-60
+                   disabled:active:translate-y-0 disabled:hover:bg-emerald-500">
+      @if (cargando()) {
+        <svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        Ingresando...
+      } @else {
+        🚀 Ingresar
+      }
     </button>
   </form>
 </div>

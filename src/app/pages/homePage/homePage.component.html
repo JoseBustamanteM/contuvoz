@@ -1,21 +1,22 @@
-<div class="h-[100dvh] font-sans text-center px-4 py-3 flex flex-col overflow-hidden">
+<div class="h-[100dvh] font-sans text-center px-4 py-3 flex flex-col overflow-hidden mt-7 ">
 
-  <div class="header-bar">
-    <app-logout-button />
-    @if (usuario(); as u) {
-      @if ([1,2,3].includes(u.idRol)) {
-        <a routerLink="/gestion-usuarios" class="btn-gestion">👥 Usuarios</a>
-      }
-    }
-  </div>
+  <!-- Barra superior -->
+  <header class="shrink-0 flex items-center justify-end gap-2 sm:gap-3 mb-3">
 
-  @if (usuario(); as u) {
-    <p>Hola, {{ u.primerNombre }} {{ u.aPaterno }} ({{ u.rol.nomRol }})</p>
-  }
 
-  <h1 class="text-2xl sm:text-4xl font-bold text-white mb-2 shrink-0">
-    ¡Elige una actividad!
-  </h1>
+  </header>
+
+<h1 class="mb-3 shrink-0 inline-flex self-center items-center gap-2
+           rounded-full bg-white/90 px-6 py-2
+           shadow-[0_6px_0_rgba(16,185,129,0.6)] ring-2 ring-emerald-400">
+  <span class="text-2xl sm:text-4xl font-extrabold text-emerald-600">
+    ¡Elige una
+  </span>
+  <span class="text-2xl sm:text-4xl font-extrabold text-amber-500 -rotate-3 inline-block">
+    actividad!
+  </span>
+  <span class="text-2xl sm:text-4xl">🎨</span>
+</h1>
 
   <div class="flex-1 min-h-0 w-full flex justify-center overflow-hidden">
     <option-component class="w-full max-w-xl" />

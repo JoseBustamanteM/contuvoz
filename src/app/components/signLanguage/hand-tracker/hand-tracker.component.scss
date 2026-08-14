@@ -78,3 +78,81 @@
 
   span { background: white; padding: 2px 8px; border-radius: 6px; }
 }
+
+
+// ============================================================
+// Pegar al FINAL de hand-tracker.component.scss
+// Estilos de los estados nuevos: error de cámara, error de modelo,
+// carga, e imagen de referencia de la seña.
+// ============================================================
+
+// Overlay de error sobre el recuadro de la cámara.
+// Reusa .instruction-overlay y solo cambia el color, para que la posición
+// y el tamaño sigan viniendo de la regla que ya tenías.
+.instruction-overlay.error {
+  background: rgba(183, 28, 28, 0.92);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  line-height: 1.4;
+  text-align: center;
+  max-width: 90%;
+}
+
+.btn-reintentar {
+  // 44px es el mínimo cómodo para un dedo; los niños apuntan peor que un adulto.
+  min-height: 44px;
+  padding: 0.6rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: #b71c1c;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+// Referencia visual de la seña + descripción escrita.
+.referencia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.referencia-img {
+  // Acotada para que no empuje el layout ni desplace la cámara fuera de pantalla.
+  max-height: 140px;
+  max-width: 140px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.4rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 480px) {
+  .referencia-img {
+    max-height: 100px;
+    max-width: 100px;
+  }
+}

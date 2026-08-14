@@ -1,2 +1,35 @@
+<!-- src/app/app.html -->
+<div class="h-[100dvh] flex flex-col overflow-hidden">
 
-<router-outlet />
+  @if (usuario(); as u) {
+    <header class="shrink-0 flex items-center justify-end gap-2 sm:gap-3 px-3 py-2 sm:py-3">
+
+      <span class="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur-sm
+                   px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-semibold text-emerald-900
+                   shadow-md ring-1 ring-white/60">
+        <span class="text-sm sm:text-base">👋</span>
+        <span class="hidden sm:inline">{{ u.primerNombre }} {{ u.aPaterno }}</span>
+        <span class="sm:hidden">{{ u.primerNombre }}</span>
+        <span class="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] sm:text-xs font-bold text-white">
+          {{ u.rol.nomRol }}
+        </span>
+      </span>
+
+      @if ([1,2,3].includes(u.idRol)) {
+        <a routerLink="/gestion-usuarios"
+           class="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm
+                  px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900
+                  shadow-md ring-1 ring-white/60
+                  transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg">
+          👥 <span class="hidden sm:inline">Usuarios</span>
+        </a>
+      }
+
+      <app-logout-button />
+    </header>
+  }
+
+  <main class="flex-1 min-h-0 overflow-y-auto">
+    <router-outlet />
+  </main>
+</div>
