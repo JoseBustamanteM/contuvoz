@@ -7,6 +7,7 @@ import { ActividadesModule } from './actividades/actividades.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UsuariosModule } from './usuarios/dto/usuarios.module';
 import { ColegiosModule } from './colegios/colegios.module';
+import { BibliotecaModule } from './biblioteca/biblioteca.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ColegiosModule } from './colegios/colegios.module';
     ActividadesModule,
      UsuariosModule,
      ColegiosModule,
+     BibliotecaModule,
   ],
 })
 export class AppModule {}

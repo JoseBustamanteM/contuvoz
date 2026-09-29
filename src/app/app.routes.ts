@@ -9,6 +9,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { authGuard } from './guards/auth.guard';
 import { rolGuard } from './guards/rol.guard';
 import { GestionUsuariosComponent } from './pages/gestion-usuarios/gestion-usuarios.component';
+import { BibliotecaComponent } from './pages/biblioteca/biblioteca.component';
 export const routes: Routes = [
 
   { path: 'login', component: LoginComponent },
@@ -31,6 +32,11 @@ export const routes: Routes = [
     path: 'talkPage',
     component: TalkPageComponent,
     canActivate: [authGuard]
+  },
+  {
+    path: 'biblioteca',
+    component: BibliotecaComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'dashboard-page',
