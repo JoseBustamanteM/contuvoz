@@ -193,7 +193,7 @@ async function seedUsuarios(roles: { idRol: number }[], colegios: { idColegio: n
         idRol: 1, // admin
         idColegio: randomItem(colegios).idColegio,
         //rutUsuario: '11111111-1',
-        rutUsuario: '111111111',
+        rutUsuario: '123456789',
         claveHash,
         primerNombre: 'Admin',
         segundoNombre: 'Sistema',
@@ -417,7 +417,7 @@ async function main() {
   await seedActividadesYResultados(usuarios, tipos);
 
   console.log('\nSeed complete.');
-  console.log('Test login → RUT 111111111 / Password123! (admin)');
+  console.log('Test login → RUT 123456789 / Password123! (admin)');
   //console.log('Test login → RUT 11111111-1 / Password123! (admin)');
 }
 
