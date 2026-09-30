@@ -1,3 +1,7 @@
+# Carpeta de subidas
+uploads/biblioteca/*
+!uploads/biblioteca/.gitkeep
+
 # compiled output
 /dist
 /node_modules

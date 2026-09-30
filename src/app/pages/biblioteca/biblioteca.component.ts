@@ -9,7 +9,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { BibliotecaService } from '../../services/biblioteca.service';
 import { ArchivoBiblioteca } from '../../interfaces/biblioteca.interface';
-
+import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-biblioteca',
   imports: [RouterLink, DatePipe],
@@ -107,7 +107,7 @@ import { ArchivoBiblioteca } from '../../interfaces/biblioteca.interface';
                   </p>
 
                   <a
-                    [href]="archivo.rutaArchivoUrl"
+                    [href]="getArchivoUrl(archivo.rutaArchivoUrl)"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="mt-4 block rounded-xl bg-green-500 px-4 py-2
@@ -138,6 +138,10 @@ export class BibliotecaComponent implements OnInit {
 
   ngOnInit() {
     this.cargarArchivos();
+  }
+
+  getArchivoUrl(rutaArchivoUrl: string): string {
+    return `${environment.apiUrl}${rutaArchivoUrl}`;
   }
 
   cargarArchivos() {
