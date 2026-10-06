@@ -9,9 +9,15 @@ import { BackButtonComponent } from '../../components/shared/back-button/back-bu
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { VowelDetectorService } from '../../services/vowel-detector.service';
 import { ActividadesService } from '../../services/actividades.service';
+import { ResultadoPronunciacion } from '../../interfaces/pronunciacion.interface';
 
 export type VocalLetter = 'A' | 'E' | 'I' | 'O' | 'U';
 export type PracticeState = 'idle' | 'listening' | 'success' | 'failure';
+
+/** Cuánto escucha el detector. Es la ÚNICA fuente de la duración: el botón la
+ *  recibe como input para su cuenta regresiva. Antes cada uno tenía la suya y
+ *  los comentarios y la barra decían 5 s mientras se escuchaba 2. */
+export const DURACION_ESCUCHA_MS = 2000;
 
 @Component({
   selector: 'app-talk-page',
@@ -33,12 +39,24 @@ export class TalkPageComponent {
   private detector = inject(VowelDetectorService);
   private actividadesService = inject(ActividadesService);
 
+  readonly duracionEscuchaMs = DURACION_ESCUCHA_MS;
+
+  /** true solo cuando el micrófono ya está abierto. Mientras el navegador pide
+   *  permiso, practiceState ya es 'listening' pero esto sigue en false: así la
+   *  cuenta regresiva no se gasta esperando que el niño acepte el permiso. */
+  microfonoAbierto = this.detector.isListening;
+
+  /** Por qué no se pudo usar el micrófono (permiso negado, no hay micrófono...). */
+  errorMicrofono = this.detector.error;
+
   selectedVocal = signal<VocalLetter | null>(null);
   detectedVocal = signal<VocalLetter | null>(null);
   practiceState = signal<PracticeState>('idle');
   guardando = signal(false);
   errorGuardado = signal(false);
 
+  /** Último intento que no se pudo guardar, para el botón de reintento. */
+  private pendienteDeGuardar: ResultadoPronunciacion | null = null;
 
   onVocalSelected(vocal: VocalLetter): void {
     this.selectedVocal.set(vocal);
@@ -55,50 +73,49 @@ export class TalkPageComponent {
     this.errorGuardado.set(false);
 
     try {
-      const result = await this.detector.listen(vocal, 2000);
+      const result = await this.detector.listen(vocal, DURACION_ESCUCHA_MS);
       this.detectedVocal.set(result.detected as VocalLetter | null);
       this.practiceState.set(result.success ? 'success' : 'failure');
 
       // El intento se guarda SIEMPRE, acierte o no: un fallo es un dato
       // pedagógico tan válido como un acierto (con qué vocal se confunde).
-      this.guardarIntento(vocal, result.detected, result.confidence);
-    } catch {
-      // Permiso de micrófono denegado: no hay intento que guardar.
-      this.practiceState.set('failure');
-    }
-  }
-
-  private guardarIntento(
-    esperada: VocalLetter,
-    detectada: VocalLetter | null,
-    confianza: number,
-  ): void {
-    // Modo práctica: el backend respondería 403 para este rol.
-    if (!this.actividadesService.puedeGuardarProgreso()) return;
-
-    this.guardando.set(true);
-
-    this.actividadesService
-      .guardarPronunciacion({
-        textoEsperado: esperada,
+      this.guardarIntento({
+        textoEsperado: vocal,
         // La columna es NOT NULL: cuando no hubo voz suficiente se guarda
         // 'NINGUNA', igual que en señas. Distingue "se equivocó de vocal"
         // de "no llegó a hablar", que son cosas distintas para la profesora.
-        textoDetectado: detectada ?? 'NINGUNA',
+        textoDetectado: result.detected ?? 'NINGUNA',
         // El detector devuelve 0..1 y la columna espera 0..100.
-        porcConfianza: Math.round(confianza * 100),
-      })
-      .subscribe({
-        next: () => this.guardando.set(false),
-        error: () => {
-          this.guardando.set(false);
-          this.errorGuardado.set(true);
-        },
+        porcConfianza: Math.round(result.confidence * 100),
       });
+    } catch {
+      // No se pudo abrir el micrófono: no hubo intento, así que no se guarda
+      // nada ni se muestra "no te escuché". El motivo lo muestra errorMicrofono.
+      this.practiceState.set('idle');
+    }
   }
 
+  private guardarIntento(datos: ResultadoPronunciacion): void {
+    // Modo práctica: el backend respondería 403 para este rol.
+    if (!this.actividadesService.puedeGuardarProgreso()) return;
 
-  onRetry(): void {
-    this.practiceState.set('idle');
+    this.pendienteDeGuardar = datos;
+    this.guardando.set(true);
+    this.errorGuardado.set(false);
+
+    this.actividadesService.guardarPronunciacion(datos).subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.pendienteDeGuardar = null;
+      },
+      error: () => {
+        this.guardando.set(false);
+        this.errorGuardado.set(true);
+      },
+    });
+  }
+
+  reintentarGuardado(): void {
+    if (this.pendienteDeGuardar) this.guardarIntento(this.pendienteDeGuardar);
   }
 }

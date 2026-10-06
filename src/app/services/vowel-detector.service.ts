@@ -54,9 +54,9 @@ export class VowelDetectorService {
       stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true },
       });
-    } catch {
-      this.error.set('No se pudo acceder al micrófono.');
-      throw new Error('mic-denied');
+    } catch (e) {
+      this.error.set(this.mensajeErrorMicrofono(e));
+      throw new Error('mic-error');
     }
 
     // Declarados fuera del try para que el finally pueda limpiarlos aunque
@@ -132,6 +132,28 @@ export class VowelDetectorService {
         await audioCtx.close().catch(() => { /* ya cerrado */ });
       }
       this.isListening.set(false);
+    }
+  }
+
+  /** Explica en lenguaje simple por qué no se pudo abrir el micrófono. Antes
+   *  todo caía en el mismo mensaje y la página mostraba "No te escuché bien",
+   *  como si el niño hubiera hablado bajo. */
+  private mensajeErrorMicrofono(e: unknown): string {
+    if (!window.isSecureContext || !navigator.mediaDevices) {
+      return 'Este navegador no deja usar el micrófono en esta página. Ábrela con https.';
+    }
+    switch ((e as DOMException)?.name) {
+      case 'NotAllowedError':
+      case 'SecurityError':
+        return 'No tenemos permiso para usar el micrófono. Toca el candado 🔒 junto a la dirección de la página, permite el micrófono y vuelve a intentarlo.';
+      case 'NotFoundError':
+      case 'OverconstrainedError':
+        return 'No encontramos ningún micrófono. Conecta uno y vuelve a intentarlo.';
+      case 'NotReadableError':
+      case 'AbortError':
+        return 'El micrófono está ocupado por otra aplicación. Ciérrala y vuelve a intentarlo.';
+      default:
+        return 'No pudimos usar el micrófono. Recarga la página y vuelve a intentarlo.';
     }
   }
 

@@ -9,8 +9,8 @@
     (click)="onButtonClick()"
     type="button"
   >
-    <!-- Ondas animadas (solo al escuchar) -->
-    @if (isListening()) {
+    <!-- Ondas animadas (solo con el micrófono abierto) -->
+    @if (escuchando()) {
       <span class="practice-button__wave practice-button__wave--1" aria-hidden="true"></span>
       <span class="practice-button__wave practice-button__wave--2" aria-hidden="true"></span>
       <span class="practice-button__wave practice-button__wave--3" aria-hidden="true"></span>
@@ -21,11 +21,11 @@
     </span>
   </button>
 
-  <!-- Barra de progreso de los 5 segundos -->
-  @if (isListening()) {
+  <!-- Barra del tiempo de escucha -->
+  @if (escuchando()) {
     <div class="practice-button__progress-track" role="progressbar"
          [attr.aria-valuenow]="countdown()"
-         aria-valuemin="0" aria-valuemax="5"
+         aria-valuemin="0" [attr.aria-valuemax]="segundosTotales()"
          aria-label="Tiempo restante de escucha">
       <div
         class="practice-button__progress-bar"
