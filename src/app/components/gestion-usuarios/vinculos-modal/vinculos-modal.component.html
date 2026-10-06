@@ -1,0 +1,131 @@
+<div class="modal-fondo" (click)="intentarCerrar()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="titulo-vinculos"
+       (click)="$event.stopPropagation()">
+
+    <header class="modal__cabecera">
+      <div>
+        <h2 id="titulo-vinculos">🔗 Vínculos de {{ estudiante().primerNombre }} {{ estudiante().aPaterno }}</h2>
+        <p class="subtitulo">Quién acompaña a este estudiante</p>
+      </div>
+      <button type="button" class="btn-cerrar" aria-label="Cerrar" (click)="intentarCerrar()">✕</button>
+    </header>
+
+    <div class="modal__cuerpo">
+      @if (!estudiante().activo) {
+        <p class="nota">Este estudiante está desactivado: reactívalo para agregarle vínculos.</p>
+      }
+
+      @for (s of secciones; track s.tipo) {
+        <section class="seccion" [attr.aria-labelledby]="'sec-' + s.tipo">
+          <div class="seccion__cabecera">
+            <h3 [id]="'sec-' + s.tipo">{{ s.icono }} {{ s.titulo }}</h3>
+            @if (puedeAgregar(s.tipo) && agregando() !== s.tipo) {
+              <button type="button" class="btn btn--secundario btn--chico" (click)="abrirAgregar(s.tipo)">
+                ＋ Agregar {{ s.singular }}
+              </button>
+            }
+          </div>
+
+          <!-- Vínculos vigentes -->
+          @if (vigentesDe(s.tipo).length === 0) {
+            <p class="vacio" [class.vacio--alerta]="s.tipo === 'APODERADO'">
+              @if (s.tipo === 'APODERADO') { ⚠️ Todavía no tiene apoderado. }
+              @else { Sin profesor asignado. }
+            </p>
+          } @else {
+            <ul class="lista">
+              @for (v of vigentesDe(s.tipo); track v.idVinculo) {
+                <li class="persona">
+                  <span class="avatar" [class]="'avatar--' + s.tipo" aria-hidden="true">{{ iniciales(v.adulto) }}</span>
+                  <span class="persona__nombre">{{ v.adulto.primerNombre }} {{ v.adulto.aPaterno }}</span>
+
+                  @if (quitando()?.idVinculo === v.idVinculo) {
+                    <span class="confirmar" role="alert">
+                      ¿Quitar?
+                      <button type="button" class="btn btn--secundario btn--chico" [disabled]="guardando()"
+                              (click)="quitando.set(null)">No</button>
+                      <button type="button" class="btn btn--peligro btn--chico" [disabled]="guardando()"
+                              (click)="confirmarQuitar()">{{ guardando() ? '…' : 'Sí, quitar' }}</button>
+                    </span>
+                  } @else if (puedeQuitar(v)) {
+                    <button type="button" class="btn btn--peligro btn--chico"
+                            [attr.aria-label]="'Quitar a ' + v.adulto.primerNombre + ' como ' + s.singular"
+                            (click)="pedirQuitar(v)">Quitar</button>
+                  }
+                </li>
+              }
+            </ul>
+          }
+
+          <!-- Agregar -->
+          @if (agregando() === s.tipo) {
+            <div class="agregar">
+              @if (candidatos(s).length === 0) {
+                <p class="vacio">
+                  No hay {{ s.singular }}es disponibles en este colegio.
+                  @if (s.tipo === 'APODERADO') { Créalo primero con "Nuevo usuario". }
+                </p>
+                <button type="button" class="btn btn--secundario btn--chico" (click)="agregando.set(null)">Cerrar</button>
+              } @else {
+                <label class="sr-only" [for]="'sel-' + s.tipo">Elige un {{ s.singular }}</label>
+                <select [id]="'sel-' + s.tipo" [value]="elegido()"
+                        (change)="elegido.set(+$any($event.target).value)">
+                  <option value="0" disabled>Elige un {{ s.singular }}…</option>
+                  @for (c of candidatos(s); track c.idUsuario) {
+                    <option [value]="c.idUsuario">{{ c.primerNombre }} {{ c.aPaterno }} {{ c.aMaterno }}</option>
+                  }
+                </select>
+                <div class="agregar__botones">
+                  <button type="button" class="btn btn--secundario btn--chico" [disabled]="guardando()"
+                          (click)="agregando.set(null)">Cancelar</button>
+                  <button type="button" class="btn btn--primario btn--chico" [disabled]="!elegido() || guardando()"
+                          (click)="confirmarAgregar(s)">{{ guardando() ? 'Guardando…' : 'Vincular' }}</button>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      @if (error()) {
+        <p class="error-box" role="alert">😕 {{ error() }}</p>
+      }
+
+      <!-- Historial: solo administradores -->
+      @if (esAdmin()) {
+        <section class="historial">
+          <button type="button" class="btn-texto" [disabled]="cargandoHistorial()" (click)="verHistorial()">
+            {{ cargandoHistorial() ? 'Cargando…' : (historial() ? '▲ Ocultar historial' : '▼ Ver historial completo') }}
+          </button>
+
+          @if (historial(); as h) {
+            @if (h.length === 0) {
+              <p class="vacio">Este estudiante nunca ha tenido vínculos.</p>
+            } @else {
+              <ol class="linea-tiempo">
+                @for (v of h; track v.idVinculo) {
+                  <li [class.cerrado]="v.fechaFin">
+                    <span>
+                      <strong>{{ v.adulto.primerNombre }} {{ v.adulto.aPaterno }}</strong>
+                      · {{ nombreTipo(v.tipoVinculo) }}
+                    </span>
+                    <span class="linea-tiempo__fechas">
+                      desde {{ v.fechaInicio | date: 'dd-MM-yyyy' }}
+                      @if (v.fechaFin) { hasta {{ v.fechaFin | date: 'dd-MM-yyyy' }} } @else { · <em>vigente</em> }
+                    </span>
+                    <span class="linea-tiempo__quien">
+                      vinculado por {{ v.creador.primerNombre }} {{ v.creador.aPaterno }}
+                      @if (v.deshabilitador) {
+                        · quitado por {{ v.deshabilitador.primerNombre }} {{ v.deshabilitador.aPaterno }}
+                      }
+                    </span>
+                  </li>
+                }
+              </ol>
+            }
+          }
+        </section>
+      }
+    </div>
+  </div>
+</div>

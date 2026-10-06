@@ -1,0 +1,120 @@
+// Piezas compartidas por las pantallas de administración (Gestión de
+// usuarios y sus modales). Los estilos de cada componente están
+// encapsulados, así que se traen con:  @use '<ruta>/styles/gestion' as *;
+
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal {
+  width: 100%;
+  max-width: 40rem;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  animation: gestion-aparecer 0.2s ease;
+
+  &__cabecera {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1.1rem 1.5rem;
+    background: #ecfdf5;
+    border-bottom: 2px solid #d1fae5;
+
+    h2 { margin: 0; font-size: 1.2rem; font-weight: 800; color: #065f46; }
+  }
+
+  &__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+  }
+}
+
+.btn-cerrar {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #065f46;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  &:hover { background: #d1fae5; }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 42px;
+  padding: 0.45rem 1rem;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+
+  &:active:not(:disabled) { transform: translateY(2px); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:focus-visible { outline: 3px solid #6ee7b7; outline-offset: 2px; }
+
+  &--primario {
+    background: #10b981;
+    color: #fff;
+    box-shadow: 0 4px 0 #047857;
+    &:hover:not(:disabled) { background: #34d399; }
+  }
+
+  &--secundario {
+    background: #fff;
+    color: #065f46;
+    box-shadow: inset 0 0 0 2px #a7f3d0;
+    &:hover:not(:disabled) { background: #ecfdf5; }
+  }
+
+  &--peligro {
+    background: #fff;
+    color: #be123c;
+    box-shadow: inset 0 0 0 2px #fda4af;
+    &:hover:not(:disabled) { background: #fff1f2; }
+  }
+
+  &--chico { min-height: 34px; padding: 0.3rem 0.8rem; font-size: 0.82rem; }
+}
+
+.error-box {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: #fff1f2;
+  box-shadow: inset 0 0 0 2px #fecdd3;
+  color: #9f1239;
+  font-weight: 700;
+}
+
+@keyframes gestion-aparecer {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}

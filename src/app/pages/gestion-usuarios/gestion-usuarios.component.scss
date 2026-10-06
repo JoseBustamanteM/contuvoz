@@ -449,3 +449,32 @@
 @media (max-width: 1099px) {
   .col-telefono { display: none; }
 }
+
+// ── Vínculos (profesor y apoderados del estudiante) ──────
+.vinculos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.vinculo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &--falta { color: #9ca3af; }
+  // Sin apoderado es obligatorio completarlo: se destaca.
+  &--alerta { background: #fef3c7; color: #92400e; box-shadow: inset 0 0 0 1.5px #fcd34d; }
+}
+
+.chip--alerta.chip--activo { --rol-fondo: #fef3c7; --rol-texto: #92400e; }
+
+.btn--ancho { width: 100%; }

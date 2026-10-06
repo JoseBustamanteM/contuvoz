@@ -1,10 +1,12 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { NgTemplateOutlet } from '@angular/common';
 import { UsuariosService } from '../../services/usuarios.service';
 import { AuthService } from '../../services/auth.service';
-import { UsuarioListado } from '../../interfaces/usuario-gestion.interface';
+import { TipoVinculo, UsuarioListado } from '../../interfaces/usuario-gestion.interface';
 import { NOMBRE_ROL, ROLES_GESTIONABLES, Rol } from '../../interfaces/rol.enum';
 import { UsuarioFormComponent } from '../../components/gestion-usuarios/usuario-form/usuario-form.component';
+import { VinculosModalComponent } from '../../components/gestion-usuarios/vinculos-modal/vinculos-modal.component';
 import { formatearRut, limpiarRut } from '../../validators/rut.validator';
 
 /** Clase de color por rol, para las etiquetas de la tabla y los filtros. */
@@ -21,7 +23,7 @@ const MS_AVISO_EXITO = 3500;
 @Component({
   selector: 'app-gestion-usuarios',
   standalone: true,
-  imports: [UsuarioFormComponent],
+  imports: [UsuarioFormComponent, VinculosModalComponent, NgTemplateOutlet],
   templateUrl: './gestion-usuarios.component.html',
   styleUrls: ['./gestion-usuarios.component.scss'],
   host: { '(document:keydown.escape)': 'cancelarConfirmacion()' },
@@ -47,12 +49,38 @@ export class GestionUsuariosComponent implements OnInit {
   busqueda = signal('');
   filtroRol = signal<number>(0); // 0 = todos
   mostrarInactivos = signal(true);
+  /** Estudiantes sin profesor / sin apoderado vigente. */
+  filtroVinculo = signal<'' | TipoVinculo>('');
+
+  /** Estudiante cuyo modal de vínculos está abierto. Se guarda el id y no el
+   *  objeto: al recargar la lista, el modal muestra los vínculos actualizados. */
+  private idEstudianteVinculos = signal<number | null>(null);
+  estudianteVinculos = computed(() => {
+    const id = this.idEstudianteVinculos();
+    return id === null ? null : (this.usuarios().find((u) => u.idUsuario === id) ?? null);
+  });
 
   nombreRol = NOMBRE_ROL;
   claseRol = CLASE_ROL;
   formatearRut = formatearRut;
 
   idPropio = computed(() => this.authService.usuario()?.idUsuario ?? null);
+
+  /** Admins y profesores gestionan vínculos (el resto de reglas, en el modal). */
+  private puedeVerVinculos = computed(() => {
+    const rol = this.authService.usuario()?.idRol;
+    return rol === Rol.ADMINISTRADOR || rol === Rol.ADMIN_COLEGIO || rol === Rol.PROFESOR;
+  });
+
+  /** Estudiantes activos sin vínculo de cada tipo, para los chips de filtro. */
+  conteoSinVinculo = computed(() => {
+    const activos = this.usuarios().filter((u) => u.idRol === Rol.ESTUDIANTE && u.activo);
+    return {
+      PROFESOR: activos.filter((u) => !this.tieneVinculo(u, 'PROFESOR')).length,
+      APODERADO: activos.filter((u) => !this.tieneVinculo(u, 'APODERADO')).length,
+      hayEstudiantes: activos.length > 0,
+    };
+  });
 
   rolesQuePuedeCrear = computed(() => {
     const miRol = this.authService.usuario()?.idRol;
@@ -73,9 +101,13 @@ export class GestionUsuariosComponent implements OnInit {
     const textoRut = limpiarRut(this.busqueda());
     const rol = this.filtroRol();
     const inactivos = this.mostrarInactivos();
+    const sinVinculo = this.filtroVinculo();
 
     return this.usuarios().filter((u) => {
       if (rol && u.idRol !== rol) return false;
+      if (sinVinculo && (u.idRol !== Rol.ESTUDIANTE || !u.activo || this.tieneVinculo(u, sinVinculo))) {
+        return false;
+      }
       if (!inactivos && !u.activo) return false;
       if (!texto) return true;
       const nombre = this.normalizar(
@@ -91,8 +123,10 @@ export class GestionUsuariosComponent implements OnInit {
     this.cargarLista();
   }
 
-  cargarLista() {
-    this.cargando.set(true);
+  /** silencioso: recarga sin reemplazar la tabla por el spinner (tras un
+   *  cambio de vínculos, con el modal abierto encima). */
+  cargarLista(silencioso = false) {
+    if (!silencioso) this.cargando.set(true);
     this.error.set(null);
 
     this.usuariosService.listar().subscribe({
@@ -113,6 +147,38 @@ export class GestionUsuariosComponent implements OnInit {
     return this.rolesQuePuedeCrear().includes(u.idRol);
   }
 
+  esEstudiante(u: UsuarioListado) {
+    return u.idRol === Rol.ESTUDIANTE;
+  }
+
+  tieneVinculo(u: UsuarioListado, tipo: TipoVinculo) {
+    return (u.vinculosComoEstudiante ?? []).some((v) => v.tipoVinculo === tipo);
+  }
+
+  adultos(u: UsuarioListado, tipo: TipoVinculo): string {
+    return (u.vinculosComoEstudiante ?? [])
+      .filter((v) => v.tipoVinculo === tipo)
+      .map((v) => `${v.adulto.primerNombre} ${v.adulto.aPaterno}`)
+      .join(', ');
+  }
+
+  mostrarBotonVinculos(u: UsuarioListado) {
+    return this.esEstudiante(u) && this.puedeVerVinculos();
+  }
+
+  abrirVinculos(u: UsuarioListado) {
+    this.idEstudianteVinculos.set(u.idUsuario);
+  }
+
+  cerrarVinculos() {
+    this.idEstudianteVinculos.set(null);
+  }
+
+  onVinculoCambiado(mensaje: string) {
+    this.avisarExito(mensaje);
+    this.cargarLista(true);
+  }
+
   iniciales(u: UsuarioListado): string {
     return `${u.primerNombre.charAt(0)}${u.aPaterno.charAt(0)}`.toUpperCase();
   }
@@ -121,6 +187,7 @@ export class GestionUsuariosComponent implements OnInit {
     this.busqueda.set('');
     this.filtroRol.set(0);
     this.mostrarInactivos.set(true);
+    this.filtroVinculo.set('');
   }
 
   // ── Formulario ─────────────────────────────────────────

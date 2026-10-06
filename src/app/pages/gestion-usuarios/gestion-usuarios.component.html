@@ -61,6 +61,21 @@
         }
       </div>
 
+      @if (conteoSinVinculo().hayEstudiantes) {
+        <div class="chips" role="group" aria-label="Filtrar estudiantes por vínculo">
+          <button type="button" class="chip chip--alerta" [class.chip--activo]="filtroVinculo() === 'APODERADO'"
+                  [attr.aria-pressed]="filtroVinculo() === 'APODERADO'"
+                  (click)="filtroVinculo.set(filtroVinculo() === 'APODERADO' ? '' : 'APODERADO')">
+            ⚠️ Sin apoderado <span class="chip__n">{{ conteoSinVinculo().APODERADO }}</span>
+          </button>
+          <button type="button" class="chip" [class.chip--activo]="filtroVinculo() === 'PROFESOR'"
+                  [attr.aria-pressed]="filtroVinculo() === 'PROFESOR'"
+                  (click)="filtroVinculo.set(filtroVinculo() === 'PROFESOR' ? '' : 'PROFESOR')">
+            👩‍🏫 Sin profesor <span class="chip__n">{{ conteoSinVinculo().PROFESOR }}</span>
+          </button>
+        </div>
+      }
+
       @if (totalInactivos() > 0) {
         <label class="interruptor">
           <input type="checkbox" [checked]="mostrarInactivos()"
@@ -112,6 +127,9 @@
                         @if (u.idUsuario === idPropio()) { <span class="tu">(tú)</span> }
                       </span>
                       <span class="persona__correo">{{ u.correo }}</span>
+                      @if (esEstudiante(u)) {
+                        <ng-container *ngTemplateOutlet="vinculosFila; context: { $implicit: u }" />
+                      }
                     </div>
                   </div>
                 </td>
@@ -124,6 +142,10 @@
                   </span>
                 </td>
                 <td class="acciones">
+                  @if (mostrarBotonVinculos(u)) {
+                    <button type="button" class="btn-icono" (click)="abrirVinculos(u)"
+                            [attr.aria-label]="'Vínculos de ' + u.primerNombre + ' ' + u.aPaterno" title="Profesores y apoderados">🔗</button>
+                  }
                   @if (puedeGestionar(u)) {
                     <button type="button" class="btn-icono" (click)="abrirEdicion(u)"
                             [attr.aria-label]="'Editar a ' + u.primerNombre + ' ' + u.aPaterno" title="Editar">✏️</button>
@@ -164,6 +186,16 @@
               <span class="estado" [class.estado--activo]="u.activo">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
               <span class="mono">{{ formatearRut(u.rutUsuario) }}</span>
             </div>
+
+            @if (esEstudiante(u)) {
+              <ng-container *ngTemplateOutlet="vinculosFila; context: { $implicit: u }" />
+            }
+
+            @if (mostrarBotonVinculos(u)) {
+              <button type="button" class="btn btn--secundario btn--ancho" (click)="abrirVinculos(u)">
+                🔗 Profesores y apoderados
+              </button>
+            }
 
             @if (puedeGestionar(u)) {
               <div class="tarjeta-usuario__acciones">
@@ -207,6 +239,28 @@
         </div>
       </div>
     </div>
+  }
+
+  <!-- Profesor y apoderados de un estudiante, compartido por tabla y tarjetas -->
+  <ng-template #vinculosFila let-u>
+    <span class="vinculos">
+      <span class="vinculo" [class.vinculo--falta]="!tieneVinculo(u, 'PROFESOR')">
+        👩‍🏫 {{ tieneVinculo(u, 'PROFESOR') ? adultos(u, 'PROFESOR') : 'Sin profesor' }}
+      </span>
+      @if (tieneVinculo(u, 'APODERADO')) {
+        <span class="vinculo">👪 {{ adultos(u, 'APODERADO') }}</span>
+      } @else {
+        <span class="vinculo vinculo--alerta">⚠️ Sin apoderado</span>
+      }
+    </span>
+  </ng-template>
+
+  @if (estudianteVinculos(); as est) {
+    <vinculos-modal
+      [estudiante]="est"
+      [usuarios]="usuarios()"
+      (cambiado)="onVinculoCambiado($event)"
+      (cerrado)="cerrarVinculos()" />
   }
 
   @if (mostrarFormulario()) {
