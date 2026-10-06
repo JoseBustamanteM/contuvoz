@@ -1,6 +1,8 @@
 import {
-  Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe,
+  Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe, ParseEnumPipe,
+  BadRequestException,
 } from '@nestjs/common';
+import { TipoVinculo } from '@prisma/client';
 import { JwtAuthGuard } from '../../auth/guards/jwt-aut-guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Roles } from '../../auth/decorators/roles.decorator';
@@ -27,11 +29,21 @@ export class UsuariosController {
     @UsuarioActual() creador: UsuarioToken,
     @Query('rol') rol?: string,
     @Query('colegio') colegio?: string,
+    @Query(
+      'sinVinculo',
+      new ParseEnumPipe(TipoVinculo, {
+        optional: true,
+        exceptionFactory: () =>
+          new BadRequestException('sinVinculo debe ser PROFESOR o APODERADO'),
+      }),
+    )
+    sinVinculo?: TipoVinculo,
   ) {
     return this.usuariosService.listar(
       creador,
       rol ? Number(rol) : undefined,
       colegio ? Number(colegio) : undefined,
+      sinVinculo,
     );
   }
 

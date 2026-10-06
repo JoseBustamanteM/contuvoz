@@ -9,6 +9,8 @@ import { ActualizarUsuarioDto } from './actualizar-usuario.dto';
 import { Rol } from '../../enums/rol.enum';
 import { UsuarioToken } from '../../auth/decorators/usuario-actual.decorator';
 import { limpiarRut } from '../../common/validators/rut.validator';
+import { Prisma, TipoVinculo } from '@prisma/client';
+import { VIGENTE, VinculosService } from '../../vinculos/vinculos.service';
 
 const PUEDE_GESTIONAR: Record<number, Rol[]> = {
   [Rol.ADMINISTRADOR]: [
@@ -36,9 +38,30 @@ const SELECT_PUBLICO = {
   rol: { select: { nomRol: true } },
 } as const;
 
+/** En el listado, cada estudiante trae sus vínculos VIGENTES (profesores y
+ *  apoderados): con eso la pantalla muestra a quién está asignado y filtra
+ *  "sin profesor" / "sin apoderado" sin otra petición. Para los demás roles
+ *  la lista viene vacía. */
+const SELECT_LISTADO = {
+  ...SELECT_PUBLICO,
+  vinculosComoEstudiante: {
+    where: VIGENTE,
+    select: {
+      idVinculo: true,
+      tipoVinculo: true,
+      creadoPor: true,
+      adulto: { select: { idUsuario: true, primerNombre: true, aPaterno: true } },
+    },
+    orderBy: { fechaInicio: 'asc' },
+  },
+} as const satisfies Prisma.UsuarioSelect;
+
 @Injectable()
 export class UsuariosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private vinculosService: VinculosService,
+  ) {}
 
   private async datosCreador(idUsuario: number) {
     const creador = await this.prisma.usuario.findUnique({
@@ -90,22 +113,34 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
 
     const claveHash = await bcrypt.hash(dto.password, 10);
 
-    return this.prisma.usuario.create({
-      data: {
-        idRol: dto.idRol,
-        idColegio,
-        rutUsuario: rutLimpio,
-        claveHash,
-        primerNombre: dto.primerNombre,
-        segundoNombre: dto.segundoNombre,
-        aPaterno: dto.aPaterno,
-        aMaterno: dto.aMaterno,
-        telefonoUsuario: dto.telefonoUsuario,
-        correo: dto.correo,
-        urlAvatar: dto.urlAvatar ?? null,
-        creadoPor: creador.idUsuario,
-      },
-      select: SELECT_PUBLICO,
+    // Un profesor que crea un estudiante queda como su profesor. Va en la
+    // misma transacción: si el vínculo fallara, tampoco se crea el usuario
+    // (no queda un alumno "huérfano" que el profesor ya no puede ver).
+    const vincularProfesor = creador.idRol === Rol.PROFESOR && dto.idRol === Rol.ESTUDIANTE;
+
+    return this.prisma.$transaction(async (tx) => {
+      const usuario = await tx.usuario.create({
+        data: {
+          idRol: dto.idRol,
+          idColegio,
+          rutUsuario: rutLimpio,
+          claveHash,
+          primerNombre: dto.primerNombre,
+          segundoNombre: dto.segundoNombre,
+          aPaterno: dto.aPaterno,
+          aMaterno: dto.aMaterno,
+          telefonoUsuario: dto.telefonoUsuario,
+          correo: dto.correo,
+          urlAvatar: dto.urlAvatar ?? null,
+          creadoPor: creador.idUsuario,
+        },
+        select: SELECT_PUBLICO,
+      });
+
+      if (vincularProfesor) {
+        await this.vinculosService.vincularAlCrear(tx, usuario.idUsuario, creador.idUsuario);
+      }
+      return usuario;
     });
   }
 
@@ -122,10 +157,22 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     return { rolesVisibles, idColegio: creadorBD.idColegio };
   }
 
-  async listar(creador: UsuarioToken, filtroRol?: number, filtroColegio?: number) {
+  async listar(
+    creador: UsuarioToken,
+    filtroRol?: number,
+    filtroColegio?: number,
+    sinVinculo?: TipoVinculo,
+  ) {
     const { rolesVisibles, idColegio } = await this.alcanceDeConsulta(creador);
 
-    const where: Record<string, unknown> = {};
+    const where: Prisma.UsuarioWhereInput = {};
+
+    // "Sin profesor" / "sin apoderado": estudiantes sin un vínculo VIGENTE de
+    // ese tipo (los que tuvieron uno y se cerró también cuentan como sin).
+    if (sinVinculo) {
+      where.vinculosComoEstudiante = { none: { tipoVinculo: sinVinculo, ...VIGENTE } };
+      filtroRol = Rol.ESTUDIANTE;
+    }
 
     // Roles: intersección entre lo que puede ver y lo que pidió filtrar
     if (rolesVisibles) {
@@ -143,7 +190,7 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
 
     return this.prisma.usuario.findMany({
       where,
-      select: SELECT_PUBLICO,
+      select: SELECT_LISTADO,
       orderBy: { primerNombre: 'asc' },
     });
   }
