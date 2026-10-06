@@ -31,9 +31,13 @@
                     transition outline-none
                     focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-200"
              [class.!border-rose-400]="form.controls.rutUsuario.touched && form.controls.rutUsuario.invalid" />
-      @if (form.controls.rutUsuario.touched && form.controls.rutUsuario.invalid) {
+      @if (form.controls.rutUsuario.touched && form.controls.rutUsuario.hasError('required')) {
         <small class="mt-1 block pl-1 text-left text-xs font-bold text-rose-600">
           El RUT es obligatorio
+        </small>
+      } @else if (form.controls.rutUsuario.touched && form.controls.rutUsuario.hasError('rut')) {
+        <small class="mt-1 block pl-1 text-left text-xs font-bold text-rose-600">
+          Ese RUT no es válido. Revisa los números y el dígito verificador.
         </small>
       }
     </div>

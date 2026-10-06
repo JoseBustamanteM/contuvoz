@@ -1,24 +1,25 @@
-<div class="h-[100dvh] font-sans text-center px-4 py-3 flex flex-col overflow-hidden mt-7 ">
+<!-- h-full, no h-[100dvh]: esta página vive dentro del <main> de app.html, que ya
+     descuenta la barra superior. Con 100dvh (más el mt-7 que tenía) el contenido
+     medía una pantalla completa + la barra, aparecía scroll y el título quedaba
+     escondido debajo de la barra. -->
+<div class="h-full font-sans text-center px-4 pt-1 pb-3 flex flex-col overflow-hidden">
 
-  <!-- Barra superior -->
-  <header class="shrink-0 flex items-center justify-end gap-2 sm:gap-3 mb-3">
+  <h1 class="mb-3 shrink-0 inline-flex self-center items-center gap-2
+             rounded-full bg-white/90 px-6 py-2
+             shadow-[0_6px_0_rgba(16,185,129,0.6)] ring-2 ring-emerald-400">
+    <span class="text-2xl sm:text-4xl font-extrabold text-emerald-600">
+      ¡Elige una
+    </span>
+    <span class="text-2xl sm:text-4xl font-extrabold text-amber-500 -rotate-3 inline-block">
+      actividad!
+    </span>
+    <span class="text-2xl sm:text-4xl">🎨</span>
+  </h1>
 
-
-  </header>
-
-<h1 class="mb-3 shrink-0 inline-flex self-center items-center gap-2
-           rounded-full bg-white/90 px-6 py-2
-           shadow-[0_6px_0_rgba(16,185,129,0.6)] ring-2 ring-emerald-400">
-  <span class="text-2xl sm:text-4xl font-extrabold text-emerald-600">
-    ¡Elige una
-  </span>
-  <span class="text-2xl sm:text-4xl font-extrabold text-amber-500 -rotate-3 inline-block">
-    actividad!
-  </span>
-  <span class="text-2xl sm:text-4xl">🎨</span>
-</h1>
-
-  <div class="flex-1 min-h-0 w-full flex justify-center overflow-hidden">
-    <option-component class="w-full max-w-xl" />
+  <div class="flex-1 min-h-0 w-full flex justify-center items-start overflow-hidden">
+    <!-- El ancho de la grilla también depende del ALTO disponible: las tarjetas
+         son cuadradas, así que en pantallas anchas y bajas (notebook) limitar solo
+         el ancho hacía que dos filas no cupieran. 11rem ≈ barra + título + márgenes. -->
+    <option-component class="w-full max-w-[min(36rem,calc(100dvh-11rem))]" />
   </div>
 </div>

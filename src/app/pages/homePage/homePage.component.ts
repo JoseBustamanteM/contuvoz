@@ -1,19 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { OptionComponent } from "../../components/homePage/option/option.component";
-import { AuthService } from '../../services/auth.service';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { OptionComponent } from '../../components/homePage/option/option.component';
 
 @Component({
   selector: 'homePage',
-  imports: [OptionComponent,],
+  imports: [OptionComponent],
   templateUrl: './homePage.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HomePageComponent {
-
-  constructor(private auth: AuthService) {
-  console.log('¿Logueado?', this.auth.isLoggedIn());
-}
-
-
-
-}
+export class HomePageComponent {}
