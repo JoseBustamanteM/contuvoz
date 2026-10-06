@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { GuardarPintadoDto } from './dto/guardar-pintado.dto';
 import { GuardarSignDto } from './dto/guardar-sign.dto';
 import { GuardarUnePalabrasDto } from './dto/guardar-une-palabras.dto'
