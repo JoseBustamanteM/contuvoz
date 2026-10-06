@@ -1,0 +1,259 @@
+.une-container {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem;
+}
+
+// ---------- Cabecera ----------
+
+.cabecera {
+  width: min(100%, 42rem);
+  margin: 0 auto 1rem;
+  text-align: center;
+
+  h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #047857;
+  }
+}
+
+.instruccion {
+  margin: 0 auto 0.75rem;
+  padding: 0.5rem 1rem;
+  max-width: 100%;
+  display: inline-block;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+  color: #4b5563;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  strong { color: #047857; }
+}
+
+.barra-progreso {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  overflow: hidden;
+}
+
+.barra-relleno {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #34d399, #059669);
+  transition: width 0.4s ease-out;
+}
+
+// ---------- Tablero ----------
+
+.tablero {
+  width: min(100%, 42rem);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// ---------- Tarjetas ----------
+
+.tarjeta {
+  width: 100%;
+  // 64px: la tarjeta entera es el objetivo táctil, no un círculo pequeño.
+  // Con dificultades motoras esa diferencia importa mucho.
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 3px solid transparent;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.2s ease;
+
+  &:disabled { cursor: default; }
+
+  &:not(:disabled):hover { transform: translateY(-2px); }
+
+  &:focus-visible {
+    outline: 4px solid #10b981;
+    outline-offset: 3px;
+  }
+}
+
+.tarjeta-palabra .texto {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #065f46;
+}
+
+.tarjeta-dibujo .emoji {
+  font-size: 2.25rem;
+  line-height: 1;
+}
+
+// Palabra seleccionada, esperando su dibujo.
+.tarjeta.activa {
+  border-color: #6366f1;
+  background: #eef2ff;
+  transform: scale(1.03);
+}
+
+// Dibujos candidatos mientras hay una palabra elegida: se realzan para que
+// quede claro que el siguiente toque va en esta columna.
+.tarjeta.esperando {
+  border-color: #c7d2fe;
+}
+
+.tarjeta.resuelta {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  box-shadow: none;
+  opacity: 0.9;
+
+  .emoji-ok { font-size: 1.5rem; }
+
+  .texto-ok {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #047857;
+  }
+}
+
+// Error: temblor breve. Coincide con los 600ms de errorEn del componente.
+.tarjeta.error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  animation: temblor 0.4s ease;
+}
+
+@keyframes temblor {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta,
+  .barra-relleno { transition: none; }
+  .tarjeta.error { animation: none; }
+}
+
+// ---------- Resumen ----------
+
+.tarjeta-resumen {
+  width: min(100%, 26rem);
+  margin: 1rem auto 0;
+  padding: 1.75rem 1.5rem 1.5rem;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  text-align: center;
+}
+
+.emoji-resultado {
+  display: block;
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.titulo-resumen {
+  margin: 0.25rem 0 0;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #047857;
+}
+
+.marcador {
+  margin: 0.5rem 0 0;
+  font-size: 1.05rem;
+  color: #4b5563;
+
+  strong {
+    font-size: 1.5rem;
+    color: #047857;
+  }
+}
+
+// Los errores se mencionan en gris, sin dramatizar: son parte de aprender.
+.nota-errores {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  color: #9ca3af;
+}
+
+.estado-guardado {
+  margin: 0.75rem 0 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.aviso-guardado {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 16px;
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+
+  p {
+    margin: 0 0 0.7rem;
+    font-size: 0.95rem;
+    color: #6d4c41;
+  }
+}
+
+.btn-reintentar {
+  min-height: 44px;
+  padding: 0.55rem 1.3rem;
+  border: none;
+  border-radius: 999px;
+  background: #f57c00;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-iniciar {
+  width: 100%;
+  min-height: 56px;
+  margin-top: 1.25rem;
+  border: none;
+  border-radius: 999px;
+  background: #10b981;
+  color: #fff;
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #059669;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+  &:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 #059669;
+  }
+}
+
+// ---------- Móvil ----------
+
+@media (max-width: 400px) {
+  .tarjeta { min-height: 56px; padding: 0.5rem; }
+  .tarjeta-palabra .texto { font-size: 1.05rem; }
+  .tarjeta-dibujo .emoji { font-size: 1.9rem; }
+}

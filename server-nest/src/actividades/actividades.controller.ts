@@ -7,6 +7,8 @@ import { UsuarioActual, type UsuarioToken } from '../auth/decorators/usuario-act
 import { ActividadesService } from './actividades.service';
 import { GuardarPintadoDto } from './dto/guardar-pintado.dto';
 import { GuardarSignDto } from './dto/guardar-sign.dto';
+import { GuardarUnePalabrasDto } from './dto/guardar-une-palabras.dto';
+import { GuardarPronunciacionDto } from './dto/guardar-pronunciacion.dto';
 
 /**
  * Actividades de los estudiantes.
@@ -59,4 +61,25 @@ export class ActividadesController {
   ) {
     return this.actividadesService.guardarSign(usuario.idUsuario, dto);
   }
+
+
+    @Roles(Rol.ESTUDIANTE, Rol.PROFESOR)
+    @Post('une-palabras')
+    async guardarUnePalabras(
+    @UsuarioActual() usuario: UsuarioToken,
+    @Body() dto: GuardarUnePalabrasDto,
+  ) {
+    return this.actividadesService.guardarUnePalabras(usuario.idUsuario, dto);
+  }
+
+    @Roles(Rol.ESTUDIANTE, Rol.PROFESOR)
+  @Post('pronunciacion')
+  async guardarPronunciacion(
+    @UsuarioActual() usuario: UsuarioToken,
+    @Body() dto: GuardarPronunciacionDto,
+  ) {
+    return this.actividadesService.guardarPronunciacion(usuario.idUsuario, dto);
+  }
+
+
 }

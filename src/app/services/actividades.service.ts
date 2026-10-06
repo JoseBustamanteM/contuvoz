@@ -7,7 +7,12 @@ import {
   ResultadoPintadoGuardado,
 } from '../interfaces/actividad.interface';
 
+import { ResultadoPronunciacion, ResultadoPronunciacionGuardado }
+  from '../interfaces/pronunciacion.interface';
+
+
 import { ResultadoSign, ResultadoSignGuardado } from '../interfaces/sign-language.interface';
+import { ResultadoUnePalabras, ResultadoUnePalabrasGuardado } from '../interfaces/une-palabras.interface';
 
 @Injectable({ providedIn: 'root' })
 export class ActividadesService {
@@ -42,4 +47,35 @@ export class ActividadesService {
     }),
   );
 }
+
+   guardarUnePalabras(datos: ResultadoUnePalabras): Observable<ResultadoUnePalabrasGuardado> {
+    return this.http.post<ResultadoUnePalabrasGuardado>(`${this.API}/une-palabras`, datos).pipe(
+      retry({
+        count: 3,
+        delay: (error: HttpErrorResponse, intento) => {
+          const esReintentable = error.status === 0 || error.status >= 500;
+          if (!esReintentable) throw error;
+          return timer(1000 * Math.pow(2, intento - 1));
+        },
+      }),
+    );
+  }
+
+    guardarPronunciacion(
+    datos: ResultadoPronunciacion,
+  ): Observable<ResultadoPronunciacionGuardado> {
+    return this.http
+      .post<ResultadoPronunciacionGuardado>(`${this.API}/pronunciacion`, datos)
+      .pipe(
+        retry({
+          count: 3,
+          delay: (error: HttpErrorResponse, intento) => {
+            const esReintentable = error.status === 0 || error.status >= 500;
+            if (!esReintentable) throw error;
+            return timer(1000 * Math.pow(2, intento - 1));
+          },
+        }),
+      );
+  }
+
 }

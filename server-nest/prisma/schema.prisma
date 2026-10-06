@@ -131,6 +131,7 @@ model Actividad {
   resultadoPintado       ResultadoPintado?
   resultadoPronunciacion ResultadoPronunciacion?
   resultadoSign          ResultadoSign?
+  resultadoUnePalabras   ResultadoUnePalabras?
 
   @@index([idTipoActividad], map: "idx_actividad_tipo")
   @@index([idUsuario], map: "idx_actividad_usuario")
@@ -190,6 +191,21 @@ model ArchivoBiblioteca {
 
   @@index([idUsuario], map: "idx_archivo_usuario")
   @@map("archivo_biblioteca")
+}
+
+model ResultadoUnePalabras {
+  idResUne     Int       @id @default(autoincrement()) @map("id_res_une")
+  idActividad  Int       @unique @map("id_actividad")
+  totalPares   Int       @map("total_pares")
+  aciertos     Int
+  errores      Int
+  puntajeFinal Float     @default(0) @map("puntaje_final")
+  aprobadoUne  Boolean   @default(false) @map("aprobado_une")
+  duracionUne  Int       @map("duracion_une")
+  detalle      Json
+  actividad    Actividad @relation(fields: [idActividad], references: [idActividad])
+
+  @@map("resultado_une_palabras")
 }
 
 model Sesion {

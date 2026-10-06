@@ -1,59 +1,10 @@
 <app-back-button />
 
 <div class="talk-page-container">
-  <h1>¡Hora de Practicar! 👋</h1>
 
-  @if (!evaluacionActiva()) {
-    <button (click)="iniciarEvaluacion()" class="btn-iniciar">🤟 Iniciar evaluación</button>
-
-    @if (mostrarResumen()) {
-      <div class="resumen-box">
-        <h3>Resultado de tu última evaluación:</h3>
-
-        <!-- track por letraEsperada: son las 5 vocales, no se repiten en una corrida.
-             Antes se usaba idResSign, que solo existía si el servidor respondía. -->
-        @for (r of resumen(); track r.letraEsperada) {
-          <p [class.ok]="r.aprobado" [class.fail]="!r.aprobado">
-            {{ r.letraEsperada }}: {{ r.aprobado ? '✅' : '❌' }}
-            <span class="veredicto">{{ r.aprobado ? '¡Lo lograste!' : 'Sigamos practicando' }}</span>
-
-            @if (!r.aprobado && r.letraDetectada !== 'NINGUNA') {
-              <span class="detectada">— vimos una {{ r.letraDetectada }}</span>
-            }
-
-            <!-- Estado de guardado, separado del resultado pedagógico: el niño ve
-                 su nota aunque la BD no haya respondido. -->
-            @switch (r.guardado) {
-              @case ('pendiente') {
-                <span class="estado-guardado pendiente" title="Guardando…">⏳</span>
-              }
-              @case ('error') {
-                <span class="estado-guardado error" title="No se pudo guardar">⚠️</span>
-              }
-            }
-          </p>
-        }
-
-        @if (fallosDeGuardado() > 0) {
-          <div class="aviso-guardado">
-            <p>
-              No pudimos guardar
-              {{ fallosDeGuardado() === 1 ? 'un resultado' : fallosDeGuardado() + ' resultados' }}.
-              Tu evaluación está completa, solo falta registrarla.
-            </p>
-            <button
-              type="button"
-              class="btn-reintentar"
-              [disabled]="reintentando()"
-              (click)="reintentarGuardado()"
-            >
-              {{ reintentando() ? 'Reintentando…' : 'Reintentar guardado' }}
-            </button>
-          </div>
-        }
-      </div>
-    }
-  } @else {
+  @if (evaluacionActiva()) {
+    <!-- La cámara arranca directo: la pantalla intermedia con "Iniciar evaluación"
+         era un clic de más, la decisión ya se tomó en el menú. -->
     <div class="camera-area">
       <hand-tracker
         (resultadoListo)="onResultadoListo($event)"
@@ -62,6 +13,97 @@
       </hand-tracker>
     </div>
 
-    <button (click)="volverAIntentar()" class="btn-volver">Volver</button>
+    <button (click)="abandonar()" class="btn-volver">Salir</button>
+
+  } @else if (mostrarResumen()) {
+    <!-- Tarjeta de cierre. El contenido va dentro de una card blanca porque sobre
+         el fondo de colinas el texto suelto se pierde. -->
+    <div class="tarjeta-resumen">
+
+      <div class="cabecera-resumen">
+        <span class="emoji-resultado" aria-hidden="true">
+          @if (totalAprobadas() === 5) { 🏆 }
+          @else if (totalAprobadas() >= 3) { 🎉 }
+          @else { 💪 }
+        </span>
+
+        <h1 class="titulo-resumen">
+          @if (totalAprobadas() === 5) { ¡Lo lograste todo! }
+          @else if (totalAprobadas() >= 3) { ¡Muy bien! }
+          @else { ¡Buen intento! }
+        </h1>
+
+        <p class="marcador">
+          <strong>{{ totalAprobadas() }}</strong> de 5 señas
+        </p>
+
+        <!-- Barra de progreso: para un niño que aún no lee bien, el largo de la
+             barra comunica el resultado más rápido que el número. -->
+        <div
+          class="barra-progreso"
+          role="img"
+          [attr.aria-label]="'Lograste ' + totalAprobadas() + ' de 5 señas'"
+        >
+          <div class="barra-relleno" [style.width.%]="(totalAprobadas() / 5) * 100"></div>
+        </div>
+      </div>
+
+      <!-- Medallas en fila: se lee de un vistazo, en vez de una lista vertical. -->
+      <ul class="medallas">
+        @for (r of resumen(); track r.letraEsperada) {
+          <li class="medalla" [class.ok]="r.aprobado" [class.fail]="!r.aprobado">
+            <span class="medalla-letra">{{ r.letraEsperada }}</span>
+            <span class="medalla-icono" aria-hidden="true">{{ r.aprobado ? '✅' : '❌' }}</span>
+
+            @if (!r.aprobado && r.letraDetectada !== 'NINGUNA') {
+              <span class="medalla-nota">vimos {{ r.letraDetectada }}</span>
+            }
+
+            @switch (r.guardado) {
+              @case ('pendiente') {
+                <span class="estado-guardado pendiente" title="Guardando…">⏳</span>
+              }
+              @case ('error') {
+                <span class="estado-guardado error" title="No se pudo guardar">⚠️</span>
+              }
+            }
+          </li>
+        }
+      </ul>
+
+      @if (fallosDeGuardado() > 0) {
+        <div class="aviso-guardado">
+          <p>
+            No pudimos guardar
+            {{ fallosDeGuardado() === 1 ? 'un resultado' : fallosDeGuardado() + ' resultados' }}.
+            Tu evaluación está completa, solo falta registrarla.
+          </p>
+          <button
+            type="button"
+            class="btn-reintentar"
+            [disabled]="reintentando()"
+            (click)="reintentarGuardado()"
+          >
+            {{ reintentando() ? 'Reintentando…' : 'Reintentar guardado' }}
+          </button>
+        </div>
+      }
+
+      <button (click)="reiniciarEvaluacion()" class="btn-iniciar">
+        🤟 Practicar de nuevo
+      </button>
+    </div>
+
+  } @else {
+    <!-- Solo se llega acá al salir a mitad de camino: no hay resumen que mostrar. -->
+    <div class="tarjeta-resumen">
+      <span class="emoji-resultado" aria-hidden="true">🤟</span>
+      <h1 class="titulo-resumen">¡Hora de Practicar!</h1>
+      <p class="marcador">Vamos a hacer las 5 vocales con la mano</p>
+      <button (click)="reiniciarEvaluacion()" class="btn-iniciar">
+        Empezar
+      </button>
+    </div>
   }
+
 </div>

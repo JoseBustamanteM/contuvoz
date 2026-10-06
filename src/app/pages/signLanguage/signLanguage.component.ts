@@ -30,12 +30,17 @@ export interface EntradaResumen {
 export class SignLanguageComponent {
   private actividadesService = inject(ActividadesService);
 
-  evaluacionActiva = signal(false);
+  /** Arranca en true: se llega acá eligiendo la actividad en el menú, así que el
+   *  botón "Iniciar evaluación" era un clic de más. La cámara se enciende sola. */
+  evaluacionActiva = signal(true);
   resumen = signal<EntradaResumen[]>([]);
 
   /** El resumen se muestra cuando la evaluación terminó y hay resultados.
    *  Al terminar se desmonta el tracker, así que la cámara ya está apagada. */
   mostrarResumen = computed(() => !this.evaluacionActiva() && this.resumen().length > 0);
+
+  /** Cuántas letras logró de las 5, para el mensaje de cierre. */
+  totalAprobadas = computed(() => this.resumen().filter((e) => e.aprobado).length);
 
   /** Cuántas letras no lograron guardarse. Habilita el botón de reintento. */
   fallosDeGuardado = computed(
@@ -44,7 +49,8 @@ export class SignLanguageComponent {
 
   reintentando = signal(false);
 
-  iniciarEvaluacion() {
+  /** "Practicar de nuevo" desde la pantalla de resumen. */
+  reiniciarEvaluacion() {
     this.resumen.set([]);
     this.evaluacionActiva.set(true);
   }
@@ -110,7 +116,10 @@ export class SignLanguageComponent {
     this.evaluacionActiva.set(false);
   }
 
-  volverAIntentar() {
+  /** Salir a mitad de la evaluación. Desmonta el tracker (apaga la cámara) y
+   *  descarta el resumen parcial: las letras ya guardadas quedan en la BD, pero
+   *  no tiene sentido mostrar un resumen incompleto como si fuera el resultado. */
+  abandonar() {
     this.evaluacionActiva.set(false);
     this.resumen.set([]);
   }

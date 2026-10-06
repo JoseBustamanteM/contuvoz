@@ -14,7 +14,6 @@ export class OptionComponent {
     { id: 1, name: 'Pinta Letras', img: 'images/gecko dibujando.png',  alt: 'Gecko con pincel',   icon: '🎨', url: '/drawPage' },
     { id: 2, name: 'Comunícate',   img: 'images/gecko comunicate.png', alt: 'Gecko saludando',    icon: '✋', url: '/signPage' },
     { id: 3, name: 'Hablemos',     img: 'images/gecko-hablemos.png',   alt: 'Gecko saludando',    icon: '👨‍🏫', url: '/talkPage' },
-    { id: 4, name: 'Biblioteca',   img: 'images/gecko biblioteca.png', alt: 'Gecko con libros',   icon: '📚' },
-    { id: 5, name: 'Mi progreso',  img: 'images/gecko logistico.png',  alt: 'Gecko con gráficas', icon: '📐', url: 'dashboard-page' },
+     { id: 4, name: 'Une Palabras',  img: 'images/uneLetras.png', alt: 'Gecko con libros',    icon: '🧩', url: '/unePage' },
   ];
 }

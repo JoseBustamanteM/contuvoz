@@ -18,12 +18,21 @@ export class VowelDetectorService {
   readonly isListening = signal(false);
   /** mensaje de error legible (p.ej. permiso denegado) */
   readonly error = signal<string | null>(null);
-  readonly analyser = signal<AnalyserNode | null>(null); 
+  readonly analyser = signal<AnalyserNode | null>(null);
 
   /**
    * Centroides de formantes (Hz) de las vocales del español.
    * 👉 Estos valores son un punto de partida. Con niños (voz aguda) suben.
    *    Usa el console.log del final para calibrarlos con voces reales.
+   *
+   * ⚠️ PENDIENTE DE CALIBRAR. Dos problemas conocidos:
+   *    - O (500,900) y U (350,850) están muy cerca: en escala log su F2 difiere
+   *      ~6%, así que se confunden. Son las dos vocales posteriores y separarlas
+   *      exige calibrar con voces reales, o sumar otra medida (energía en alta
+   *      frecuencia, que sí difiere entre ambas).
+   *    - En voz infantil la fundamental ronda 250-300Hz, así que el 3er o 4o
+   *      armónico de F1 cae dentro de la banda donde se busca F2 y puede
+   *      enmascararlo.
    */
   private readonly refs: Record<Vowel, { f1: number; f2: number }> = {
     A: { f1: 750, f2: 1350 },
@@ -50,65 +59,80 @@ export class VowelDetectorService {
       throw new Error('mic-denied');
     }
 
+    // Declarados fuera del try para que el finally pueda limpiarlos aunque
+    // la creación del AudioContext falle a mitad de camino.
+    let audioCtx: AudioContext | null = null;
+    let tick: ReturnType<typeof setInterval> | null = null;
+
     this.isListening.set(true);
 
-    const audioCtx = new AudioContext();
-    const source = audioCtx.createMediaStreamSource(stream);
-    const analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 4096;
-    analyser.smoothingTimeConstant = 0;
-    source.connect(analyser);
-        this.analyser.set(analyser); 
-    const binCount = analyser.frequencyBinCount;      // 2048
-    const binHz = audioCtx.sampleRate / analyser.fftSize;
+    try {
+      audioCtx = new AudioContext();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 4096;
+      analyser.smoothingTimeConstant = 0;
+      source.connect(analyser);
+      this.analyser.set(analyser);
 
-    const freqDb = new Float32Array(binCount);
-    const timeData = new Uint8Array(analyser.fftSize);
-    const accum = new Float64Array(binCount);         // espectro acumulado (solo voz)
-    let voicedFrames = 0;
+      const binCount = analyser.frequencyBinCount;      // 2048
+      const binHz = audioCtx.sampleRate / analyser.fftSize;
 
-    await new Promise<void>((resolve) => {
-      const tick = setInterval(() => {
-        analyser.getByteTimeDomainData(timeData);
-        let sum = 0;
-        for (let i = 0; i < timeData.length; i++) {
-          const v = (timeData[i] - 128) / 128;
-          sum += v * v;
-        }
-        const rms = Math.sqrt(sum / timeData.length);
+      const freqDb = new Float32Array(binCount);
+      const timeData = new Uint8Array(analyser.fftSize);
+      const accum = new Float64Array(binCount);         // espectro acumulado (solo voz)
+      let voicedFrames = 0;
 
-        if (rms > 0.015) { // hay voz
-          analyser.getFloatFrequencyData(freqDb);
-          for (let i = 0; i < binCount; i++) {
-            accum[i] += freqDb[i] > -140 ? Math.pow(10, freqDb[i] / 20) : 0;
+      await new Promise<void>((resolve) => {
+        tick = setInterval(() => {
+          analyser.getByteTimeDomainData(timeData);
+          let sum = 0;
+          for (let i = 0; i < timeData.length; i++) {
+            const v = (timeData[i] - 128) / 128;
+            sum += v * v;
           }
-          voicedFrames++;
-        }
-      }, 30);
+          const rms = Math.sqrt(sum / timeData.length);
 
-      setTimeout(() => { clearInterval(tick); resolve(); }, durationMs);
-    });
+          if (rms > 0.015) { // hay voz
+            analyser.getFloatFrequencyData(freqDb);
+            for (let i = 0; i < binCount; i++) {
+              accum[i] += freqDb[i] > -140 ? Math.pow(10, freqDb[i] / 20) : 0;
+            }
+            voicedFrames++;
+          }
+        }, 30);
 
-    stream.getTracks().forEach((t) => t.stop());
-    this.analyser.set(null);
-    await audioCtx.close();
-    this.isListening.set(false);
+        setTimeout(resolve, durationMs);
+      });
 
-    // ¿Habló al menos ~0.4 s?
-    const voiced = voicedFrames >= Math.floor(durationMs / 30 / 5);
-    if (!voiced) {
-      return { target, detected: null, success: false, confidence: 0, voiced: false, f1: 0, f2: 0 };
+      // ¿Habló al menos ~0.4 s?
+      const voiced = voicedFrames >= Math.floor(durationMs / 30 / 5);
+      if (!voiced) {
+        return { target, detected: null, success: false, confidence: 0, voiced: false, f1: 0, f2: 0 };
+      }
+
+      const env = this.smooth(accum, 6);               // envolvente (atenúa armónicos)
+      const f1 = this.peakHz(env, binHz, 200, 900);
+      const f2 = this.peakHz(env, binHz, 900, 2800);
+      const { vowel, confidence } = this.classify(f1, f2);
+
+      // 👇 Para calibrar refs con voces reales, mira la consola del navegador
+      console.log(`[vocal] F1=${f1.toFixed(0)}Hz F2=${f2.toFixed(0)}Hz → ${vowel} (objetivo ${target})`);
+
+      return { target, detected: vowel, success: vowel === target, confidence, voiced: true, f1, f2 };
+
+    } finally {
+      // Se ejecuta pase lo que pase (éxito, return temprano o excepción).
+      // Sin esto, un fallo a mitad de camino dejaba el micrófono ABIERTO —con
+      // su luz encendida— y el AudioContext vivo hasta recargar la página.
+      if (tick) clearInterval(tick);
+      stream.getTracks().forEach((t) => t.stop());
+      this.analyser.set(null);
+      if (audioCtx && audioCtx.state !== 'closed') {
+        await audioCtx.close().catch(() => { /* ya cerrado */ });
+      }
+      this.isListening.set(false);
     }
-
-    const env = this.smooth(accum, 6);               // envolvente (atenúa armónicos)
-    const f1 = this.peakHz(env, binHz, 200, 900);
-    const f2 = this.peakHz(env, binHz, 900, 2800);
-    const { vowel, confidence } = this.classify(f1, f2);
-
-    // 👇 Para calibrar refs con voces reales, mira la consola del navegador
-    console.log(`[vocal] F1=${f1.toFixed(0)}Hz F2=${f2.toFixed(0)}Hz → ${vowel} (objetivo ${target})`);
-
-    return { target, detected: vowel, success: vowel === target, confidence, voiced: true, f1, f2 };
   }
 
   /** Media móvil simple → envolvente espectral. */

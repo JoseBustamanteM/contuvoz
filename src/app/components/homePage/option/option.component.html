@@ -1,17 +1,35 @@
-<div class="flex flex-col items-center w-full h-full gap-2">
+<!-- Grilla 2x2 de actividades.
+     Sin `grid-rows-2` ni `h-full`: esas dos clases repartían todo el alto
+     disponible entre las filas y estiraban las tarjetas. El alto lo define
+     ahora `aspect-square` en cada botón, que las mantiene cuadradas. -->
+<div class="grid grid-cols-2 gap-3 sm:gap-4 w-full">
 
   @for (image of images; track image.id) {
 
     <button
       [routerLink]="image.url"
-      class="w-full max-w-xl flex-1 min-h-0 bg-green-400 hover:bg-green-500
-             text-white font-bold text-lg sm:text-2xl rounded-3xl shadow-lg
+      class="aspect-square flex flex-col items-center justify-center gap-2 min-h-0 min-w-0
+             bg-green-400 hover:bg-green-500
+             text-white font-bold rounded-3xl shadow-lg
              transition transform hover:scale-105 cursor-pointer
-             flex items-center justify-between px-5 py-2">
-      <span class="text-left">{{ image.icon }} {{ image.name }}</span>
-      <img [src]="image.img" [alt]="image.alt"
-           class="h-full max-h-16 w-auto object-contain" />
+             focus-visible:outline focus-visible:outline-4 focus-visible:outline-offset-2
+             focus-visible:outline-white
+             p-3 sm:p-4">
+
+      <!-- min-h-0 en el wrapper: sin esto la imagen no se deja encoger dentro
+           del flex y desborda la tarjeta en pantallas bajas. -->
+      <div class="flex-1 min-h-0 w-full flex items-center justify-center">
+        <img
+          [src]="image.img"
+          [alt]="image.alt"
+          class="max-h-full max-w-full object-contain" />
+      </div>
+
+      <span class="shrink-0 text-base sm:text-xl leading-tight text-center">
+        {{ image.icon }} {{ image.name }}
+      </span>
     </button>
+
   }
 
-</div>   
+</div>

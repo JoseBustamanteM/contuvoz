@@ -47,6 +47,11 @@ export const routes: Routes = [
   canActivate: [authGuard, rolGuard],
 },
   {
+    path: 'unePage',
+    loadComponent: () =>
+      import('./pages/unePalabras/unePalabras.component').then((m) => m.UnePalabrasComponent),
+  },
+  {
     path: '**',
     redirectTo: ''
   },

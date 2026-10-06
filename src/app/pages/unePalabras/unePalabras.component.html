@@ -1,0 +1,125 @@
+<app-back-button />
+
+<div class="une-container">
+
+  <header class="cabecera">
+    <h1>🧩 Une palabra y dibujo</h1>
+    <p class="instruccion">
+      @if (terminado()) {
+        ¡Terminaste!
+      } @else if (seleccionada()) {
+        Ahora toca el dibujo de <strong>{{ seleccionada()!.texto }}</strong>
+      } @else {
+        Toca una palabra y después su dibujo.
+      }
+    </p>
+
+    <!-- Progreso: para quien aún no lee bien, la barra dice más que el número. -->
+    <div
+      class="barra-progreso"
+      role="img"
+      [attr.aria-label]="'Uniste ' + progreso() + ' de ' + palabras().length"
+    >
+      <div
+        class="barra-relleno"
+        [style.width.%]="palabras().length ? (progreso() / palabras().length) * 100 : 0"
+      ></div>
+    </div>
+  </header>
+
+  @if (!terminado()) {
+    <div class="tablero">
+
+      <!-- Columna de palabras -->
+      <ul class="columna">
+        @for (p of palabras(); track p.id) {
+          <li>
+            <button
+              type="button"
+              class="tarjeta tarjeta-palabra"
+              [class.resuelta]="resueltas().has(p.id)"
+              [class.activa]="seleccionada()?.id === p.id"
+              [disabled]="resueltas().has(p.id)"
+              [attr.aria-pressed]="seleccionada()?.id === p.id"
+              (click)="tocarPalabra(p)"
+            >
+              <span class="texto">{{ p.texto }}</span>
+
+              <!-- Al resolverse, la palabra muestra su dibujo: refuerza la
+                   asociación en el momento en que acertó. -->
+              @if (resueltas().has(p.id)) {
+                <span class="emoji-ok" aria-hidden="true">{{ p.emoji }}</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+
+      <!-- Columna de dibujos -->
+      <ul class="columna">
+        @for (d of dibujos(); track d.id) {
+          <li>
+            <button
+              type="button"
+              class="tarjeta tarjeta-dibujo"
+              [class.resuelta]="resueltas().has(d.id)"
+              [class.error]="errorEn() === d.id"
+              [class.esperando]="seleccionada() && !resueltas().has(d.id)"
+              [disabled]="resueltas().has(d.id)"
+              [attr.aria-label]="resueltas().has(d.id) ? d.texto : 'Dibujo'"
+              (click)="tocarDibujo(d)"
+            >
+              <span class="emoji" aria-hidden="true">{{ d.emoji }}</span>
+
+              @if (resueltas().has(d.id)) {
+                <span class="texto-ok">{{ d.texto }}</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+
+    </div>
+  } @else {
+    <!-- Resumen de la ronda -->
+    <div class="tarjeta-resumen">
+      <span class="emoji-resultado" aria-hidden="true">
+        @if (puntaje() === 100) { 🏆 } @else if (aprobado()) { 🎉 } @else { 💪 }
+      </span>
+
+      <h2 class="titulo-resumen">
+        @if (puntaje() === 100) { ¡Perfecto! }
+        @else if (aprobado()) { ¡Muy bien! }
+        @else { ¡Buen intento! }
+      </h2>
+
+      <p class="marcador">
+        <strong>{{ aciertosLimpios() }}</strong> de {{ palabras().length }} a la primera
+      </p>
+
+      @if (errores() > 0) {
+        <p class="nota-errores">
+          {{ errores() === 1 ? 'Te equivocaste 1 vez' : 'Te equivocaste ' + errores() + ' veces' }}
+        </p>
+      }
+
+      @if (guardando()) {
+        <p class="estado-guardado">Guardando tu resultado…</p>
+      }
+
+      @if (errorGuardado()) {
+        <div class="aviso-guardado">
+          <p>No pudimos guardar tu resultado.</p>
+          <button type="button" class="btn-reintentar" (click)="reintentarGuardado()">
+            Reintentar
+          </button>
+        </div>
+      }
+
+      <button type="button" class="btn-iniciar" (click)="nuevaRonda()">
+        🧩 Jugar otra vez
+      </button>
+    </div>
+  }
+
+</div>
