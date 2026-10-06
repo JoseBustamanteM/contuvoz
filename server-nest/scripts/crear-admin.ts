@@ -83,9 +83,6 @@ async function preguntarHasta(
 const obligatorio = (max: number) => (v: string) =>
   !v ? 'Este campo es obligatorio' : v.length > max ? `Máximo ${max} caracteres` : null;
 
-const opcional = (max: number) => (v: string) =>
-  v.length > max ? `Máximo ${max} caracteres` : null;
-
 async function main() {
   console.log('\nCrear usuario Administrador de ConTuVoz\n');
 
@@ -106,9 +103,11 @@ async function main() {
     ),
   );
   const primerNombre = await preguntarHasta('Primer nombre: ', obligatorio(100));
-  const segundoNombre = await preguntarHasta('Segundo nombre (opcional): ', opcional(100));
+  // Todos obligatorios, como en CrearUsuarioDto: si quedaran vacíos, el
+  // formulario de edición de Gestión de usuarios no dejaría guardar al admin.
+  const segundoNombre = await preguntarHasta('Segundo nombre: ', obligatorio(100));
   const aPaterno = await preguntarHasta('Apellido paterno: ', obligatorio(100));
-  const aMaterno = await preguntarHasta('Apellido materno (opcional): ', opcional(100));
+  const aMaterno = await preguntarHasta('Apellido materno: ', obligatorio(100));
   const correo = await preguntarHasta('Correo: ', (v) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Correo no válido',
   );

@@ -107,7 +107,7 @@ Crear el primer administrador (solo la primera vez, con la base recién cargada)
 npm run crear-admin
 ```
 
-El script pide RUT, nombre, correo, teléfono y contraseña (mínimo 8 caracteres, no se muestra al escribirla) y crea un usuario con rol Administrador. La contraseña no queda guardada en ningún archivo, solo su hash en la base. Se puede volver a ejecutar para crear más administradores. El código está en [`server-nest/scripts/crear-admin.ts`](server-nest/scripts/crear-admin.ts).
+El script pide RUT, nombres y apellidos, correo, teléfono y contraseña (mínimo 8 caracteres, no se muestra al escribirla) y crea un usuario con rol Administrador. La contraseña no queda guardada en ningún archivo, solo su hash en la base. Se puede volver a ejecutar para crear más administradores. El código está en [`server-nest/scripts/crear-admin.ts`](server-nest/scripts/crear-admin.ts).
 
 Con ese usuario se inicia sesión, y desde **Gestión de usuarios** se crean los profesores, estudiantes y demás roles.
 
