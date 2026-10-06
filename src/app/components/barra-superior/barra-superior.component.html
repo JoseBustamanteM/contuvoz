@@ -1,0 +1,52 @@
+@if (usuario(); as u) {
+  <header class="barra">
+    <!-- Izquierda: marca + volver al inicio -->
+    <div class="barra__lado">
+      <a routerLink="/" class="marca" aria-label="ConTuVoz, ir al inicio">
+        <img src="images/gecko cara.png" alt="" class="marca__gecko" />
+        <span class="marca__texto">Con<span>Tu</span>Voz</span>
+      </a>
+
+      @if (!enInicio()) {
+        <a routerLink="/" class="boton boton--inicio" aria-label="Volver al inicio">
+          <span class="boton__icono" aria-hidden="true">🏠</span>
+          <span class="boton__texto">Inicio</span>
+        </a>
+      }
+    </div>
+
+    <!-- Derecha: secciones, perfil y salir -->
+    <nav class="barra__lado" aria-label="Menú principal">
+      <button type="button" class="boton" (click)="pronto('La biblioteca')" title="Biblioteca (muy pronto)">
+        <span class="boton__icono" aria-hidden="true">📚</span>
+        <span class="boton__texto">Biblioteca</span>
+      </button>
+
+      @if (puedeGestionar()) {
+        <a routerLink="/gestion-usuarios" routerLinkActive="boton--activo" class="boton" title="Gestión de usuarios">
+          <span class="boton__icono" aria-hidden="true">👥</span>
+          <span class="boton__texto">Usuarios</span>
+        </a>
+      }
+
+      <!-- Perfil: la ficha del usuario. Hoy solo avisa que viene pronto. -->
+      <button type="button" class="perfil" (click)="pronto('Tu perfil')"
+              [title]="u.primerNombre + ' ' + u.aPaterno + ' · ' + nombreRol() + ' (perfil muy pronto)'">
+        <span class="perfil__avatar" aria-hidden="true">{{ iniciales() }}</span>
+        <span class="perfil__datos">
+          <span class="perfil__nombre">{{ u.primerNombre }}</span>
+          <span class="perfil__rol">{{ nombreRol() }}</span>
+        </span>
+      </button>
+
+      <app-logout-button />
+    </nav>
+  </header>
+
+  @if (avisoPronto(); as aviso) {
+    <div class="pronto" role="status">
+      <img src="images/gecko cara.png" alt="" class="pronto__gecko" />
+      {{ aviso }}
+    </div>
+  }
+}

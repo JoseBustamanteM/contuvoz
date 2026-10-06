@@ -4,7 +4,6 @@ import { UsuariosService } from '../../services/usuarios.service';
 import { AuthService } from '../../services/auth.service';
 import { UsuarioListado } from '../../interfaces/usuario-gestion.interface';
 import { NOMBRE_ROL, ROLES_GESTIONABLES, Rol } from '../../interfaces/rol.enum';
-import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
 import { UsuarioFormComponent } from '../../components/gestion-usuarios/usuario-form/usuario-form.component';
 import { formatearRut, limpiarRut } from '../../validators/rut.validator';
 
@@ -22,7 +21,7 @@ const MS_AVISO_EXITO = 3500;
 @Component({
   selector: 'app-gestion-usuarios',
   standalone: true,
-  imports: [BackButtonComponent, UsuarioFormComponent],
+  imports: [UsuarioFormComponent],
   templateUrl: './gestion-usuarios.component.html',
   styleUrls: ['./gestion-usuarios.component.scss'],
   host: { '(document:keydown.escape)': 'cancelarConfirmacion()' },

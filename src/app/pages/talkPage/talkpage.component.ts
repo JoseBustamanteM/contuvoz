@@ -5,7 +5,6 @@ import { PracticeButtonComponent } from '../../components/talkPage/practice-butt
 import { ResultFeedbackComponent } from '../../components/talkPage/result-feedback/result-feedback.component';
 import { MascotHeaderComponent } from '../../components/talkPage/mascot-header/mascot-header.component';
 import { WaveformVisualizerComponent } from '../../components/talkPage/waveform-visualizer/waveform-visualizer.component';
-import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { VowelDetectorService } from '../../services/vowel-detector.service';
 import { ActividadesService } from '../../services/actividades.service';
@@ -29,7 +28,6 @@ export const DURACION_ESCUCHA_MS = 2000;
     ResultFeedbackComponent,
     MascotHeaderComponent,
     WaveformVisualizerComponent,
-    BackButtonComponent,
     AvisoModoPracticaComponent,
   ],
   templateUrl: './talkpage.component.html',

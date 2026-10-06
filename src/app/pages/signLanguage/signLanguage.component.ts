@@ -1,7 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HandTrackerComponent } from '../../components/signLanguage/hand-tracker/hand-tracker.component';
-import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { ActividadesService } from '../../services/actividades.service';
 import { ResultadoSign } from '../../interfaces/sign-language.interface';
@@ -25,7 +24,7 @@ export interface EntradaResumen {
 @Component({
   selector: 'sign-page',
   standalone: true,
-  imports: [CommonModule, HandTrackerComponent, BackButtonComponent, AvisoModoPracticaComponent],
+  imports: [CommonModule, HandTrackerComponent, AvisoModoPracticaComponent],
   templateUrl: './signLanguage.component.html',
   styleUrls: ['./signLanguage.component.scss'],
 })

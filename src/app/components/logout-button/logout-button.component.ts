@@ -6,11 +6,23 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-logout-button',
   standalone: true,
   template: `
+    <!-- Mismo formato que los botones de la barra superior, en coral para que
+         se distinga como la acción de salir. Bajo 900px queda solo el ícono. -->
     <button
       type="button"
       (click)="abrirConfirmacion()"
       [disabled]="cargando()"
       aria-label="Cerrar sesión"
+      title="Salir"
+      class="inline-flex min-h-[40px] min-w-[40px] items-center justify-center gap-1.5 rounded-full
+             bg-rose-50 px-3.5 text-sm font-extrabold text-rose-600
+             shadow-[0_3px_0_#fecdd3] transition
+             hover:-translate-y-px hover:bg-rose-100
+             active:translate-y-0.5 active:shadow-[0_1px_0_#fecdd3]
+             focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2
+             focus-visible:outline-rose-300
+             disabled:cursor-wait disabled:opacity-70
+             max-[899px]:w-10 max-[899px]:px-0"
     >
       @if (cargando()) {
         <svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -18,10 +30,10 @@ import { AuthService } from '../../services/auth.service';
           <path class="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
-        <span class="hidden sm:inline">Saliendo...</span>
       } @else {
-        <span aria-hidden="true"><img src="/images/logout.png" alt="" width="40"></span>
+        <span class="text-lg leading-none" aria-hidden="true">🚪</span>
       }
+      <span class="max-[899px]:hidden">{{ cargando() ? 'Saliendo…' : 'Salir' }}</span>
     </button>
 
     @if (mostrarModal()) {

@@ -1,7 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { LetterSelectorComponent } from '../../components/drawPage/letter-selector/letter-selector.component';
 import { LetterTracerComponent } from '../../components/drawPage/letter-tracer/letter-tracer.component';
-import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { ActividadesService } from '../../services/actividades.service';
 import { ResultadoPintado } from '../../interfaces/actividad.interface';
@@ -15,7 +14,6 @@ const UMBRAL_APROBADO = 80;
   imports: [
     LetterTracerComponent,
     LetterSelectorComponent,
-    BackButtonComponent,
     AvisoModoPracticaComponent,
   ],
   templateUrl: './drawPage.component.html',

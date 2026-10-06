@@ -1,5 +1,4 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { ActividadesService } from '../../services/actividades.service';
 import { sortearRonda, PalabraBanco } from '../../interfaces/banco-palabras';
@@ -18,7 +17,7 @@ interface Dibujo {
 @Component({
   selector: 'une-page',
   standalone: true,
-  imports: [BackButtonComponent, AvisoModoPracticaComponent],
+  imports: [AvisoModoPracticaComponent],
   templateUrl: './unePalabras.component.html',
   styleUrls: ['./unePalabras.component.scss'],
 })

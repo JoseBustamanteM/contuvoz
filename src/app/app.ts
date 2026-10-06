@@ -1,18 +1,11 @@
-import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
-import { LogoutButtonComponent } from "./components/logout-button/logout-button.component";
-import { AuthService } from './services/auth.service';
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { BarraSuperiorComponent } from './components/barra-superior/barra-superior.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, LogoutButtonComponent, RouterLink],
+  imports: [RouterOutlet, BarraSuperiorComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
-export class App {
-  protected readonly title = signal('contuvoz');
-  private authService = inject(AuthService);
-  usuario = this.authService.usuario;
-
-
-}
+export class App {}

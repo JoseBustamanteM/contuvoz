@@ -1,42 +1,6 @@
-<!-- src/app/app.html -->
 <div class="h-[100dvh] flex flex-col overflow-hidden">
-
-  @if (usuario(); as u) {
-    <header class="shrink-0 flex items-center justify-end gap-2 sm:gap-3 px-3 py-2 sm:py-3">
-
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm
-                  px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900
-                  shadow-md ring-1 ring-white/60
-                  transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg">
-
-        <span class="">Perfil</span>
-
-
-      </span>
-
-      <span class="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm
-                  px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900
-                  shadow-md ring-1 ring-white/60
-                  transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg">
-
-        <span class="">Biblioteca</span>
-
-
-      </span>
-
-      @if ([1,2,3].includes(u.idRol)) {
-        <a routerLink="/gestion-usuarios"
-           class="inline-flex items-center gap-1.5 rounded-full bg-white/80 backdrop-blur-sm
-                  px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-bold text-emerald-900
-                  shadow-md ring-1 ring-white/60
-                  transition hover:-translate-y-0.5 hover:bg-white hover:shadow-lg">
-        <span class="">Usuarios</span>
-        </a>
-      }
-
-      <app-logout-button />
-    </header>
-  }
+  <!-- Solo se muestra con sesión iniciada (el componente lo decide). -->
+  <app-barra-superior class="shrink-0 relative z-40" />
 
   <main class="flex-1 min-h-0 overflow-y-auto">
     <router-outlet />

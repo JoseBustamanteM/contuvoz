@@ -5,7 +5,6 @@ import { ProgressChartComponent }   from '../../components/dashboard-page/progre
 import { StudyHoursChartComponent } from '../../components/dashboard-page/study-hours-chart/study-hours-chart.component';
 import { ActivityDonutComponent }   from '../../components/dashboard-page/activity-donut/activity-donut.component';
 import { AchievementCardComponent } from '../../components/dashboard-page/achievement-card/achievement-card.component';
-import { BackButtonComponent }      from '../../components/shared/back-button/back-button.component';
 
 @Component({
   selector: 'app-dashboard-page',
@@ -17,7 +16,6 @@ import { BackButtonComponent }      from '../../components/shared/back-button/ba
     StudyHoursChartComponent,
     ActivityDonutComponent,
     AchievementCardComponent,
-    BackButtonComponent,
   ],
   templateUrl: './dashboard-page.component.html',
   styleUrls: ['./dashboard-page.component.scss'],
