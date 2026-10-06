@@ -1,70 +1,158 @@
-<div class="modal-overlay" (click)="onCancelar()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <h2>{{ esEdicion ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+<div class="modal-fondo" (click)="intentarCerrar()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="titulo-form"
+       (click)="$event.stopPropagation()">
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="formulario">
-      <label>Rol</label>
-      <select formControlName="idRol">
-        <option [value]="0" disabled>Selecciona un rol</option>
-        @for (rol of rolesDisponibles; track rol) {
-          <option [ngValue]="rol">{{ nombreRol[rol] }}</option>
-        }
-      </select>
+    <header class="modal__cabecera">
+      <h2 id="titulo-form">{{ esEdicion ? '✏️ Editar usuario' : '➕ Nuevo usuario' }}</h2>
+      <button type="button" class="btn-cerrar" aria-label="Cerrar" (click)="intentarCerrar()">✕</button>
+    </header>
 
-    @if (esAdministrador() && !esEdicion) {
-  <label>Colegio</label>
-  <select formControlName="idColegio">
-    <option [ngValue]="0" disabled>Selecciona un colegio</option>
-    @for (colegio of colegios(); track colegio.idColegio) {
-      <option [ngValue]="colegio.idColegio">{{ colegio.nomColegio }}</option>
-    }
-  </select>
-}
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="formulario" novalidate>
 
-      <label>RUT</label>
-      <input type="text" formControlName="rutUsuario" placeholder="11111111-1" />
+      <fieldset>
+        <legend>Cuenta</legend>
 
-      <label>{{ esEdicion ? 'Nueva contraseña (opcional)' : 'Contraseña' }}</label>
-      <input type="password" formControlName="password" />
+        <div class="fila" [class.fila--doble]="pideColegio">
+          <div class="campo">
+            <label for="f-rol">Rol</label>
+            <select id="f-rol" formControlName="idRol" [class.con-error]="invalido('idRol')">
+              <option [ngValue]="0" disabled>Selecciona un rol</option>
+              @for (rol of rolesDisponibles; track rol) {
+                <option [ngValue]="rol">{{ nombreRol[rol] }}</option>
+              }
+            </select>
+            @if (invalido('idRol')) { <small class="error">Elige un rol.</small> }
+          </div>
 
-      <div class="fila-doble">
-        <div>
-          <label>Primer nombre</label>
-          <input type="text" formControlName="primerNombre" />
+          @if (pideColegio) {
+            <div class="campo">
+              <label for="f-colegio">Colegio</label>
+              <select id="f-colegio" formControlName="idColegio" [class.con-error]="invalido('idColegio')">
+                <option [ngValue]="0" disabled>Selecciona un colegio</option>
+                @for (colegio of colegios(); track colegio.idColegio) {
+                  <option [ngValue]="colegio.idColegio">{{ colegio.nomColegio }}</option>
+                }
+              </select>
+              @if (invalido('idColegio')) { <small class="error">Elige un colegio.</small> }
+            </div>
+          }
         </div>
-        <div>
-          <label>Segundo nombre</label>
-          <input type="text" formControlName="segundoNombre" />
-        </div>
-      </div>
 
-      <div class="fila-doble">
-        <div>
-          <label>Apellido paterno</label>
-          <input type="text" formControlName="aPaterno" />
-        </div>
-        <div>
-          <label>Apellido materno</label>
-          <input type="text" formControlName="aMaterno" />
-        </div>
-      </div>
+        <div class="fila fila--doble">
+          <div class="campo">
+            <label for="f-rut">RUT</label>
+            <input id="f-rut" type="text" formControlName="rutUsuario" placeholder="12.345.678-5"
+                   autocomplete="off" [class.con-error]="invalido('rutUsuario')" />
+            @if (invalido('rutUsuario')) {
+              <small class="error">
+                {{ form.controls.rutUsuario.hasError('required') ? 'El RUT es obligatorio.' : 'RUT no válido: revisa el dígito verificador.' }}
+              </small>
+            }
+          </div>
 
-      <label>Teléfono</label>
-      <input type="text" formControlName="telefonoUsuario" />
+          <div class="campo">
+            <label for="f-password">{{ esEdicion ? 'Nueva contraseña' : 'Contraseña' }}</label>
+            <div class="password">
+              <input id="f-password" [type]="verPassword() ? 'text' : 'password'" formControlName="password"
+                     autocomplete="new-password"
+                     [placeholder]="esEdicion ? 'Déjala vacía para no cambiarla' : 'Mínimo 8 caracteres'"
+                     [class.con-error]="invalido('password')" />
+              <button type="button" class="password__ver" (click)="verPassword.set(!verPassword())"
+                      [attr.aria-label]="verPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                      [attr.aria-pressed]="verPassword()">{{ verPassword() ? '🙈' : '👁️' }}</button>
+            </div>
+            @if (invalido('password')) {
+              <small class="error">
+                {{ form.controls.password.hasError('required') ? 'La contraseña es obligatoria.' : 'Debe tener al menos 8 caracteres.' }}
+              </small>
+            }
+          </div>
+        </div>
+      </fieldset>
 
-      <label>Correo</label>
-      <input type="email" formControlName="correo" />
+      <fieldset>
+        <legend>Datos personales</legend>
+
+        <div class="fila fila--doble">
+          <div class="campo">
+            <label for="f-nombre1">Primer nombre</label>
+            <input id="f-nombre1" type="text" formControlName="primerNombre" autocomplete="given-name"
+                   [class.con-error]="invalido('primerNombre')" />
+            @if (invalido('primerNombre')) { <small class="error">Obligatorio.</small> }
+          </div>
+          <div class="campo">
+            <label for="f-nombre2">Segundo nombre</label>
+            <input id="f-nombre2" type="text" formControlName="segundoNombre" autocomplete="additional-name"
+                   [class.con-error]="invalido('segundoNombre')" />
+            @if (invalido('segundoNombre')) { <small class="error">Obligatorio.</small> }
+          </div>
+        </div>
+
+        <div class="fila fila--doble">
+          <div class="campo">
+            <label for="f-apaterno">Apellido paterno</label>
+            <input id="f-apaterno" type="text" formControlName="aPaterno" autocomplete="family-name"
+                   [class.con-error]="invalido('aPaterno')" />
+            @if (invalido('aPaterno')) { <small class="error">Obligatorio.</small> }
+          </div>
+          <div class="campo">
+            <label for="f-amaterno">Apellido materno</label>
+            <input id="f-amaterno" type="text" formControlName="aMaterno"
+                   [class.con-error]="invalido('aMaterno')" />
+            @if (invalido('aMaterno')) { <small class="error">Obligatorio.</small> }
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Contacto</legend>
+
+        <div class="fila fila--doble">
+          <div class="campo">
+            <label for="f-telefono">Teléfono</label>
+            <input id="f-telefono" type="tel" formControlName="telefonoUsuario" placeholder="+56 9 1234 5678"
+                   autocomplete="tel" [class.con-error]="invalido('telefonoUsuario')" />
+            @if (invalido('telefonoUsuario')) {
+              <small class="error">
+                {{ form.controls.telefonoUsuario.hasError('required') ? 'El teléfono es obligatorio.' : 'Solo números (8 o más), con + opcional.' }}
+              </small>
+            }
+          </div>
+          <div class="campo">
+            <label for="f-correo">Correo</label>
+            <input id="f-correo" type="email" formControlName="correo" placeholder="nombre@colegio.cl"
+                   autocomplete="email" [class.con-error]="invalido('correo')" />
+            @if (invalido('correo')) {
+              <small class="error">
+                {{ form.controls.correo.hasError('required') ? 'El correo es obligatorio.' : 'Correo no válido.' }}
+              </small>
+            }
+          </div>
+        </div>
+      </fieldset>
 
       @if (error()) {
-        <p class="error-box">{{ error() }}</p>
+        <p class="error-box" role="alert">😕 {{ error() }}</p>
       }
 
-      <div class="botones">
-        <button type="button" (click)="onCancelar()" class="btn-cancelar">Cancelar</button>
-        <button type="submit" [disabled]="guardando()" class="btn-guardar">
-          {{ guardando() ? 'Guardando...' : 'Guardar' }}
-        </button>
-      </div>
+      @if (confirmandoDescarte()) {
+        <div class="descarte" role="alert" #avisoDescarte>
+          <p>Tienes cambios sin guardar. ¿Quieres descartarlos?</p>
+          <div class="botones">
+            <button type="button" class="btn btn--secundario" (click)="seguirEditando()">Seguir editando</button>
+            <button type="button" class="btn btn--peligro" (click)="descartar()">Descartar</button>
+          </div>
+        </div>
+      } @else {
+        <div class="botones">
+          <button type="button" class="btn btn--secundario" [disabled]="guardando()" (click)="intentarCerrar()">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn--primario" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando…' : (esEdicion ? 'Guardar cambios' : 'Crear usuario') }}
+          </button>
+        </div>
+      }
     </form>
   </div>
 </div>

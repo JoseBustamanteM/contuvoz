@@ -1,56 +1,214 @@
-<div class="h-[100dvh] overflow-y-auto flex flex-col p-4">
-  <app-back-button />
+<app-back-button />
 
-  <div class="max-w-4xl w-full mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-xl font-bold text-green-700">👥 Gestión de usuarios</h1>
-      <button (click)="abrirCreacion()" class="btn-crear">+ Nuevo usuario</button>
-    </div>
+<div class="pagina">
+  <div class="contenedor">
 
+    <!-- Cabecera -->
+    <header class="cabecera">
+      <div>
+        <h1 class="titulo">👥 Gestión de usuarios</h1>
+        <p class="subtitulo">
+          @if (!cargando()) {
+            {{ usuarios().length }} {{ usuarios().length === 1 ? 'usuario' : 'usuarios' }}
+            @if (totalInactivos() > 0) {
+              · {{ totalInactivos() }} {{ totalInactivos() === 1 ? 'inactivo' : 'inactivos' }}
+            }
+          }
+        </p>
+      </div>
+      @if (rolesQuePuedeCrear().length > 0) {
+        <button type="button" class="btn btn--primario" (click)="abrirCreacion()">
+          <span aria-hidden="true">＋</span> Nuevo usuario
+        </button>
+      }
+    </header>
+
+    <!-- Avisos -->
+    @if (exito()) {
+      <p class="aviso aviso--exito" role="status">✅ {{ exito() }}</p>
+    }
     @if (error()) {
-      <p class="text-red-500 mb-3">{{ error() }}</p>
+      <div class="aviso aviso--error" role="alert">
+        <span>😕 {{ error() }}</span>
+        <button type="button" class="btn-texto" (click)="cargarLista()">Reintentar</button>
+      </div>
     }
 
+    <!-- Filtros -->
+    <section class="filtros" aria-label="Filtros">
+      <label class="buscador">
+        <span class="sr-only">Buscar usuario</span>
+        <span class="buscador__icono" aria-hidden="true">🔍</span>
+        <input
+          type="search"
+          placeholder="Buscar por nombre, RUT o correo"
+          [value]="busqueda()"
+          (input)="busqueda.set($any($event.target).value)"
+        />
+      </label>
+
+      <div class="chips" role="group" aria-label="Filtrar por rol">
+        <button type="button" class="chip" [class.chip--activo]="filtroRol() === 0"
+                [attr.aria-pressed]="filtroRol() === 0" (click)="filtroRol.set(0)">
+          Todos <span class="chip__n">{{ usuarios().length }}</span>
+        </button>
+        @for (r of rolesConConteo(); track r.idRol) {
+          <button type="button" class="chip" [class]="claseRol[r.idRol]"
+                  [class.chip--activo]="filtroRol() === r.idRol"
+                  [attr.aria-pressed]="filtroRol() === r.idRol"
+                  (click)="filtroRol.set(r.idRol)">
+            {{ nombreRol[r.idRol] }} <span class="chip__n">{{ r.cantidad }}</span>
+          </button>
+        }
+      </div>
+
+      @if (totalInactivos() > 0) {
+        <label class="interruptor">
+          <input type="checkbox" [checked]="mostrarInactivos()"
+                 (change)="mostrarInactivos.set($any($event.target).checked)" />
+          Mostrar inactivos
+        </label>
+      }
+    </section>
+
+    <!-- Contenido -->
     @if (cargando()) {
-      <p class="text-gray-500">Cargando usuarios...</p>
+      <div class="tarjeta estado-vacio">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Cargando usuarios…</p>
+      </div>
+    } @else if (usuariosFiltrados().length === 0) {
+      <div class="tarjeta estado-vacio">
+        <span class="estado-vacio__emoji" aria-hidden="true">🦎</span>
+        @if (usuarios().length === 0) {
+          <p>Todavía no hay usuarios registrados.</p>
+        } @else {
+          <p>Ningún usuario coincide con la búsqueda.</p>
+          <button type="button" class="btn-texto" (click)="limpiarFiltros()">Limpiar filtros</button>
+        }
+      </div>
     } @else {
-      <table class="tabla-usuarios">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>RUT</th>
-            <th>Rol</th>
-            <th>Correo</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (u of usuarios(); track u.idUsuario) {
-            <tr [class.fila-inactiva]="!u.activo">
-              <td>{{ u.primerNombre }} {{ u.aPaterno }}</td>
-              <td>{{ u.rutUsuario }}</td>
-              <td>{{ nombreRol[u.idRol] }}</td>
-              <td>{{ u.correo }}</td>
-              <td>
-                <span [class.badge-activo]="u.activo" [class.badge-inactivo]="!u.activo">
-                  {{ u.activo ? 'Activo' : 'Inactivo' }}
-                </span>
-              </td>
-              <td class="acciones">
-                <button (click)="abrirEdicion(u)" class="btn-link">Editar</button>
-                <button (click)="alternarActivo(u)" class="btn-link">
-                  {{ u.activo ? 'Desactivar' : 'Reactivar' }}
-                </button>
-              </td>
+      <!-- Escritorio: tabla -->
+      <div class="tarjeta tabla-wrap">
+        <table class="tabla">
+          <thead>
+            <tr>
+              <th scope="col">Usuario</th>
+              <th scope="col">RUT</th>
+              <th scope="col">Rol</th>
+              <th scope="col" class="col-telefono">Teléfono</th>
+              <th scope="col">Estado</th>
+              <th scope="col"><span class="sr-only">Acciones</span></th>
             </tr>
-          } @empty {
-            <tr><td colspan="6" class="text-center text-gray-400">No hay usuarios registrados</td></tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (u of usuariosFiltrados(); track u.idUsuario) {
+              <tr [class.inactivo]="!u.activo">
+                <td>
+                  <div class="persona">
+                    <span class="avatar" [class]="claseRol[u.idRol]" aria-hidden="true">{{ iniciales(u) }}</span>
+                    <div class="persona__texto">
+                      <span class="persona__nombre">
+                        {{ u.primerNombre }} {{ u.aPaterno }} {{ u.aMaterno }}
+                        @if (u.idUsuario === idPropio()) { <span class="tu">(tú)</span> }
+                      </span>
+                      <span class="persona__correo">{{ u.correo }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="mono">{{ formatearRut(u.rutUsuario) }}</td>
+                <td><span class="etiqueta-rol" [class]="claseRol[u.idRol]">{{ nombreRol[u.idRol] }}</span></td>
+                <td class="col-telefono">{{ u.telefonoUsuario }}</td>
+                <td>
+                  <span class="estado" [class.estado--activo]="u.activo">
+                    {{ u.activo ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td class="acciones">
+                  @if (puedeGestionar(u)) {
+                    <button type="button" class="btn-icono" (click)="abrirEdicion(u)"
+                            [attr.aria-label]="'Editar a ' + u.primerNombre + ' ' + u.aPaterno" title="Editar">✏️</button>
+                    @if (u.idUsuario !== idPropio()) {
+                      <button type="button" class="btn-icono"
+                              [class.btn-icono--peligro]="u.activo"
+                              (click)="pedirConfirmacion(u)"
+                              [attr.aria-label]="(u.activo ? 'Desactivar a ' : 'Reactivar a ') + u.primerNombre + ' ' + u.aPaterno"
+                              [title]="u.activo ? 'Desactivar' : 'Reactivar'">
+                        {{ u.activo ? '⏸️' : '▶️' }}
+                      </button>
+                    }
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Celular: tarjetas. La tabla de 6 columnas no cabe y se cortaba. -->
+      <ul class="lista-movil">
+        @for (u of usuariosFiltrados(); track u.idUsuario) {
+          <li class="tarjeta tarjeta-usuario" [class.inactivo]="!u.activo">
+            <div class="persona">
+              <span class="avatar" [class]="claseRol[u.idRol]" aria-hidden="true">{{ iniciales(u) }}</span>
+              <div class="persona__texto">
+                <span class="persona__nombre">
+                  {{ u.primerNombre }} {{ u.aPaterno }}
+                  @if (u.idUsuario === idPropio()) { <span class="tu">(tú)</span> }
+                </span>
+                <span class="persona__correo">{{ u.correo }}</span>
+              </div>
+            </div>
+
+            <div class="tarjeta-usuario__datos">
+              <span class="etiqueta-rol" [class]="claseRol[u.idRol]">{{ nombreRol[u.idRol] }}</span>
+              <span class="estado" [class.estado--activo]="u.activo">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
+              <span class="mono">{{ formatearRut(u.rutUsuario) }}</span>
+            </div>
+
+            @if (puedeGestionar(u)) {
+              <div class="tarjeta-usuario__acciones">
+                <button type="button" class="btn btn--secundario" (click)="abrirEdicion(u)">✏️ Editar</button>
+                @if (u.idUsuario !== idPropio()) {
+                  <button type="button" class="btn" [class.btn--peligro]="u.activo"
+                          [class.btn--secundario]="!u.activo" (click)="pedirConfirmacion(u)">
+                    {{ u.activo ? '⏸️ Desactivar' : '▶️ Reactivar' }}
+                  </button>
+                }
+              </div>
+            }
+          </li>
+        }
+      </ul>
     }
   </div>
+
+  <!-- Confirmación de activar/desactivar -->
+  @if (confirmando(); as u) {
+    <div class="modal-fondo" (click)="cancelarConfirmacion()">
+      <div class="modal modal--chico" role="alertdialog" aria-modal="true"
+           aria-labelledby="titulo-confirmar" (click)="$event.stopPropagation()">
+        <h2 id="titulo-confirmar" class="modal__titulo">
+          {{ u.activo ? '¿Desactivar a ' : '¿Reactivar a ' }}{{ u.primerNombre }} {{ u.aPaterno }}?
+        </h2>
+        <p class="modal__texto">
+          @if (u.activo) {
+            No podrá iniciar sesión hasta que lo reactives. Su progreso no se borra.
+          } @else {
+            Podrá volver a iniciar sesión con su RUT y contraseña.
+          }
+        </p>
+        <div class="modal__botones">
+          <button type="button" class="btn btn--secundario" [disabled]="cambiandoEstado()"
+                  (click)="cancelarConfirmacion()">Cancelar</button>
+          <button type="button" class="btn" [class.btn--peligro]="u.activo" [class.btn--primario]="!u.activo"
+                  [disabled]="cambiandoEstado()" (click)="confirmarCambioEstado()">
+            {{ cambiandoEstado() ? 'Guardando…' : (u.activo ? 'Sí, desactivar' : 'Sí, reactivar') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (mostrarFormulario()) {
     <usuario-form

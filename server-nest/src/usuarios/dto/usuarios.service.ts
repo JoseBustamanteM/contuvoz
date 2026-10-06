@@ -225,6 +225,12 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
   }
 
   async desactivar(creador: UsuarioToken, idUsuario: number) {
+    // Sin esto, el único administrador podía desactivarse y dejar el sistema
+    // sin nadie que pudiera reactivarlo.
+    if (idUsuario === creador.idUsuario) {
+      throw new BadRequestException('No puedes desactivar tu propia cuenta');
+    }
+
     const objetivo = await this.prisma.usuario.findUnique({
       where: { idUsuario },
       select: { idRol: true, idColegio: true },
