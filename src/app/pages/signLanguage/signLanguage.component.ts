@@ -81,14 +81,27 @@ export class SignLanguageComponent {
 
   private guardarEntrada(entrada: EntradaResumen) {
     this.actividadesService.guardarSign(entrada.datos).subscribe({
-      next: (guardado) =>
+      next: (guardado) => {
         this.actualizarEntrada(entrada.letraEsperada, {
           guardado: 'ok',
           // El servidor tiene la última palabra sobre la aprobación.
           aprobado: guardado.aprobadoSign,
-        }),
-      error: () => this.actualizarEntrada(entrada.letraEsperada, { guardado: 'error' }),
+        });
+        this.terminarReintentoSiCorresponde();
+      },
+      error: () => {
+        this.actualizarEntrada(entrada.letraEsperada, { guardado: 'error' });
+        this.terminarReintentoSiCorresponde();
+      },
     });
+  }
+
+  /** El reintento termina cuando ya no queda ninguna letra pendiente, sea porque
+   *  se guardaron o porque volvieron a fallar. */
+  private terminarReintentoSiCorresponde() {
+    if (this.reintentando() && !this.resumen().some((e) => e.guardado === 'pendiente')) {
+      this.reintentando.set(false);
+    }
   }
 
   /** Actualiza por letra esperada: las respuestas HTTP pueden llegar desordenadas
@@ -104,12 +117,13 @@ export class SignLanguageComponent {
     const fallidas = this.resumen().filter((e) => e.guardado === 'error');
     if (fallidas.length === 0) return;
 
+    // Ya no se apaga al final de este método: los POST son asíncronos, así que
+    // se apagaba en el mismo instante y el botón nunca mostraba "Reintentando…".
     this.reintentando.set(true);
     for (const entrada of fallidas) {
       this.actualizarEntrada(entrada.letraEsperada, { guardado: 'pendiente' });
       this.guardarEntrada(entrada);
     }
-    this.reintentando.set(false);
   }
 
   onTestTerminado() {

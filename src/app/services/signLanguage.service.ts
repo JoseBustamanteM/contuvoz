@@ -39,17 +39,17 @@ export class SignLanguageService {
       ]);
 
     try {
-      const vision = await conTimeout(
-        FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.32/wasm',
-        ),
-      );
+      // Todo se sirve desde la propia app, sin CDNs: las redes escolares suelen
+      // bloquearlos y así funciona igual en la VPS.
+      // - wasm: angular.json lo copia desde node_modules en cada build, así que
+      //   siempre coincide con la versión instalada de @mediapipe/tasks-vision.
+      // - modelo: public/mediapipe/hand_landmarker.task (float16, versión 1).
+      const vision = await conTimeout(FilesetResolver.forVisionTasks('mediapipe/wasm'));
 
       this.handLandmarker = await conTimeout(
         HandLandmarker.createFromOptions(vision, {
           baseOptions: {
-            modelAssetPath:
-              'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+            modelAssetPath: 'mediapipe/hand_landmarker.task',
             delegate: 'GPU',
           },
           runningMode: 'VIDEO',

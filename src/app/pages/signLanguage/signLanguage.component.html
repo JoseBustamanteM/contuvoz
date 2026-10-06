@@ -72,12 +72,18 @@
         }
       </ul>
 
-      @if (fallosDeGuardado() > 0) {
+      <!-- `|| reintentando()`: al reintentar, las letras pasan a 'pendiente' y
+           fallosDeGuardado baja a 0; sin esto el aviso desaparecía a mitad del reintento. -->
+      @if (fallosDeGuardado() > 0 || reintentando()) {
         <div class="aviso-guardado">
           <p>
-            No pudimos guardar
-            {{ fallosDeGuardado() === 1 ? 'un resultado' : fallosDeGuardado() + ' resultados' }}.
-            Tu evaluación está completa, solo falta registrarla.
+            @if (reintentando()) {
+              Guardando tus resultados de nuevo…
+            } @else {
+              No pudimos guardar
+              {{ fallosDeGuardado() === 1 ? 'un resultado' : fallosDeGuardado() + ' resultados' }}.
+              Tu evaluación está completa, solo falta registrarla.
+            }
           </p>
           <button
             type="button"
