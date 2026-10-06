@@ -5,8 +5,6 @@ import {
 import { CommonModule } from '@angular/common';
 import { ResultadoPintado } from '../../../interfaces/actividad.interface';
 
-const UMBRAL_GUARDADO = 50;
-
 @Component({
   selector: 'letter-tracer',
   standalone: true,
@@ -89,8 +87,6 @@ export class LetterTracerComponent implements AfterViewInit {
 
     this.bgCtx.fillText(letra, x, y);
     this.bgCtx.strokeText(letra, x, y);
-    this.bgCtx.font = `${fontSize} "${fontName}"`;
-console.log('Font aplicado:', this.bgCtx.font);
   }
 
 
@@ -192,20 +188,21 @@ console.log('Font aplicado:', this.bgCtx.font);
 
     this.showResult(puntajeFinal);
 
-    if (areaCompletada >= UMBRAL_GUARDADO) {
-      this.resultadoListo.emit({
-        letraEsperada: this._currentLetter,
-        trazoInterno: this.redondear(trazoInterno),
-        trazoExterno: this.redondear(trazoExterno),
-        areaCompletada: this.redondear(areaCompletada),
-        puntajeFinal: this.redondear(puntajeFinal),
-        duracionPintado,
-      });
+    // Se guardan TODOS los intentos, también los malos. Antes solo se emitía con
+    // un 50% de área cubierta, y la profesora veía un progreso mejor que el real
+    // (Hablemos y Comunícate ya registraban cada intento).
+    this.resultadoListo.emit({
+      letraEsperada: this._currentLetter,
+      trazoInterno: this.redondear(trazoInterno),
+      trazoExterno: this.redondear(trazoExterno),
+      areaCompletada: this.redondear(areaCompletada),
+      puntajeFinal: this.redondear(puntajeFinal),
+      duracionPintado,
+    });
 
-      // Se guardó: dejamos el lienzo limpio para el próximo intento,
-      // pero mantenemos el mensaje de resultado a la vista
-      this.limpiarTrazo();
-    }
+    // Lienzo limpio para el próximo intento, con el mensaje de resultado a la
+    // vista. También evita que verificar dos veces el mismo dibujo lo guarde dos veces.
+    this.limpiarTrazo();
   }
 
   private redondear(valor: number): number {
