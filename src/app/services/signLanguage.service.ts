@@ -65,7 +65,9 @@ export class SignLanguageService {
       console.error('Error cargando el modelo de manos', e);
       this.isModelReady.set(false);
       this.errorModelo.set(
-        'No pudimos cargar el detector de manos. Revisa la conexión a internet e inténtalo de nuevo.',
+        // El modelo y el wasm se sirven desde la propia app (public/mediapipe y
+        // la copia de angular.json), así que no es un problema de internet.
+        'No pudimos cargar el detector de manos. Recarga la página e inténtalo de nuevo.',
       );
     }
   }

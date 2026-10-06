@@ -87,9 +87,10 @@
 // ============================================================
 
 // Overlay de error sobre el recuadro de la cámara.
-// Reusa .instruction-overlay y solo cambia el color, para que la posición
-// y el tamaño sigan viniendo de la regla que ya tenías.
-.instruction-overlay.error {
+// Misma ruta que la regla base (.ls-chile-container .camera-card ...): con solo
+// `.instruction-overlay.error` perdía por especificidad y quedaba texto blanco
+// sobre el fondo blanco de la regla base, ilegible.
+.ls-chile-container .camera-card .instruction-overlay.error {
   background: rgba(183, 28, 28, 0.92);
   color: #fff;
   display: flex;
