@@ -47,7 +47,7 @@ mariadb -u root -p nest_db < "script DB + insert/01_estructura.sql"
 mariadb -u root -p nest_db < "script DB + insert/02_datos_base.sql"
 ```
 
-Los scripts no incluyen usuarios: para entrar a la app hay que crear un primer administrador (`id_rol = 1`, `id_colegio = 1`) con la contraseña hasheada con bcrypt.
+Los scripts no incluyen usuarios. El primer administrador se crea después de configurar el backend (paso 2).
 
 Para regenerar los scripts después de cambiar la estructura:
 
@@ -99,6 +99,21 @@ Luego:
 cd server-nest
 npm install
 npx prisma generate
+```
+
+Crear el primer administrador (solo la primera vez, con la base recién cargada):
+
+```bash
+npm run crear-admin
+```
+
+El script pide RUT, nombre, correo, teléfono y contraseña (mínimo 8 caracteres, no se muestra al escribirla) y crea un usuario con rol Administrador. La contraseña no queda guardada en ningún archivo, solo su hash en la base. Se puede volver a ejecutar para crear más administradores. El código está en [`server-nest/scripts/crear-admin.ts`](server-nest/scripts/crear-admin.ts).
+
+Con ese usuario se inicia sesión, y desde **Gestión de usuarios** se crean los profesores, estudiantes y demás roles.
+
+Levantar la API:
+
+```bash
 npm run start:dev
 ```
 
@@ -127,3 +142,4 @@ Solo los usuarios **Estudiante** y **Profesor** registran resultados de activida
 | raíz | `npm test` | Tests del frontend (Vitest) |
 | `server-nest` | `npm run build` | Compila el backend |
 | `server-nest` | `npm test` | Tests del backend (Jest) |
+| `server-nest` | `npm run crear-admin` | Crea un usuario Administrador |
