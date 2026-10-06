@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-declare var Chart: any;
+import Chart from 'chart.js/auto';
 
 export interface ActivityStat {
   label: string;

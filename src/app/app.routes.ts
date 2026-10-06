@@ -1,55 +1,61 @@
 import { Routes } from '@angular/router';
 import { HomePageComponent } from './pages/homePage/homePage.component';
-import { DrawPageComponent } from './pages/drawPage/drawPage.component';
-import { SignLanguageComponent } from './pages/signLanguage/signLanguage.component';
-import { TalkPageComponent } from './pages/talkPage/talkpage.component';
-import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
 import { LoginComponent } from './pages/login/login.component';
-import { authGuard } from './guards/auth.guard';
+import { authGuard, invitadoGuard } from './guards/auth.guard';
 import { rolGuard } from './guards/rol.guard';
-import { GestionUsuariosComponent } from './pages/gestion-usuarios/gestion-usuarios.component';
-export const routes: Routes = [
 
-  { path: 'login', component: LoginComponent },
+// Login e inicio van en el paquete principal (son lo primero que se ve). El
+// resto se carga al entrar: así MediaPipe (Comunícate) y Chart.js (dashboard)
+// no se descargan hasta que se usan.
+export const routes: Routes = [
+  { path: 'login', component: LoginComponent, canActivate: [invitadoGuard] },
   {
     path: '',
     component: HomePageComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard],
   },
   {
     path: 'drawPage',
-    component: DrawPageComponent,
-    canActivate: [authGuard]
+    loadComponent: () =>
+      import('./pages/drawPage/drawPage.component').then((m) => m.DrawPageComponent),
+    canActivate: [authGuard],
   },
   {
     path: 'signPage',
-    component: SignLanguageComponent,
-    canActivate: [authGuard]
-  },
-   {
-    path: 'talkPage',
-    component: TalkPageComponent,
-    canActivate: [authGuard]
+    loadComponent: () =>
+      import('./pages/signLanguage/signLanguage.component').then((m) => m.SignLanguageComponent),
+    canActivate: [authGuard],
   },
   {
-    path: 'dashboard-page',
-    component: DashboardPageComponent,
-    canActivate: [authGuard]
+    path: 'talkPage',
+    loadComponent: () =>
+      import('./pages/talkPage/talkpage.component').then((m) => m.TalkPageComponent),
+    canActivate: [authGuard],
   },
-   {
-  path: 'gestion-usuarios',
-  component: GestionUsuariosComponent,
-  canActivate: [authGuard, rolGuard],
-},
   {
     path: 'unePage',
     loadComponent: () =>
       import('./pages/unePalabras/unePalabras.component').then((m) => m.UnePalabrasComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+  },
+  {
+    path: 'dashboard-page',
+    loadComponent: () =>
+      import('./pages/dashboard-page/dashboard-page.component').then(
+        (m) => m.DashboardPageComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'gestion-usuarios',
+    loadComponent: () =>
+      import('./pages/gestion-usuarios/gestion-usuarios.component').then(
+        (m) => m.GestionUsuariosComponent,
+      ),
+    canActivate: [authGuard, rolGuard],
   },
   {
     path: '**',
-    redirectTo: ''
+    redirectTo: '',
   },
-
 ];

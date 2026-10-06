@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-declare var Chart: any;
+import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-study-hours-chart',
@@ -81,7 +81,7 @@ export class StudyHoursChartComponent implements AfterViewInit, OnDestroy {
             grid: { display: false },
             border: { display: false },
             ticks: {
-              font: { size: 12, weight: '700' },
+              font: { size: 12, weight: 700 },
               color: '#555',
             },
           },
@@ -92,8 +92,8 @@ export class StudyHoursChartComponent implements AfterViewInit, OnDestroy {
             border: { display: false },
             ticks: {
               stepSize: 0.5,
-              callback: (v: number) => v + 'h',
-              font: { size: 11, weight: '700' },
+              callback: (v: string | number) => v + 'h',
+              font: { size: 11, weight: 700 },
               color: '#888',
             },
           },

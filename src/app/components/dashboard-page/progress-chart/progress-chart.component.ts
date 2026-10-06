@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-declare var Chart: any;
+import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-progress-chart',
@@ -83,8 +83,8 @@ export class ProgressChartComponent implements AfterViewInit, OnDestroy {
             max: 100,
             grid: { display: false },
             ticks: {
-              callback: (v: number) => v + '%',
-              font: { size: 11, weight: '700' },
+              callback: (v: string | number) => v + '%',
+              font: { size: 11, weight: 700 },
               color: '#555',
             },
             border: { display: false },
@@ -94,7 +94,7 @@ export class ProgressChartComponent implements AfterViewInit, OnDestroy {
             grid: { display: false },
             border: { display: false },
             ticks: {
-              font: { size: 13, weight: '700' },
+              font: { size: 13, weight: 700 },
               color: '#2e7d32',
             },
           },
