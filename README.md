@@ -49,6 +49,22 @@ mariadb -u root -p nest_db < "script DB + insert/02_datos_base.sql"
 
 Los scripts no incluyen usuarios. El primer administrador se crea después de configurar el backend (paso 2).
 
+#### Cambios de estructura en una base existente
+
+`01_estructura.sql` siempre tiene la estructura completa (sirve para instalar desde cero). Si tu base ya existe, aplica en orden de fecha los scripts de [`script DB + insert/cambios/`](script%20DB%20+%20insert/cambios/) que todavía no tenga:
+
+| Script | Qué hace |
+|---|---|
+| `2026-10-06_vinculo_estudiante.sql` | Tabla de vínculos estudiante ↔ profesor/apoderado, con historial |
+
+```bash
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-06_vinculo_estudiante.sql"
+```
+
+Luego, en `server-nest`, `npx prisma generate`.
+
+> **No usar `prisma db push` ni `prisma migrate`.** El proyecto no usa migraciones de Prisma, y algunas tablas tienen restricciones (`CHECK`, columnas calculadas) que Prisma no sabe crear: `db push` las borraría o intentaría "corregir" otras tablas. Los cambios de estructura van como scripts SQL en `cambios/`.
+
 Para regenerar los scripts después de cambiar la estructura:
 
 ```bash
