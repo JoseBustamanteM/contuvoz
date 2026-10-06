@@ -28,9 +28,40 @@ contuvoz/
 
 ### 1. Base de datos
 
-Crear la base y cargar el esquema con sus datos iniciales (roles, tipos de actividad, colegios y usuarios). El esquema está definido en [`server-nest/prisma/schema.prisma`](server-nest/prisma/schema.prisma).
+Los scripts están en [`script DB + insert/`](script%20DB%20+%20insert/) y se cargan en orden:
 
-Las tablas `rol` y `tipo_actividad` deben tener estos ids, porque el backend los usa directamente:
+| Archivo | Contenido |
+|---|---|
+| `01_estructura.sql` | Las 16 tablas, sin datos |
+| `02_datos_base.sql` | Roles, tipos de actividad, país/región/ciudad/comuna y un colegio de prueba |
+
+```bash
+mariadb -u root -p -e "CREATE DATABASE nest_db CHARACTER SET utf8mb4"
+```
+
+```bash
+mariadb -u root -p nest_db < "script DB + insert/01_estructura.sql"
+```
+
+```bash
+mariadb -u root -p nest_db < "script DB + insert/02_datos_base.sql"
+```
+
+Los scripts no incluyen usuarios: para entrar a la app hay que crear un primer administrador (`id_rol = 1`, `id_colegio = 1`) con la contraseña hasheada con bcrypt.
+
+Para regenerar los scripts después de cambiar la estructura:
+
+```bash
+mariadb-dump -u root -p --no-data --routines --triggers --skip-dump-date nest_db > "script DB + insert/01_estructura.sql"
+```
+
+```bash
+mariadb-dump -u root -p --no-create-info --complete-insert --skip-dump-date nest_db rol tipo_actividad pais region ciudad comuna colegio > "script DB + insert/02_datos_base.sql"
+```
+
+No exportar la base completa: contiene usuarios reales, hashes de contraseñas y tokens de sesión.
+
+El modelo de Prisma está en [`server-nest/prisma/schema.prisma`](server-nest/prisma/schema.prisma). Las tablas `rol` y `tipo_actividad` deben tener estos ids, porque el backend los usa directamente:
 
 | `rol` | id | | `tipo_actividad` | id |
 |---|---|---|---|---|
