@@ -45,6 +45,7 @@ export const routes: Routes = [
     path: 'unePage',
     loadComponent: () =>
       import('./pages/unePalabras/unePalabras.component').then((m) => m.UnePalabrasComponent),
+    canActivate: [authGuard]
   },
   {
     path: '**',
