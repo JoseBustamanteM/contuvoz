@@ -2,6 +2,7 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HandTrackerComponent } from '../../components/signLanguage/hand-tracker/hand-tracker.component';
 import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
+import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { ActividadesService } from '../../services/actividades.service';
 import { ResultadoSign } from '../../interfaces/sign-language.interface';
 
@@ -15,7 +16,8 @@ export interface EntradaResumen {
   letraDetectada: string;
   porcConfianza: number;
   aprobado: boolean;
-  guardado: 'pendiente' | 'ok' | 'error';
+  /** 'omitido': modo práctica, el rol no registra progreso. */
+  guardado: 'pendiente' | 'ok' | 'error' | 'omitido';
   /** Se conserva para poder reintentar el POST sin rehacer la seña. */
   datos: ResultadoSign;
 }
@@ -23,7 +25,7 @@ export interface EntradaResumen {
 @Component({
   selector: 'sign-page',
   standalone: true,
-  imports: [CommonModule, HandTrackerComponent, BackButtonComponent],
+  imports: [CommonModule, HandTrackerComponent, BackButtonComponent, AvisoModoPracticaComponent],
   templateUrl: './signLanguage.component.html',
   styleUrls: ['./signLanguage.component.scss'],
 })
@@ -66,11 +68,12 @@ export class SignLanguageComponent {
       // Mismo criterio que aplica el servidor: umbral Y sostenida. Así el ✅ que
       // ve el niño coincide siempre con el aprobado_sign que queda en la BD.
       aprobado: resultado.porcConfianza >= UMBRAL_APROBADO && resultado.sostenida,
-      guardado: 'pendiente',
+      guardado: this.actividadesService.puedeGuardarProgreso() ? 'pendiente' : 'omitido',
       datos: resultado,
     };
 
     this.resumen.update((r) => [...r, entrada]);
+    if (entrada.guardado === 'omitido') return;
 
     // 2) El guardado corre aparte y solo actualiza el estado de esa fila.
     this.guardarEntrada(entrada);

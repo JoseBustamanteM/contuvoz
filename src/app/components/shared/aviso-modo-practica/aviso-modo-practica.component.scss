@@ -1,0 +1,31 @@
+// Flotante, igual que el botón de inicio, para no mover el layout de páginas
+// que ocupan exactamente 100dvh (Pinta Letras).
+.aviso {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: min(560px, calc(100vw - 140px));
+  padding: 8px 14px;
+  background: #fff8e1;
+  color: #5d4300;
+  border: 2px solid #ffca28;
+  border-radius: 14px;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+// En celular el botón de inicio queda solo con el ícono: el aviso pasa abajo
+// del botón para no taparlo.
+@media (max-width: 480px) {
+  .aviso {
+    top: 60px;
+    max-width: calc(100vw - 24px);
+  }
+}

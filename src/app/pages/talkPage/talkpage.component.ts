@@ -6,6 +6,7 @@ import { ResultFeedbackComponent } from '../../components/talkPage/result-feedba
 import { MascotHeaderComponent } from '../../components/talkPage/mascot-header/mascot-header.component';
 import { WaveformVisualizerComponent } from '../../components/talkPage/waveform-visualizer/waveform-visualizer.component';
 import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
+import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { VowelDetectorService } from '../../services/vowel-detector.service';
 import { ActividadesService } from '../../services/actividades.service';
 
@@ -23,6 +24,7 @@ export type PracticeState = 'idle' | 'listening' | 'success' | 'failure';
     MascotHeaderComponent,
     WaveformVisualizerComponent,
     BackButtonComponent,
+    AvisoModoPracticaComponent,
   ],
   templateUrl: './talkpage.component.html',
   styleUrl: './talkpage.component.scss',
@@ -71,6 +73,9 @@ export class TalkPageComponent {
     detectada: VocalLetter | null,
     confianza: number,
   ): void {
+    // Modo práctica: el backend respondería 403 para este rol.
+    if (!this.actividadesService.puedeGuardarProgreso()) return;
+
     this.guardando.set(true);
 
     this.actividadesService

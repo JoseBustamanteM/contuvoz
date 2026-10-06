@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
+import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { ActividadesService } from '../../services/actividades.service';
 import { sortearRonda, PalabraBanco } from '../../interfaces/banco-palabras';
 import { Confusion, ResultadoUnePalabras } from '../../interfaces/une-palabras.interface';
@@ -17,7 +18,7 @@ interface Dibujo {
 @Component({
   selector: 'une-page',
   standalone: true,
-  imports: [BackButtonComponent],
+  imports: [BackButtonComponent, AvisoModoPracticaComponent],
   templateUrl: './unePalabras.component.html',
   styleUrls: ['./unePalabras.component.scss'],
 })
@@ -156,6 +157,9 @@ export class UnePalabrasComponent {
       pares: this.palabras().map((p) => p.texto),
       confusiones: [...this.confusiones.values()],
     };
+
+    // Modo práctica: el backend respondería 403 para este rol.
+    if (!this.actividadesService.puedeGuardarProgreso()) return;
 
     this.guardando.set(true);
     this.actividadesService.guardarUnePalabras(datos).subscribe({

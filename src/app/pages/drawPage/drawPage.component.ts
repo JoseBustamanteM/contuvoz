@@ -2,16 +2,22 @@ import { Component, inject, signal } from '@angular/core';
 import { LetterSelectorComponent } from '../../components/drawPage/letter-selector/letter-selector.component';
 import { LetterTracerComponent } from '../../components/drawPage/letter-tracer/letter-tracer.component';
 import { BackButtonComponent } from '../../components/shared/back-button/back-button.component';
+import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { ActividadesService } from '../../services/actividades.service';
-import {
-  ResultadoPintado,
-  ResultadoPintadoGuardado,
-} from '../../interfaces/actividad.interface';
+import { ResultadoPintado } from '../../interfaces/actividad.interface';
+
+/** Mismo umbral que UMBRAL_APROBADO en el backend (actividades.service.ts). */
+const UMBRAL_APROBADO = 80;
 
 @Component({
   selector: 'app-draw-page',
   standalone: true,
-  imports: [LetterTracerComponent, LetterSelectorComponent, BackButtonComponent],
+  imports: [
+    LetterTracerComponent,
+    LetterSelectorComponent,
+    BackButtonComponent,
+    AvisoModoPracticaComponent,
+  ],
   templateUrl: './drawPage.component.html',
   styleUrls: ['./drawPage.component.scss'],
 })
@@ -20,12 +26,22 @@ export class DrawPageComponent {
 
   currentLetter: string = 'A';
   estadoGuardado = signal<'idle' | 'guardando' | 'ok' | 'error'>('idle');
-  ultimoResultado = signal<ResultadoPintadoGuardado | null>(null);
+  ultimoResultado = signal<(ResultadoPintado & { aprobadoPintado: boolean }) | null>(null);
 
   // Guardamos el payload que falló, para poder reintentar sin perder el dato
   private pendienteDeGuardar: ResultadoPintado | null = null;
 
   onResultadoListo(resultado: ResultadoPintado) {
+    // Modo práctica: el backend respondería 403, así que se muestra el resultado
+    // calculado localmente y no se intenta guardar.
+    if (!this.actividadesService.puedeGuardarProgreso()) {
+      this.ultimoResultado.set({
+        ...resultado,
+        aprobadoPintado: resultado.puntajeFinal >= UMBRAL_APROBADO,
+      });
+      return;
+    }
+
     this.pendienteDeGuardar = resultado;
     this.intentarGuardar(resultado);
   }
