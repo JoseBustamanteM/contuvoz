@@ -4,7 +4,6 @@ import { DrawPageComponent } from './pages/drawPage/drawPage.component';
 import { SignLanguageComponent } from './pages/signLanguage/signLanguage.component';
 import { TalkPageComponent } from './pages/talkPage/talkpage.component';
 import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
-import { DbTestComponent } from './pages/db-test/db-test.component';
 import { LoginComponent } from './pages/login/login.component';
 import { authGuard } from './guards/auth.guard';
 import { rolGuard } from './guards/rol.guard';
@@ -36,10 +35,6 @@ export const routes: Routes = [
     path: 'dashboard-page',
     component: DashboardPageComponent,
     canActivate: [authGuard]
-  },
-    {
-    path: 'test-db',
-    component: DbTestComponent,
   },
    {
   path: 'gestion-usuarios',

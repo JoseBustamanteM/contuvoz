@@ -1,59 +1,98 @@
-# Contuvoz
+# ConTuVoz
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1.
+Aplicación educativa para niños con actividades de lectoescritura y comunicación:
 
-## Development server
+| Actividad | Ruta | Qué hace |
+|---|---|---|
+| Pinta Letras | `/drawPage` | Trazado de letras sobre un canvas |
+| Comunícate | `/signPage` | Lengua de señas con detección de manos (MediaPipe) |
+| Hablemos | `/talkPage` | Pronunciación de vocales por análisis de formantes (Web Audio) |
+| Une Palabras | `/unePage` | Unir palabras con su dibujo |
 
-To start a local development server, run:
+Toda la detección corre en el navegador; el backend solo guarda los resultados.
 
-```bash
-ng serve
+## Estructura
+
+```
+contuvoz/
+├── src/           Frontend Angular 21
+└── server-nest/   Backend NestJS + Prisma + MySQL/MariaDB
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Requisitos
 
-## Code scaffolding
+- Node.js 20.19 o superior
+- MySQL o MariaDB corriendo localmente
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Puesta en marcha
 
-```bash
-ng generate component component-name
+### 1. Base de datos
+
+Crear la base y cargar el esquema con sus datos iniciales (roles, tipos de actividad, colegios y usuarios). El esquema está definido en [`server-nest/prisma/schema.prisma`](server-nest/prisma/schema.prisma).
+
+Las tablas `rol` y `tipo_actividad` deben tener estos ids, porque el backend los usa directamente:
+
+| `rol` | id | | `tipo_actividad` | id |
+|---|---|---|---|---|
+| Administrador | 1 | | Pinta Letras | 1 |
+| Admin_colegio | 2 | | Comunícate | 2 |
+| Profesor | 3 | | Hablemos | 3 |
+| Apoderado | 4 | | Une Palabras | 4 |
+| Estudiante | 5 | | | |
+
+### 2. Backend (`server-nest`)
+
+Crear `server-nest/.env`:
+
+```env
+DATABASE_URL="mysql://USUARIO:CLAVE@localhost:3306/nest_db"
+JWT_SECRET="una-cadena-larga-y-aleatoria"
+PORT=4000
+FRONTEND_URL="http://localhost:4200"
+ACCESS_TOKEN_EXPIRA=15m
+REFRESH_TOKEN_DIAS=7
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+| Variable | Obligatoria | Por defecto |
+|---|---|---|
+| `DATABASE_URL` | Sí | — |
+| `JWT_SECRET` | Sí (el servidor no arranca sin ella) | — |
+| `PORT` | No | `4000` |
+| `FRONTEND_URL` | No (origen permitido por CORS) | `http://localhost:4200` |
+| `ACCESS_TOKEN_EXPIRA` | No | `15m` |
+| `REFRESH_TOKEN_DIAS` | No | `7` |
+
+Luego:
 
 ```bash
-ng generate --help
+cd server-nest
+npm install
+npx prisma generate
+npm run start:dev
 ```
 
-## Building
+La API queda en `http://localhost:4000`.
 
-To build the project run:
+### 3. Frontend
+
+Desde la raíz del proyecto:
 
 ```bash
-ng build
+npm install
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Abrir `http://localhost:4200`. La URL de la API se configura en `src/environments/environment.development.ts` (desarrollo) y `src/environments/environment.ts` (producción).
 
-## Running unit tests
+## Roles y guardado de progreso
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Solo los usuarios **Estudiante** y **Profesor** registran resultados de actividades. Los demás roles pueden abrir las actividades, pero su progreso no se guarda y la aplicación lo indica en pantalla.
 
-```bash
-ng test
-```
+## Comandos útiles
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Dónde | Comando | Qué hace |
+|---|---|---|
+| raíz | `npm run build` | Compila el frontend en `dist/` |
+| raíz | `npm test` | Tests del frontend (Vitest) |
+| `server-nest` | `npm run build` | Compila el backend |
+| `server-nest` | `npm test` | Tests del backend (Jest) |
