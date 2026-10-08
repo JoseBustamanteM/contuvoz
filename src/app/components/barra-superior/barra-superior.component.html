@@ -17,6 +17,13 @@
 
     <!-- Derecha: secciones, perfil y salir -->
     <nav class="barra__lado" aria-label="Menú principal">
+      @if (esEstudiante()) {
+        <a routerLink="/mis-logros" routerLinkActive="boton--activo" class="boton boton--logros" title="Mis logros">
+          <span class="boton__icono" aria-hidden="true">🏆</span>
+          <span class="boton__texto">Mis logros</span>
+        </a>
+      }
+
       <button type="button" class="boton" (click)="pronto('La biblioteca')" title="Biblioteca (muy pronto)">
         <span class="boton__icono" aria-hidden="true">📚</span>
         <span class="boton__texto">Biblioteca</span>

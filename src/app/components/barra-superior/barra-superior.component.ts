@@ -35,6 +35,8 @@ export class BarraSuperiorComponent {
   );
   enInicio = computed(() => this.url().split('?')[0] === '/');
 
+  esEstudiante = computed(() => this.usuario()?.idRol === Rol.ESTUDIANTE);
+
   puedeGestionar = computed(() => {
     const u = this.usuario();
     return !!u && ROLES_GESTION.includes(u.idRol);

@@ -97,6 +97,13 @@
     &:active { box-shadow: 0 1px 0 #fcd34d; }
   }
 
+  &--logros {
+    background: #fef3c7;
+    color: #92400e;
+    box-shadow: 0 3px 0 #fcd34d;
+    &:hover { background: #fde68a; }
+  }
+
   &--activo {
     background: #10b981;
     color: #fff;

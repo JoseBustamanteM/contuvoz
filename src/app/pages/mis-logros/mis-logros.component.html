@@ -1,0 +1,184 @@
+<div class="pagina">
+  <div class="contenedor" [attr.aria-busy]="cargando()">
+
+    @if (cargando()) {
+      <!-- Skeleton: misma forma que la pantalla real, para que nada "salte" al cargar -->
+      <div class="skeleton" aria-hidden="true">
+        <div class="sk-fila">
+          <span class="sk sk--circulo"></span>
+          <span class="sk-columna"><span class="sk sk--titulo"></span><span class="sk sk--linea"></span></span>
+        </div>
+        <span class="sk sk--tarjeta" style="height: 84px"></span>
+        <span class="sk sk--tarjeta" style="height: 70px"></span>
+        <div class="sk-grilla">
+          <span class="sk sk--tarjeta"></span><span class="sk sk--tarjeta"></span>
+          <span class="sk sk--tarjeta"></span><span class="sk sk--tarjeta"></span>
+        </div>
+        <span class="sk sk--tarjeta" style="height: 64px"></span>
+      </div>
+      <p class="sr-only" role="status">Cargando tus logros…</p>
+
+    } @else if (error()) {
+      <div class="tarjeta estado">
+        <img src="images/gecko cara.png" alt="" class="estado__gecko" />
+        <p class="estado__titulo">No pudimos traer tus logros</p>
+        <button type="button" class="btn-jugar" (click)="cargar()">Intentar de nuevo</button>
+      </div>
+
+    } @else if (resumen(); as r) {
+      <!-- ══════════ Arriba: lo primero que ve el niño ══════════ -->
+      <header class="saludo">
+        <img src="images/gecko cara.png" alt="" class="saludo__gecko" />
+        <div>
+          <h1 class="saludo__titulo">¡Hola, {{ nombre() }}!</h1>
+          <p class="saludo__sub">
+            {{ sinActividad() ? 'Aquí verás todo lo que aprendas' : 'Mira todo lo que lograste' }}
+          </p>
+        </div>
+      </header>
+
+      @if (sinActividad()) {
+        <div class="tarjeta estado">
+          <p class="estado__titulo">¡Todavía no has jugado esta semana!</p>
+          <p class="estado__texto">Elige una actividad y gana tu primera estrella ⭐</p>
+          <a routerLink="/" class="btn-jugar">Elegir actividad</a>
+        </div>
+      } @else {
+        <section class="tarjeta resumen" aria-label="Esta semana">
+          <span class="resumen__estrella" aria-hidden="true">⭐</span>
+          <div class="resumen__dato">
+            <span class="resumen__numero">{{ r.estrellasSemana }}</span>
+            <span class="resumen__texto">{{ r.estrellasSemana === 1 ? 'estrella' : 'estrellas' }} esta semana</span>
+          </div>
+          @if (r.racha > 0) {
+            <div class="resumen__racha" [attr.aria-label]="r.racha + ' días seguidos jugando'">
+              <span aria-hidden="true">🔥</span>
+              <span>{{ r.racha }} {{ r.racha === 1 ? 'día' : 'días' }}</span>
+            </div>
+          }
+        </section>
+
+        <section class="tarjeta" aria-label="Días que jugaste esta semana">
+          <p class="etiqueta">Esta semana jugué</p>
+          <div class="semana">
+            @for (d of dias; track $index) {
+              <span class="dia" [class.dia--jugado]="r.diasSemana[$index]">{{ d }}</span>
+            }
+          </div>
+        </section>
+
+        <section class="actividades" aria-label="Mis actividades">
+          @for (a of actividades; track a.clave) {
+            <button type="button" class="tarjeta actividad" (click)="irACajon(a.clave)"
+                    [attr.aria-label]="a.nombre + ': ' + r.estrellasPorActividad[a.clave] + ' estrellas. Ver detalle'">
+              <span class="actividad__icono" aria-hidden="true">{{ a.icono }}</span>
+              <span class="actividad__nombre">{{ a.nombre }}</span>
+              <span class="actividad__estrellas" aria-hidden="true">
+                @for (s of estrellas(r.estrellasPorActividad[a.clave]); track s) { ⭐ }
+                @if (r.estrellasPorActividad[a.clave] === 0) { <span class="sin-estrellas">—</span> }
+              </span>
+            </button>
+          }
+        </section>
+
+        @if (practicar(); as p) {
+          <a class="tarjeta practicar" [routerLink]="p.actividad.ruta">
+            <span class="practicar__icono" aria-hidden="true">{{ p.actividad.icono }}</span>
+            <span class="practicar__texto">
+              <strong>Practiquemos la&nbsp;{{ p.letra }}</strong>
+              <span>en {{ p.actividad.nombre }}</span>
+            </span>
+            <span class="btn-jugar btn-jugar--chico">Jugar</span>
+          </a>
+        }
+
+        <p class="bajar" aria-hidden="true">Ver todo lo que sé ⬇️</p>
+
+        <!-- ══════════ Abajo: el detalle, un cajón por actividad ══════════ -->
+        <div class="leyenda" aria-label="Qué significa cada color">
+          <span><i class="punto punto--dominada"></i> La sé</span>
+          <span><i class="punto punto--practicando"></i> Practicando</span>
+          <span><i class="punto punto--por-descubrir"></i> Por descubrir</span>
+        </div>
+
+        @for (a of cajones(); track a.clave) {
+          <section class="cajon" [id]="'cajon-' + a.clave">
+            <h2 class="cajon__h">
+              <button type="button" class="cajon__cabecera" (click)="alternar(a.clave)"
+                      [attr.aria-expanded]="estaAbierto(a.clave)" [attr.aria-controls]="'cuerpo-' + a.clave">
+                <span class="cajon__icono" aria-hidden="true">{{ a.icono }}</span>
+                <span class="cajon__nombre">{{ a.nombre }}</span>
+                <span class="cajon__contador">{{ contador(a.clave) }}</span>
+                <span class="cajon__flecha" [class.cajon__flecha--abierta]="estaAbierto(a.clave)" aria-hidden="true">▾</span>
+              </button>
+            </h2>
+
+            @if (estaAbierto(a.clave)) {
+              <div class="cajon__cuerpo" [id]="'cuerpo-' + a.clave">
+                @if (a.clave === 'une') {
+                  @if (lineaUne(); as l) {
+                    <div class="linea" role="img"
+                         [attr.aria-label]="'Conoces ' + r.une.conocidas + ' de ' + r.une.total + ' palabras'">
+                      <div class="linea__pista">
+                        <div class="linea__relleno" [style.width.%]="l.pct"></div>
+                        @for (h of l.hitos; track h.valor) {
+                          <span class="linea__hito" [class.linea__hito--logrado]="h.logrado" [style.left.%]="h.pct">⭐</span>
+                        }
+                        <span class="linea__meta" [class.linea__hito--logrado]="l.completa">🏆</span>
+                        <img src="images/gecko cara.png" alt="" class="linea__gecko" [style.left.%]="l.pct" />
+                      </div>
+                      <div class="linea__marcas">
+                        <span>0</span>
+                        @for (h of l.hitos; track h.valor) { <span [style.left.%]="h.pct">{{ h.valor }}</span> }
+                        <span class="linea__marcas-fin">{{ r.une.total }}</span>
+                      </div>
+                    </div>
+                    <p class="linea__mensaje">
+                      @if (l.completa) { ¡Conoces todas las palabras! 🏆 }
+                      @else if (l.siguienteEsTrofeo) { ¡Te {{ l.faltan === 1 ? 'falta 1 palabra' : 'faltan ' + l.faltan + ' palabras' }} para el trofeo! }
+                      @else { ¡Te {{ l.faltan === 1 ? 'falta 1 palabra' : 'faltan ' + l.faltan + ' palabras' }} para la próxima estrella! }
+                    </p>
+                  }
+                } @else {
+                  <div class="letras" [class.letras--abecedario]="a.clave === 'pinta'">
+                    @for (l of letrasDe(a.clave); track l.letra) {
+                      <span class="letra" [class]="'letra--' + l.estado"
+                            [attr.aria-label]="l.letra + ': ' + (l.estado === 'dominada' ? 'la sé' : l.estado === 'practicando' ? 'practicando' : 'por descubrir')">{{ l.letra }}</span>
+                    }
+                  </div>
+                  @if (pistaDe(a.clave); as pista) {
+                    <p class="pista"><span aria-hidden="true">💡</span> {{ pista }}</p>
+                  }
+                }
+                <a class="cajon__jugar" [routerLink]="a.ruta">Ir a {{ a.nombre }} →</a>
+              </div>
+            }
+          </section>
+        }
+
+        <section class="cajon" id="cajon-medallas">
+          <h2 class="cajon__h">
+            <button type="button" class="cajon__cabecera" (click)="alternar('medallas')"
+                    [attr.aria-expanded]="estaAbierto('medallas')" aria-controls="cuerpo-medallas">
+              <span class="cajon__icono" aria-hidden="true">🏅</span>
+              <span class="cajon__nombre">Mis medallas</span>
+              <span class="cajon__contador">{{ medallasObtenidas() }} de {{ medallas.length }}</span>
+              <span class="cajon__flecha" [class.cajon__flecha--abierta]="estaAbierto('medallas')" aria-hidden="true">▾</span>
+            </button>
+          </h2>
+          @if (estaAbierto('medallas')) {
+            <div class="cajon__cuerpo medallas" id="cuerpo-medallas">
+              @for (m of medallas; track m.id) {
+                <div class="medalla" [class.medalla--bloqueada]="!m.obtenida">
+                  <span class="medalla__icono" aria-hidden="true">{{ m.obtenida ? m.icono : '🔒' }}</span>
+                  <span class="medalla__nombre">{{ m.nombre }}</span>
+                  <span class="sr-only">{{ m.obtenida ? 'obtenida' : 'por ganar' }}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+    }
+  </div>
+</div>

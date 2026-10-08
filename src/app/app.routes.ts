@@ -39,6 +39,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'mis-logros',
+    loadComponent: () =>
+      import('./pages/mis-logros/mis-logros.component').then((m) => m.MisLogrosComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'dashboard-page',
     loadComponent: () =>
       import('./pages/dashboard-page/dashboard-page.component').then(
