@@ -95,8 +95,21 @@
       @if (esAdmin()) {
         <section class="historial">
           <button type="button" class="btn-texto" [disabled]="cargandoHistorial()" (click)="verHistorial()">
-            {{ cargandoHistorial() ? 'Cargando…' : (historial() ? '▲ Ocultar historial' : '▼ Ver historial completo') }}
+            {{ historial() ? '▲ Ocultar historial' : '▼ Ver historial completo' }}
           </button>
+
+          @if (cargandoHistorial()) {
+            <ol class="linea-tiempo" aria-hidden="true">
+              @for (w of [70, 55, 62]; track $index) {
+                <li class="sk-hito">
+                  <span class="sk sk--claro" [style.width.%]="w" style="height: 0.9rem"></span>
+                  <span class="sk sk--claro" style="width: 45%; height: 0.7rem"></span>
+                  <span class="sk sk--claro" style="width: 60%; height: 0.7rem"></span>
+                </li>
+              }
+            </ol>
+            <p class="sr-only" role="status">Cargando historial…</p>
+          }
 
           @if (historial(); as h) {
             @if (h.length === 0) {

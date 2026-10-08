@@ -12,3 +12,34 @@ body {
   min-height: 100vh;
 }
 /* pruebita */
+
+/* ── Skeleton de carga (global) ─────────────────────────────
+   Bloques con la forma del contenido mientras llega del servidor.
+   - .sk                → sobre fondo de color (cielo, colinas): blanco translúcido
+   - .sk.sk--claro      → dentro de tarjetas blancas: gris suave
+   - .sk--circulo / .sk--pildora → formas
+   El tamaño lo pone cada componente. Sin brillo si el sistema pide
+   reducir movimiento. */
+.sk {
+  display: block;
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.55) 25%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0.55) 75%);
+  background-size: 200% 100%;
+  animation: sk-brillo 1.4s ease-in-out infinite;
+}
+
+.sk--claro {
+  background-image: linear-gradient(90deg, #eceef1 25%, #f7f8fa 50%, #eceef1 75%);
+}
+
+.sk--circulo { border-radius: 50%; flex-shrink: 0; }
+.sk--pildora { border-radius: 999px; }
+
+@keyframes sk-brillo {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk { animation: none; }
+}

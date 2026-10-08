@@ -12,6 +12,8 @@
             @if (totalInactivos() > 0) {
               · {{ totalInactivos() }} {{ totalInactivos() === 1 ? 'inactivo' : 'inactivos' }}
             }
+          } @else {
+            <span class="sk sk--claro sk-subtitulo" aria-hidden="true"></span>
           }
         </p>
       </div>
@@ -46,34 +48,42 @@
         />
       </label>
 
-      <div class="chips" role="group" aria-label="Filtrar por rol">
-        <button type="button" class="chip" [class.chip--activo]="filtroRol() === 0"
-                [attr.aria-pressed]="filtroRol() === 0" (click)="filtroRol.set(0)">
-          Todos <span class="chip__n">{{ usuarios().length }}</span>
-        </button>
-        @for (r of rolesConConteo(); track r.idRol) {
-          <button type="button" class="chip" [class]="claseRol[r.idRol]"
-                  [class.chip--activo]="filtroRol() === r.idRol"
-                  [attr.aria-pressed]="filtroRol() === r.idRol"
-                  (click)="filtroRol.set(r.idRol)">
-            {{ nombreRol[r.idRol] }} <span class="chip__n">{{ r.cantidad }}</span>
-          </button>
-        }
-      </div>
-
-      @if (conteoSinVinculo().hayEstudiantes) {
-        <div class="chips" role="group" aria-label="Filtrar estudiantes por vínculo">
-          <button type="button" class="chip chip--alerta" [class.chip--activo]="filtroVinculo() === 'APODERADO'"
-                  [attr.aria-pressed]="filtroVinculo() === 'APODERADO'"
-                  (click)="filtroVinculo.set(filtroVinculo() === 'APODERADO' ? '' : 'APODERADO')">
-            ⚠️ Sin apoderado <span class="chip__n">{{ conteoSinVinculo().APODERADO }}</span>
-          </button>
-          <button type="button" class="chip" [class.chip--activo]="filtroVinculo() === 'PROFESOR'"
-                  [attr.aria-pressed]="filtroVinculo() === 'PROFESOR'"
-                  (click)="filtroVinculo.set(filtroVinculo() === 'PROFESOR' ? '' : 'PROFESOR')">
-            👩‍🏫 Sin profesor <span class="chip__n">{{ conteoSinVinculo().PROFESOR }}</span>
-          </button>
+      @if (cargando()) {
+        <div class="chips" aria-hidden="true">
+          @for (w of chipsSkeleton; track $index) {
+            <span class="sk sk--claro sk--pildora sk-chip" [style.width.px]="w"></span>
+          }
         </div>
+      } @else {
+        <div class="chips" role="group" aria-label="Filtrar por rol">
+          <button type="button" class="chip" [class.chip--activo]="filtroRol() === 0"
+                  [attr.aria-pressed]="filtroRol() === 0" (click)="filtroRol.set(0)">
+            Todos <span class="chip__n">{{ usuarios().length }}</span>
+          </button>
+          @for (r of rolesConConteo(); track r.idRol) {
+            <button type="button" class="chip" [class]="claseRol[r.idRol]"
+                    [class.chip--activo]="filtroRol() === r.idRol"
+                    [attr.aria-pressed]="filtroRol() === r.idRol"
+                    (click)="filtroRol.set(r.idRol)">
+              {{ nombreRol[r.idRol] }} <span class="chip__n">{{ r.cantidad }}</span>
+            </button>
+          }
+        </div>
+
+        @if (conteoSinVinculo().hayEstudiantes) {
+          <div class="chips" role="group" aria-label="Filtrar estudiantes por vínculo">
+            <button type="button" class="chip chip--alerta" [class.chip--activo]="filtroVinculo() === 'APODERADO'"
+                    [attr.aria-pressed]="filtroVinculo() === 'APODERADO'"
+                    (click)="filtroVinculo.set(filtroVinculo() === 'APODERADO' ? '' : 'APODERADO')">
+              ⚠️ Sin apoderado <span class="chip__n">{{ conteoSinVinculo().APODERADO }}</span>
+            </button>
+            <button type="button" class="chip" [class.chip--activo]="filtroVinculo() === 'PROFESOR'"
+                    [attr.aria-pressed]="filtroVinculo() === 'PROFESOR'"
+                    (click)="filtroVinculo.set(filtroVinculo() === 'PROFESOR' ? '' : 'PROFESOR')">
+              👩‍🏫 Sin profesor <span class="chip__n">{{ conteoSinVinculo().PROFESOR }}</span>
+            </button>
+          </div>
+        }
       }
 
       @if (totalInactivos() > 0) {
@@ -87,10 +97,22 @@
 
     <!-- Contenido -->
     @if (cargando()) {
-      <div class="tarjeta estado-vacio">
-        <span class="spinner" aria-hidden="true"></span>
-        <p>Cargando usuarios…</p>
+      <!-- Skeleton con la forma de una fila: avatar, nombre/correo y etiquetas.
+           Se acomoda solo, así sirve para la tabla y para las tarjetas. -->
+      <div class="tarjeta sk-lista" aria-hidden="true">
+        @for (i of filasSkeleton; track i) {
+          <div class="sk-usuario">
+            <span class="sk sk--claro sk--circulo sk-usuario__avatar"></span>
+            <span class="sk-usuario__texto">
+              <span class="sk sk--claro sk-usuario__nombre" [style.width.%]="55 + (i % 3) * 12"></span>
+              <span class="sk sk--claro sk-usuario__correo"></span>
+            </span>
+            <span class="sk sk--claro sk--pildora sk-usuario__etiqueta"></span>
+            <span class="sk sk--claro sk--pildora sk-usuario__etiqueta sk-usuario__etiqueta--corta"></span>
+          </div>
+        }
       </div>
+      <p class="sr-only" role="status">Cargando usuarios…</p>
     } @else if (usuariosFiltrados().length === 0) {
       <div class="tarjeta estado-vacio">
         <span class="estado-vacio__emoji" aria-hidden="true">🦎</span>

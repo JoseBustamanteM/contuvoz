@@ -392,27 +392,22 @@
 .sk-columna { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; }
 .sk-grilla { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; .sk--tarjeta { height: 92px; } }
 
+// El bloque .sk (color, brillo, reducir movimiento) es global, en styles.css;
+// acá solo van los tamaños de esta pantalla.
 .sk {
-  display: block;
-  border-radius: 14px;
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.55) 25%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0.55) 75%);
-  background-size: 200% 100%;
-  animation: brillo 1.4s ease-in-out infinite;
-
-  &--circulo { width: 64px; height: 64px; border-radius: 50%; flex-shrink: 0; }
+  &--circulo { width: 64px; height: 64px; }
   &--titulo { width: 55%; height: 1.6rem; }
   &--linea { width: 40%; height: 0.9rem; }
   &--tarjeta { width: 100%; border-radius: 22px; }
 }
 
 // ── Animaciones ──────────────────────────────────────────
-@keyframes brillo { from { background-position: 100% 0; } to { background-position: -100% 0; } }
 @keyframes latir { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
 @keyframes abrir { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 
 // Respeta "reducir movimiento" del sistema: sin brillos ni saltos.
 @media (prefers-reduced-motion: reduce) {
-  .sk, .resumen__estrella, .separador__insignia, .cajon__cuerpo { animation: none; }
+  .resumen__estrella, .separador__insignia, .cajon__cuerpo { animation: none; }
   .linea__relleno, .cajon__flecha, .actividad { transition: none; }
 }
 

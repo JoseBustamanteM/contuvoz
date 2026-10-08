@@ -215,3 +215,6 @@ select {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: none; }
 }
+
+// Mientras cargan los colegios: bloque con la forma del select (base .sk en styles.css).
+.sk-campo { height: 44px; border-radius: 12px; }

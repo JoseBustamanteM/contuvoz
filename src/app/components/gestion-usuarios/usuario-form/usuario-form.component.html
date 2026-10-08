@@ -27,7 +27,12 @@
           @if (pideColegio) {
             <div class="campo">
               <label for="f-colegio">Colegio</label>
-              <select id="f-colegio" formControlName="idColegio" [class.con-error]="invalido('idColegio')">
+              @if (cargandoColegios()) {
+                <span class="sk sk--claro sk-campo" aria-hidden="true"></span>
+                <span class="sr-only" role="status">Cargando colegios…</span>
+              }
+              <select id="f-colegio" formControlName="idColegio" [class.con-error]="invalido('idColegio')"
+                      [hidden]="cargandoColegios()">
                 <option [ngValue]="0" disabled>Selecciona un colegio</option>
                 @for (colegio of colegios(); track colegio.idColegio) {
                   <option [ngValue]="colegio.idColegio">{{ colegio.nomColegio }}</option>

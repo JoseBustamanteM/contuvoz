@@ -156,3 +156,7 @@
 
   &__fechas, &__quien { color: #6b7280; font-size: 0.8rem; }
 }
+
+// Skeleton del historial (base .sk en styles.css).
+.linea-tiempo .sk-hito { gap: 0.35rem; }
+.linea-tiempo .sk-hito::before { background: #e5e7eb; }

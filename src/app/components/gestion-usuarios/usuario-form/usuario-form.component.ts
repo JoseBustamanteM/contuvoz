@@ -36,6 +36,7 @@ export class UsuarioFormComponent implements OnInit {
   @Output() cancelado = new EventEmitter<void>();
 
   colegios = signal<Colegio[]>([]);
+  cargandoColegios = signal(false);
   nombreRol = NOMBRE_ROL;
   guardando = signal(false);
   error = signal<string | null>(null);
@@ -109,12 +110,17 @@ export class UsuarioFormComponent implements OnInit {
   }
 
   private cargarColegios() {
+    this.cargandoColegios.set(true);
     this.colegiosService.listar().subscribe({
       next: (data) => {
+        this.cargandoColegios.set(false);
         this.colegios.set(data);
         if (data.length === 1) this.form.controls.idColegio.setValue(data[0].idColegio);
       },
-      error: () => this.error.set('No se pudieron cargar los colegios. Cierra y vuelve a abrir el formulario.'),
+      error: () => {
+        this.cargandoColegios.set(false);
+        this.error.set('No se pudieron cargar los colegios. Cierra y vuelve a abrir el formulario.');
+      },
     });
   }
 

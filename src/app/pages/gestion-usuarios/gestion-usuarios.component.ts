@@ -49,6 +49,10 @@ export class GestionUsuariosComponent implements OnInit {
   busqueda = signal('');
   filtroRol = signal<number>(0); // 0 = todos
   mostrarInactivos = signal(true);
+
+  /** Formas del skeleton mientras carga la lista. */
+  readonly filasSkeleton = [0, 1, 2, 3, 4, 5];
+  readonly chipsSkeleton = [72, 118, 84, 96];
   /** Estudiantes sin profesor / sin apoderado vigente. */
   filtroVinculo = signal<'' | TipoVinculo>('');
 
