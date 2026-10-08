@@ -1,6 +1,5 @@
-/** Datos del dashboard del estudiante ("Mis logros"). Hoy los arma
- *  MisLogrosService con datos de ejemplo; después vendrán del backend con
- *  esta misma forma. */
+/** Datos del dashboard del estudiante ("Mis logros"). Los calcula el backend
+ *  (GET /mis-logros) a partir de las tablas de resultados. */
 
 export type EstadoLetra = 'dominada' | 'practicando' | 'por-descubrir';
 
@@ -25,6 +24,12 @@ export interface ResumenEstudiante {
   pinta: { letras: LetraProgreso[]; pista: string | null };
   une: { conocidas: number; total: number };
 }
+
+/** Lo que devuelve GET /mis-logros: igual, salvo Une palabras, que trae las
+ *  palabras conocidas y el servicio las convierte en "12 de 31". */
+export type ResumenEstudianteApi = Omit<ResumenEstudiante, 'une'> & {
+  une: { palabrasConocidas: string[] };
+};
 
 export interface Medalla {
   id: string;

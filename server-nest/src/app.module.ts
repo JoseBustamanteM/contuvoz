@@ -8,6 +8,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { UsuariosModule } from './usuarios/dto/usuarios.module';
 import { ColegiosModule } from './colegios/colegios.module';
 import { VinculosModule } from './vinculos/vinculos.module';
+import { MisLogrosModule } from './mis-logros/mis-logros.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { VinculosModule } from './vinculos/vinculos.module';
      UsuariosModule,
      ColegiosModule,
     VinculosModule,
+    MisLogrosModule,
   ],
 })
 export class AppModule {}

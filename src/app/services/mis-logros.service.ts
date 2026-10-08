@@ -1,6 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Observable, delay, of } from 'rxjs';
-import { LetraProgreso, Medalla, ResumenEstudiante } from '../interfaces/mis-logros.interface';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { environment } from '../../environments/environment';
+import { BANCO_PALABRAS } from '../interfaces/banco-palabras';
+import { Medalla, ResumenEstudiante, ResumenEstudianteApi } from '../interfaces/mis-logros.interface';
 
 /** Medallas fijas por ahora, solo para ver cómo lucen en la interfaz.
  *  Cuando exista el cálculo real, `obtenida` vendrá del backend. */
@@ -13,37 +16,31 @@ export const MEDALLAS: Medalla[] = [
   { id: 'palabras-10', nombre: '10 palabras', icono: '🧩', obtenida: true },
 ];
 
-const ABECEDARIO = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
-
-function letras(dominadas: string, practicando: string, todas: string[]): LetraProgreso[] {
-  return todas.map((letra) => ({
-    letra,
-    estado: dominadas.includes(letra) ? 'dominada' : practicando.includes(letra) ? 'practicando' : 'por-descubrir',
-  }));
-}
-
-/** ⚠️ DATOS DE EJEMPLO. Reemplazar por la llamada al backend cuando exista
- *  el endpoint (p. ej. GET /dashboard/estudiante), que devolverá un
- *  ResumenEstudiante calculado de las tablas de resultados. */
-const EJEMPLO: ResumenEstudiante = {
-  estrellasSemana: 12,
-  racha: 3,
-  diasSemana: [true, true, false, true, true, false, false],
-  estrellasPorActividad: { pinta: 3, comunicate: 2, hablemos: 4, une: 3 },
-  hablemos: { letras: letras('AEI', 'OU', ['A', 'E', 'I', 'O', 'U']), pista: 'A veces tu O suena como U' },
-  comunicate: { letras: letras('AI', 'E', ['A', 'E', 'I', 'O', 'U']), pista: 'Para la E, deja el pulgar afuera' },
-  pinta: { letras: letras('ABCEIM', 'DL', ABECEDARIO), pista: 'La D se te escapa por los bordes' },
-  une: { conocidas: 12, total: 31 },
-};
-
 @Injectable({ providedIn: 'root' })
 export class MisLogrosService {
+  private http = inject(HttpClient);
+  private readonly API = `${environment.apiUrl}/mis-logros`;
+
+  /** Dashboard de quien inició sesión (GET /mis-logros). */
   obtenerResumen(): Observable<ResumenEstudiante> {
-    // El retraso simula la red para poder ver el skeleton de carga.
-    return of(EJEMPLO).pipe(delay(900));
+    return this.http.get<ResumenEstudianteApi>(this.API).pipe(map((r) => this.adaptar(r)));
   }
 
   obtenerMedallas(): Medalla[] {
     return MEDALLAS;
+  }
+
+  /** El backend devuelve las palabras que unió bien; el total lo pone el banco
+   *  de palabras, que vive en el frontend. Solo cuentan las que siguen en el
+   *  banco (si se quita una palabra, no queda "13 de 12"). */
+  private adaptar({ une, ...resto }: ResumenEstudianteApi): ResumenEstudiante {
+    const conocidas = new Set(une.palabrasConocidas);
+    return {
+      ...resto,
+      une: {
+        conocidas: BANCO_PALABRAS.filter((p) => conocidas.has(p.texto)).length,
+        total: BANCO_PALABRAS.length,
+      },
+    };
   }
 }

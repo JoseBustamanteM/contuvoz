@@ -32,7 +32,7 @@
         <div>
           <h1 class="saludo__titulo">¡Hola, {{ nombre() }}!</h1>
           <p class="saludo__sub">
-            {{ sinActividad() ? 'Aquí verás todo lo que aprendas' : 'Mira todo lo que lograste' }}
+            {{ sinActividad() ? '¡Juega y gana estrellas esta semana!' : 'Mira todo lo que lograste' }}
           </p>
         </div>
       </header>
@@ -80,10 +80,18 @@
             </button>
           }
         </section>
-
-        <p class="bajar" aria-hidden="true">Ver todo lo que sé ⬇️</p>
+      }
 
         <!-- ══════════ Abajo: el detalle, un cajón por actividad ══════════ -->
+        <!-- Separador: camino punteado con un trofeo al centro. Marca dónde
+             termina el resumen y empieza el detalle. -->
+        <div class="separador" aria-hidden="true">
+          <span class="separador__linea"></span>
+          <span class="separador__insignia">🏆</span>
+          <span class="separador__linea"></span>
+        </div>
+        <h2 class="separador__titulo">Mis habilidades</h2>
+
         <div class="leyenda" aria-label="Qué significa cada color">
           <span><i class="punto punto--dominada"></i> La sé</span>
           <span><i class="punto punto--practicando"></i> Practicando</span>
@@ -92,7 +100,7 @@
 
         @for (a of cajones(); track a.clave) {
           <section class="cajon" [id]="'cajon-' + a.clave">
-            <h2 class="cajon__h">
+            <h3 class="cajon__h">
               <button type="button" class="cajon__cabecera" (click)="alternar(a.clave)"
                       [attr.aria-expanded]="estaAbierto(a.clave)" [attr.aria-controls]="'cuerpo-' + a.clave">
                 <span class="cajon__icono" aria-hidden="true">{{ a.icono }}</span>
@@ -100,7 +108,7 @@
                 <span class="cajon__contador">{{ contador(a.clave) }}</span>
                 <span class="cajon__flecha" [class.cajon__flecha--abierta]="estaAbierto(a.clave)" aria-hidden="true">▾</span>
               </button>
-            </h2>
+            </h3>
 
             @if (estaAbierto(a.clave)) {
               <div class="cajon__cuerpo" [id]="'cuerpo-' + a.clave">
@@ -146,7 +154,7 @@
         }
 
         <section class="cajon" id="cajon-medallas">
-          <h2 class="cajon__h">
+          <h3 class="cajon__h">
             <button type="button" class="cajon__cabecera" (click)="alternar('medallas')"
                     [attr.aria-expanded]="estaAbierto('medallas')" aria-controls="cuerpo-medallas">
               <span class="cajon__icono" aria-hidden="true">🏅</span>
@@ -154,7 +162,7 @@
               <span class="cajon__contador">{{ medallasObtenidas() }} de {{ medallas.length }}</span>
               <span class="cajon__flecha" [class.cajon__flecha--abierta]="estaAbierto('medallas')" aria-hidden="true">▾</span>
             </button>
-          </h2>
+          </h3>
           @if (estaAbierto('medallas')) {
             <div class="cajon__cuerpo medallas" id="cuerpo-medallas">
               @for (m of medallas; track m.id) {
@@ -167,7 +175,6 @@
             </div>
           }
         </section>
-      }
     }
   </div>
 </div>

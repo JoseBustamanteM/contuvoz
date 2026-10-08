@@ -64,10 +64,11 @@ export class MisLogrosComponent implements OnInit {
 
   medallasObtenidas = computed(() => this.medallas.filter((m) => m.obtenida).length);
 
-  /** Estudiante nuevo: en vez de un dashboard lleno de ceros, una invitación. */
+  /** No jugó esta semana: el resumen de arriba (todo en cero) se cambia por
+   *  una invitación. Los cajones se muestran igual, con lo que ya aprendió. */
   sinActividad = computed(() => {
     const r = this.resumen();
-    return !!r && r.diasSemana.every((d) => !d) && r.estrellasSemana === 0 && r.une.conocidas === 0;
+    return !!r && r.diasSemana.every((d) => !d);
   });
 
   /** Línea de Une palabras: posición, hitos (estrellas) y cuánto falta. */
