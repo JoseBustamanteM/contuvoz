@@ -7,6 +7,7 @@ import {
   Param,
   ParseFilePipeBuilder,
   ParseIntPipe,
+  Patch,
   Post,
   Req,
   UploadedFile,
@@ -23,6 +24,7 @@ import { Rol } from '../enums/rol.enum';
 
 import { BibliotecaService } from './biblioteca.service';
 import { CrearArchivoBibliotecaDto } from './dto/crear-archivo-biblioteca.dto';
+import { EditarArchivoBibliotecaDto } from './dto/editar-archivo-biblioteca.dto';
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
@@ -63,6 +65,25 @@ export class BibliotecaController {
       },
     }),
   )
+
+  @Patch(':id')
+  @UseGuards(RolesGuard)
+  @Roles(
+    Rol.ADMINISTRADOR,
+    Rol.ADMIN_COLEGIO,
+    Rol.PROFESOR,
+  )
+  async actualizar(
+    @Param('id', ParseIntPipe) id: number,
+
+    @Body()
+    dto: EditarArchivoBibliotecaDto,
+  ) {
+    return this.bibliotecaService.actualizar(
+      id,
+      dto,
+    );
+  }
 
   @Delete(':id')
   @UseGuards(RolesGuard)

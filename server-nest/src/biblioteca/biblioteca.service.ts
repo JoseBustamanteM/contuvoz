@@ -8,7 +8,7 @@ import { unlink, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CrearArchivoBibliotecaDto } from './dto/crear-archivo-biblioteca.dto';
-
+import { EditarArchivoBibliotecaDto } from './dto/editar-archivo-biblioteca.dto';
 @Injectable()
 export class BibliotecaService {
   constructor(private prisma: PrismaService) {}
@@ -161,6 +161,48 @@ export class BibliotecaService {
 
       throw error;
     }
+  }
+
+  async actualizar(
+    id: number,
+    dto: EditarArchivoBibliotecaDto,
+  ) {
+    const archivo = await this.prisma.archivoBiblioteca.findUnique({
+      where: {
+        idArchivo: id,
+      },
+    });
+
+    if (!archivo) {
+      throw new NotFoundException(
+        'Archivo de biblioteca no encontrado',
+      );
+    }
+
+    if (
+      dto.tituloArchivo === undefined &&
+      dto.descripcionArchivo === undefined
+    ) {
+      throw new BadRequestException(
+        'Debes indicar al menos un campo para actualizar',
+      );
+    }
+
+    return this.prisma.archivoBiblioteca.update({
+      where: {
+        idArchivo: id,
+      },
+      data: {
+        ...(dto.tituloArchivo !== undefined && {
+          tituloArchivo: dto.tituloArchivo.trim(),
+        }),
+
+        ...(dto.descripcionArchivo !== undefined && {
+          descripcionArchivo:
+            dto.descripcionArchivo.trim() || null,
+        }),
+      },
+    });
   }
 
   async eliminar(id: number) {
