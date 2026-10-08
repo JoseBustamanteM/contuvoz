@@ -156,7 +156,6 @@
     border: 4px solid #fff;
     box-shadow: 0 4px 0 #b45309, 0 8px 16px rgba(0, 0, 0, 0.15);
     font-size: 1.7rem;
-    animation: latir 2.4s ease-in-out infinite;
   }
 
   &__titulo {
@@ -407,7 +406,7 @@
 
 // Respeta "reducir movimiento" del sistema: sin brillos ni saltos.
 @media (prefers-reduced-motion: reduce) {
-  .resumen__estrella, .separador__insignia, .cajon__cuerpo { animation: none; }
+  .resumen__estrella, .cajon__cuerpo { animation: none; }
   .linea__relleno, .cajon__flecha, .actividad { transition: none; }
 }
 
