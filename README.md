@@ -108,6 +108,7 @@ REFRESH_TOKEN_DIAS=7
 | `FRONTEND_URL` | No (origen permitido por CORS) | `http://localhost:4200` |
 | `ACCESS_TOKEN_EXPIRA` | No | `15m` |
 | `REFRESH_TOKEN_DIAS` | No | `7` |
+| `ZONA_HORARIA` | No (para calcular "esta semana" y la racha en Mis logros) | `America/Santiago` |
 
 Luego:
 
