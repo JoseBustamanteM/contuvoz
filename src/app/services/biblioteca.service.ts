@@ -11,6 +11,11 @@ export interface CrearArchivoBiblioteca {
   file: File;
 }
 
+export interface EliminarArchivoBibliotecaResponse {
+  message: string;
+  idArchivo: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -46,6 +51,13 @@ export class BibliotecaService {
     return this.http.post<ArchivoBiblioteca>(
       `${this.API}/upload`,
       formData,
+    );
+  }
+  eliminar(
+    id: number,
+  ): Observable<EliminarArchivoBibliotecaResponse> {
+    return this.http.delete<EliminarArchivoBibliotecaResponse>(
+      `${this.API}/${id}`,
     );
   }
 }

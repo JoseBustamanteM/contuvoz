@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseFilePipeBuilder,
@@ -62,6 +63,19 @@ export class BibliotecaController {
       },
     }),
   )
+
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(
+    Rol.ADMINISTRADOR,
+    Rol.ADMIN_COLEGIO,
+    Rol.PROFESOR,
+  )
+  async eliminar(
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.bibliotecaService.eliminar(id);
+  }
   async subir(
     @UploadedFile(
       new ParseFilePipeBuilder()

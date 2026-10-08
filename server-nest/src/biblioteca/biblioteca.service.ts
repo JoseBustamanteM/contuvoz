@@ -1,10 +1,11 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { unlink, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CrearArchivoBibliotecaDto } from './dto/crear-archivo-biblioteca.dto';
 
@@ -160,6 +161,73 @@ export class BibliotecaService {
 
       throw error;
     }
+  }
+
+  async eliminar(id: number) {
+    const archivo = await this.prisma.archivoBiblioteca.findUnique({
+      where: {
+        idArchivo: id,
+      },
+    });
+
+    if (!archivo) {
+      throw new NotFoundException(
+        'Archivo de biblioteca no encontrado',
+      );
+    }
+
+    /*
+    * La BD guarda algo como:
+    * /uploads/biblioteca/abc-123.pdf
+    *
+    * Usamos basename() para obtener solamente:
+    * abc-123.pdf
+    *
+    * Esto evita que una ruta almacenada accidentalmente
+    * pueda intentar salir de la carpeta de uploads.
+    */
+    const nombreArchivo = basename(
+      archivo.rutaArchivoUrl,
+    );
+
+    const rutaArchivo = join(
+      process.cwd(),
+      'uploads',
+      'biblioteca',
+      nombreArchivo,
+    );
+
+    try {
+      await unlink(rutaArchivo);
+    } catch (error) {
+      const codigo = (error as NodeJS.ErrnoException).code;
+
+      /*
+      * Si el archivo físico ya no existe, igualmente
+      * debemos poder limpiar el registro de la BD.
+      */
+      if (codigo !== 'ENOENT') {
+        console.error(
+          'Error eliminando archivo físico:',
+          error,
+        );
+
+        throw new InternalServerErrorException(
+          'No fue posible eliminar el archivo físico',
+        );
+      }
+    }
+
+    await this.prisma.archivoBiblioteca.delete({
+      where: {
+        idArchivo: id,
+      },
+    });
+
+    return {
+      message: 'Recurso eliminado correctamente',
+      idArchivo: id,
+    };
   }
 
   private obtenerTipoArchivo(mimeType: string): string {
