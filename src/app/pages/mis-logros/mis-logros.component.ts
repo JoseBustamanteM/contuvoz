@@ -31,7 +31,7 @@ const DIAS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 /**
  * Dashboard del estudiante.
  * - Arriba (lo primero que ve): saludo, estrellas, racha, semana, tarjetas por
- *   actividad y "Practiquemos…". Poco texto y nada que leer obligatoriamente.
+ *   actividad. Poco texto y nada que leer obligatoriamente.
  * - Abajo: un cajón por actividad con el detalle. Tocar una tarjeta de arriba
  *   abre su cajón y baja hasta él.
  */
@@ -68,12 +68,6 @@ export class MisLogrosComponent implements OnInit {
   sinActividad = computed(() => {
     const r = this.resumen();
     return !!r && r.diasSemana.every((d) => !d) && r.estrellasSemana === 0 && r.une.conocidas === 0;
-  });
-
-  practicar = computed(() => {
-    const p = this.resumen()?.practicar;
-    if (!p) return null;
-    return { letra: p.letra, actividad: ACTIVIDADES.find((a) => a.clave === p.actividad)! };
   });
 
   /** Línea de Une palabras: posición, hitos (estrellas) y cuánto falta. */

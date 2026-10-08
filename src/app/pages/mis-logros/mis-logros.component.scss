@@ -119,30 +119,6 @@
 
 .sin-estrellas { color: #d1d5db; font-weight: 900; }
 
-// ── Practiquemos ─────────────────────────────────────────
-.practicar {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  background: #fef3c7;
-  box-shadow: 0 5px 0 #fcd34d, 0 10px 20px rgba(0, 0, 0, 0.08);
-  color: #78350f;
-  text-decoration: none;
-  transition: transform 0.15s ease;
-
-  &:hover { transform: translateY(-2px); }
-  &:focus-visible { outline: 3px solid #f59e0b; outline-offset: 3px; }
-
-  &__icono { font-size: 2rem; }
-  &__texto {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    strong { font-size: 1.1rem; font-weight: 900; }
-    span { font-weight: 700; font-size: 0.9rem; }
-  }
-}
-
 .btn-jugar {
   display: inline-flex;
   align-items: center;
@@ -159,7 +135,6 @@
   box-shadow: 0 4px 0 #047857;
   cursor: pointer;
 
-  &--chico { background: #d97706; box-shadow: 0 4px 0 #92400e; padding: 0.4rem 1.1rem; }
 }
 
 .bajar {
@@ -415,7 +390,7 @@
 // Respeta "reducir movimiento" del sistema: sin brillos ni saltos.
 @media (prefers-reduced-motion: reduce) {
   .sk, .resumen__estrella, .bajar, .cajon__cuerpo { animation: none; }
-  .linea__relleno, .cajon__flecha, .actividad, .practicar { transition: none; }
+  .linea__relleno, .cajon__flecha, .actividad { transition: none; }
 }
 
 // Celulares chicos: letras un poco más pequeñas para que quepan 5 en fila.

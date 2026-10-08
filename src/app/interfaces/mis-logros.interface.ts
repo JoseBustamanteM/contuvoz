@@ -20,9 +20,6 @@ export interface ResumenEstudiante {
   diasSemana: boolean[];
   /** Estrellas de la semana por actividad, para las tarjetas de arriba. */
   estrellasPorActividad: Record<ClaveActividad, number>;
-  /** Lo que más le cuesta: se sugiere como "Practiquemos…". */
-  practicar: { letra: string; actividad: ClaveActividad } | null;
-
   hablemos: { letras: LetraProgreso[]; pista: string | null };
   comunicate: { letras: LetraProgreso[]; pista: string | null };
   pinta: { letras: LetraProgreso[]; pista: string | null };

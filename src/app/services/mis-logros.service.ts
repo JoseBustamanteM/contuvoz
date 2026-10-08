@@ -30,7 +30,6 @@ const EJEMPLO: ResumenEstudiante = {
   racha: 3,
   diasSemana: [true, true, false, true, true, false, false],
   estrellasPorActividad: { pinta: 3, comunicate: 2, hablemos: 4, une: 3 },
-  practicar: { letra: 'O', actividad: 'hablemos' },
   hablemos: { letras: letras('AEI', 'OU', ['A', 'E', 'I', 'O', 'U']), pista: 'A veces tu O suena como U' },
   comunicate: { letras: letras('AI', 'E', ['A', 'E', 'I', 'O', 'U']), pista: 'Para la E, deja el pulgar afuera' },
   pinta: { letras: letras('ABCEIM', 'DL', ABECEDARIO), pista: 'La D se te escapa por los bordes' },

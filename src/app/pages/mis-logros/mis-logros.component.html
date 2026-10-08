@@ -81,17 +81,6 @@
           }
         </section>
 
-        @if (practicar(); as p) {
-          <a class="tarjeta practicar" [routerLink]="p.actividad.ruta">
-            <span class="practicar__icono" aria-hidden="true">{{ p.actividad.icono }}</span>
-            <span class="practicar__texto">
-              <strong>Practiquemos la&nbsp;{{ p.letra }}</strong>
-              <span>en {{ p.actividad.nombre }}</span>
-            </span>
-            <span class="btn-jugar btn-jugar--chico">Jugar</span>
-          </a>
-        }
-
         <p class="bajar" aria-hidden="true">Ver todo lo que sé ⬇️</p>
 
         <!-- ══════════ Abajo: el detalle, un cajón por actividad ══════════ -->
