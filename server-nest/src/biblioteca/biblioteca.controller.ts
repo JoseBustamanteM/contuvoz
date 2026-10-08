@@ -4,18 +4,22 @@ import {
   Controller,
   Get,
   Param,
+  ParseFilePipeBuilder,
   ParseIntPipe,
   Post,
   Req,
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  ParseFilePipeBuilder,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Request } from 'express';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-aut-guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Rol } from '../enums/rol.enum';
+
 import { BibliotecaService } from './biblioteca.service';
 import { CrearArchivoBibliotecaDto } from './dto/crear-archivo-biblioteca.dto';
 
@@ -44,6 +48,12 @@ export class BibliotecaController {
   }
 
   @Post('upload')
+  @UseGuards(RolesGuard)
+  @Roles(
+    Rol.ADMINISTRADOR,
+    Rol.ADMIN_COLEGIO,
+    Rol.PROFESOR,
+  )
   @UseInterceptors(
     FileInterceptor('file', {
       limits: {
@@ -67,9 +77,11 @@ export class BibliotecaController {
     )
     file: Express.Multer.File,
 
-    @Body() dto: CrearArchivoBibliotecaDto,
+    @Body()
+    dto: CrearArchivoBibliotecaDto,
 
-    @Req() req: Request,
+    @Req()
+    req: Request,
   ) {
     const usuario = req.user as
       | {
