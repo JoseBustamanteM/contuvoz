@@ -1,16 +1,44 @@
 # Contuvoz System Architecture
 
+> Last reviewed against the code: 2026-10-09. When something here disagrees with
+> the code, the code wins — please fix this document in the same change.
+
 ## High-Level System Overview
 
-**Contuvoz** is an accessibility-focused web application designed to help users with hearing and speech challenges develop communication skills through interactive exercises. The system provides:
+**Contuvoz** is an educational web app for children (Chilean schools) that
+practices early literacy and communication through four activities, plus the
+tools adults need to follow each child's progress:
 
-- **Drawing-to-Text Activity**: Users trace letters on screen while the system evaluates stroke precision and coverage
-- **Sign Language Recognition**: Real-time hand gesture recognition using MediaPipe vision models to identify sign language letters
-- **Vowel Detection & Speech Practice**: Microphone-based audio analysis to detect and validate vowel pronunciation (A, E, I, O, U)
-- **Activity Tracking & Analytics**: Dashboard to view performance history and progress over time
-- **User & Role Management**: Admin controls to manage users, assign roles, and track sessions
+- **Pinta letras (drawing)**: the child traces a letter on a canvas; coverage and
+  strokes outside the letter are scored in the browser.
+- **Comunícate (sign language)**: the five vowels in Chilean Sign Language (LSCh),
+  recognised from the webcam with MediaPipe hand landmarks and geometric rules.
+- **Hablemos (speech)**: vowel pronunciation (A, E, I, O, U) detected from the
+  microphone by formant analysis (F1/F2) with the Web Audio API — no ML model.
+- **Une palabras (word matching)**: match words to pictures; first-try matches
+  and confusions are recorded.
+- **Mis logros (student dashboard)**: stars, streak, letters mastered per
+  activity, hints derived from recent mistakes, and medals.
+- **User management**: users by role and school, and links between each student
+  and their teachers and guardians (with history).
 
-The architecture is built on **Angular 21** (frontend) and **NestJS 11** (backend), with Prisma ORM managing a MySQL database. The system emphasizes offline-first design for activities while maintaining cloud persistence for results and user data.
+The stack is **Angular 21** (frontend) and **NestJS 11** (backend) with
+**Prisma 6** on **MariaDB/MySQL**. All recognition and scoring runs in the
+browser; the server stores results and computes the dashboard from them.
+
+### Roles
+
+| Id | Role | Can |
+|----|------|-----|
+| 1 | Administrador | Everything, across schools |
+| 2 | Admin. Colegio | Manage users and links within their school |
+| 3 | Profesor | Create guardians and students (auto-linked as their teacher), link guardians to their own students |
+| 4 | Apoderado (guardian) | Follow their linked children |
+| 5 | Estudiante | Play activities, see Mis logros |
+
+Only **Estudiante** and **Profesor** generate activity results (the teacher can
+demo an activity in class). Other roles get a "practice mode" notice instead of
+a save error.
 
 ---
 
@@ -18,384 +46,271 @@ The architecture is built on **Angular 21** (frontend) and **NestJS 11** (backen
 
 ### Frontend (Angular 21) - `src/`
 
-#### **Authentication & Session Management**
-- **Module**: `services/auth.service.ts`
-- **Responsibility**: 
-  - JWT-based login/logout with refresh token flow
-  - Session persistence across browser reloads
-  - Access token storage in memory (signals)
-  - Refresh token stored as HTTP-only cookie
-  - Automatic token refresh on 401 responses via auth interceptor
-- **Key Features**: 
-  - Shared refresh mechanism to avoid multiple concurrent refreshes
-  - Session verification on app startup
-  - Role-based access control (via guards)
+#### Authentication & Session
+- **`services/auth.service.ts`**: login/logout, access token in memory (signal),
+  refresh token as HTTP-only cookie, current user profile (`/api/auth/me`).
+- **`interceptors/auth.interceptor.ts`**: attaches the access token; on 401 runs
+  a *shared* refresh (one refresh for many concurrent requests) and retries.
+- **`app.config.ts`**: `provideAppInitializer` restores the session before the
+  first render. A static skeleton inside `<app-root>` (`index.html`) is shown
+  meanwhile.
+- **Guards** (`guards/`): `authGuard` (logged in), `invitadoGuard` (`/login`
+  redirects home if already logged in), `rolGuard` (user management:
+  Administrador, Admin. Colegio, Profesor).
 
-#### **Activity Management**
-- **Modules**: 
-  - `services/actividades.service.ts` - HTTP endpoints for saving results
-  - `services/vowel-detector.service.ts` - Audio analysis using HuggingFace transformers
-  - `services/signLanguage.service.ts` - Hand pose detection with MediaPipe
-- **Responsibility**:
-  - Record and upload activity results (drawing, sign, vowel)
-  - Real-time ML inference for gesture/audio recognition
-  - Retry logic for failed uploads with exponential backoff
-- **Processing**: All heavy lifting done client-side; only results sent to server
+#### Activities
+- **`pages/drawPage`** + `components/drawPage/letter-tracer`: canvas scoring,
+  every attempt is saved.
+- **`pages/signLanguage`** + `components/signLanguage/hand-tracker` +
+  `services/signLanguage.service.ts`: MediaPipe HandLandmarker, per-vowel scores
+  from finger angles/distances, a vowel counts only if held for 800 ms with a
+  margin over the closest rival.
+- **`pages/talkPage`** + `services/vowel-detector.service.ts`: 2 s capture,
+  spectral envelope, F1/F2 peaks, nearest vowel in log-frequency space. Clear
+  messages for denied/missing/busy microphone.
+- **`pages/unePalabras`** + `interfaces/banco-palabras.ts`: rounds of 5 words
+  from a 30-word bank.
+- **`services/actividades.service.ts`**: POSTs results with retry + exponential
+  backoff on network/5xx errors only. `puedeGuardarProgreso` hides saving for
+  roles that would get 403.
 
-#### **UI Pages**
-- **LoginComponent**: Credential-based entry point
-- **HomePageComponent**: Dashboard hub linking to activities
-- **DrawPageComponent**: Letter tracing canvas with stroke evaluation
-- **SignLanguageComponent**: Hand gesture video capture and recognition
-- **TalkPageComponent**: Vowel pronunciation practice with waveform visualization
-- **DashboardPageComponent**: Performance metrics and history
-- **GestionUsuariosComponent**: Admin panel for user management (role-guarded)
+#### Mis logros (student dashboard)
+- **`pages/mis-logros`** + `services/mis-logros.service.ts`: summary on top
+  (stars, streak, week, per-activity cards), a "Mis habilidades" separator, and
+  one collapsible drawer per activity below. Medals are still fixed in code.
 
-#### **Routing & Guards**
-- **auth.guard.ts**: Redirects unauthenticated users to login
-- **rol.guard.ts**: Restricts admin pages to authorized roles
-- **Routes**: Protected paths require both guards; public only `/login`
+#### User management
+- **`pages/gestion-usuarios`**: table on desktop, cards on mobile; search,
+  role filter, "without guardian/teacher" filters, activate/deactivate with
+  confirmation.
+- **`components/gestion-usuarios/usuario-form`**: create/edit with RUT
+  validation (`validators/rut.validator.ts`).
+- **`components/gestion-usuarios/vinculos-modal`** + `services/vinculos.service.ts`:
+  a student's teachers and guardians, add/remove according to role, full
+  history for admins.
 
-#### **HTTP Interceptors**
-- **auth.interceptor.ts**: Attaches access token to outbound requests; handles 401 by triggering shared refresh
+#### Shell & shared UI
+- **`components/barra-superior`**: brand, Home, Mis logros (students), Biblioteca
+  (coming soon), Usuarios, profile chip, logout (`components/logout-button`).
+- **`components/shared/aviso-modo-practica`**: notice for roles that don't save.
+- **Skeleton loading**: global `.sk` class in `src/styles.css`, used wherever data
+  comes from the server. Shared admin styles in `src/styles/_gestion.scss`.
+- All feature routes are **lazy loaded** (`app.routes.ts`); only login and home
+  are in the initial bundle.
 
 ### Backend (NestJS 11) - `server-nest/`
 
-#### **Authentication Module**
-- **Services**: `auth/auth.service.ts`
-- **Controllers**: `auth/auth.controller.ts`
-- **Responsibility**:
-  - User credential validation (RUT normalization, bcrypt hashing)
-  - JWT token generation with configurable expiration
-  - Refresh token management (hashed, single-use, with IP/User-Agent tracking)
-  - Session logging (successful and failed login attempts)
-  - Token revocation on logout
-- **Flow**:
-  1. Login endpoint validates credentials against `usuario` table
-  2. Creates `sesion` record to track attempt
-  3. Generates `accessToken` (15m default) and `refreshTokenPlano`
-  4. Stores refresh token hash in `sesionToken` table
-  5. Returns tokens; refresh goes to HTTP-only cookie
-- **Strategies**: Passport JWT for route-level protection
+All routes live under the global prefix **`/api`** (`main.ts`).
 
-#### **Activities Module**
-- **Services**: `actividades/actividades.service.ts`
-- **Controllers**: `actividades/actividades.controller.ts`
-- **Responsibility**:
-  - Persist activity results (drawings, sign language, pronunciation)
-  - Associate results with users and activity types
-  - Score validation and performance metrics
-  - Retrieve user activity history
-- **Models**: 
-  - `ResultadoPintado` (drawing: strokes, area, score)
-  - `ResultadoPronunciacion` (speech: detected text, confidence)
-  - `ResultadoSign` (gestures: detected letter, confidence)
+#### Auth — `src/auth/`
+- `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`,
+  `GET /api/auth/me`.
+- RUT normalisation, bcrypt (10 rounds), JWT access token (default 15 min).
+- Refresh token: random, stored **hashed** in `sesion_token`, **rotated on every
+  refresh** (the old one is revoked), cookie `refresh_token` with
+  `path=/api/auth`, `sameSite=strict`, `secure` in production.
+- Every login attempt (ok or failed) is logged in `sesion` with IP and
+  User-Agent. `tasks/sesiones-cleanup.service.ts` closes sessions whose tokens
+  all expired (hourly cron + at startup).
 
-#### **Users Module**
-- **Services**: `usuarios/usuarios.service.ts`
-- **Responsibility**:
-  - User CRUD operations
-  - Role assignment
-  - School affiliation
-  - Active/inactive status management
-- **Audit Trail**: `creadoPor` and `deshabilitadoPor` track administrative actions
+#### Activities — `src/actividades/`
+- `POST /api/actividades/pintado | sign | pronunciacion | une-palabras`.
+- Creates `actividad` + the matching `resultado_*` row in one transaction and
+  updates `usuario.ult_actividad`.
+- Approval is decided on the server from the submitted metrics (e.g. sign:
+  confidence ≥ 70 **and** held; speech: correct vowel **and** confidence ≥ 30;
+  word matching: score recomputed from hits/pairs).
+- ⚠️ Scores are **self-reported** by the browser; accepted on purpose for
+  classroom use (see the note in `actividades.controller.ts`).
 
-#### **Schools Module**
-- **Services**: `colegios/colegios.service.ts`
-- **Responsibility**:
-  - School master data (location, contact)
-  - Geographic hierarchy (País → Región → Ciudad → Comuna → Colegio)
+#### Users — `src/usuarios/dto/` *(module currently lives inside `dto/`)*
+- CRUD, activate/deactivate (nobody can deactivate themselves), scoped by role
+  (`PUEDE_GESTIONAR`) and school.
+- `GET /api/usuarios` includes each student's **current** links and accepts
+  `?sinVinculo=PROFESOR|APODERADO`.
+- A teacher creating a student is linked as their teacher in the same transaction.
 
-#### **Prisma ORM & Database**
-- **File**: `server-nest/prisma/schema.prisma`
-- **Database**: MySQL
-- **Key Tables**:
-  - `usuario` - user accounts with role & school
-  - `actividad` - parent record for all activities
-  - `resultado_pintado`, `resultado_pronunciacion`, `resultado_sign` - results by type
-  - `sesion` - login session tracking
-  - `sesion_token` - refresh token records with revocation
-  - `tipo_actividad` - activity type enum (drawing, sign, vowel)
-  - `rol`, `colegio`, `region`, `ciudad`, `comuna` - reference data
+#### Links — `src/vinculos/`
+- `POST /api/vinculos`, `PATCH /api/vinculos/:id/deshabilitar`,
+  `GET /api/vinculos/estudiante/:id` (`?historial=true` for admins),
+  `GET /api/vinculos/mis-estudiantes`.
+- `VIGENTE` (`fechaFin: null`) is the single filter for current links;
+  `puedeVerEstudiante()` is the permission used to see a child's details.
+
+#### Mis logros — `src/mis-logros/`
+- `GET /api/mis-logros` (own) and `GET /api/mis-logros/estudiante/:id`
+  (admins or linked adults).
+- Computed on the fly from the results tables; nothing new is stored:
+  - star = approved attempt this week (Mon–Sun); streak ends today or yesterday;
+  - letter **mastered** = ≥ 3 approved in its last 5 attempts, **practising** = 1–2;
+  - hints from recent failures; known words = matched on the first try.
+- Days are computed in `ZONA_HORARIA` (default `America/Santiago`): Prisma stores
+  UTC, so an activity at 21:30 would otherwise fall on the next day.
+
+#### Schools — `src/colegios/`
+- `GET /api/colegios` for the admin's school selector. Geography: País → Región
+  → Ciudad → Comuna → Colegio.
+
+#### Database & Prisma
+- **Schema**: `server-nest/prisma/schema.prisma`; **SQL scripts**:
+  `script DB + insert/` (`01_estructura.sql`, `02_datos_base.sql`, `cambios/`).
+- **No Prisma migrations**: structure changes are SQL scripts in `cambios/`.
+  Don't use `prisma db push`/`migrate` — some tables have `CHECK` constraints and
+  a generated column that Prisma can't create.
+- **Tables (17)**: `usuario`, `rol`, `colegio`, `pais`, `region`, `ciudad`,
+  `comuna`, `tipo_actividad`, `actividad`, `resultado_pintado`, `resultado_sign`,
+  `resultado_pronunciacion`, `resultado_une_palabras`, `vinculo_estudiante`,
+  `archivo_biblioteca`, `sesion`, `sesion_token`.
+- **`vinculo_estudiante`**: student ↔ adult (`PROFESOR`/`APODERADO`), never
+  deleted — closed with `fecha_fin` + `deshabilitado_por`. A generated column
+  `vigente` plus a unique index guarantee one current link per pair and type.
+- **First admin**: `npm run crear-admin` (`server-nest/scripts/crear-admin.ts`).
 
 ---
 
 ## Main Runtime and Data Flows
 
-### 1. **User Authentication Flow**
+### 1. Login and session restore
 
 ```
-┌─────────────────┐
-│  Login Page     │
-│  (credentials)  │
-└────────┬────────┘
-         │ POST /auth/login
-         ▼
-┌─────────────────────────────────────┐
-│  NestJS: auth.controller.login()    │
-│  ├─ Normalize RUT                   │
-│  ├─ Query usuario by RUT + active   │
-│  ├─ Compare password (bcrypt)       │
-│  └─ Create sesion record            │
-└────────┬────────────────────────────┘
-         │ if valid:
-         ▼
-┌──────────────────────────────────────┐
-│  auth.service.generarTokens()        │
-│  ├─ Sign JWT (sub, rol, 15m exp)    │
-│  ├─ Generate refresh token (64 bytes)│
-│  ├─ Hash & store in sesionToken      │
-│  └─ Update usuario.ultActividad      │
-└────────┬─────────────────────────────┘
-         │ Response + Set-Cookie
-         ▼
-┌──────────────────────────────────┐
-│  Frontend AuthService             │
-│  ├─ accessToken.set(token)       │
-│  ├─ refreshToken in HTTP-only    │
-│  └─ Redirect to home             │
-└──────────────────────────────────┘
+Login page ── POST /api/auth/login ──▶ AuthController
+                                         ├─ normalise RUT, find active user
+                                         ├─ bcrypt.compare
+                                         ├─ INSERT sesion (ok or failed)
+                                         └─ generarTokens()
+                                              ├─ sign JWT (sub, rol)
+                                              ├─ INSERT sesion_token (hash)
+                                              └─ Set-Cookie refresh_token (path /api/auth)
+◀── { accessToken } ── AuthService stores it in memory, GET /api/auth/me, go home
+
+App start (reload) ── provideAppInitializer ── POST /api/auth/refresh (cookie)
+   └─ old token revoked, new pair issued ─▶ GET /api/auth/me ─▶ first render
 ```
 
-### 2. **Activity Result Submission Flow (Drawing Example)**
+### 2. Saving an activity result (drawing example)
 
 ```
-┌──────────────────────────┐
-│  DrawPageComponent       │
-│  onResultadoListo()      │
-│  (local computation)     │
-└────────┬─────────────────┘
-         │ {letra, trazo%, area%, score}
-         ▼
-┌──────────────────────────────────┐
-│  ActividadesService              │
-│  guardarPintado(resultado)       │
-│  POST /actividades/pintado       │
-└────────┬─────────────────────────┘
-         │ include accessToken (interceptor)
-         ▼
-┌─────────────────────────────────────────┐
-│  NestJS: actividades.controller         │
-│  ├─ Extract JWT (user ID, role)        │
-│  ├─ Create actividad record            │
-│  └─ Create resultado_pintado          │
-└────────┬────────────────────────────────┘
-         │ if error: frontend retries with backoff
-         ▼
-┌──────────────────────────────────┐
-│  Database (Prisma)              │
-│  INSERT actividad, resultado    │
-└──────────────────────────────────┘
-         │
-         │ Response
-         ▼
-┌──────────────────────────────────┐
-│  Frontend: Update UI state       │
-│  ├─ estadoGuardado = 'ok'       │
-│  └─ Display success feedback     │
-└──────────────────────────────────┘
+LetterTracer.verify()  →  score computed in the browser
+DrawPage ── puedeGuardarProgreso? ── no ─▶ show local result ("practice mode")
+                                  └─ yes ─▶ POST /api/actividades/pintado
+                                             (interceptor adds JWT, retries on 0/5xx)
+ActividadesController (Estudiante | Profesor)
+   └─ $transaction: INSERT actividad + resultado_pintado, UPDATE usuario.ult_actividad
+◀── result with server-side "aprobado" ── UI shows it
 ```
 
-### 3. **Sign Language Recognition Flow (Client-Heavy)**
+### 3. Sign language recognition (client-heavy)
 
 ```
-┌──────────────────────────────┐
-│  SignLanguageComponent       │
-│  iniciarEvaluacion()         │
-│  ├─ Open camera (MediaPipe)  │
-│  └─ Start hand tracking loop │
-└────────┬─────────────────────┘
-         │ for each frame
-         ▼
-┌──────────────────────────────────────┐
-│  signLanguage.service.ts             │
-│  ├─ Pull video frame                 │
-│  ├─ HandLandmarker.detectForVideo()  │
-│  ├─ Extract hand keypoints           │
-│  ├─ Local ML inference (pose angles) │
-│  ├─ Classify letter A-Z              │
-│  └─ Calculate confidence %           │
-└────────┬─────────────────────────────┘
-         │ Result {letter, confidence, sostenida}
-         ▼
-┌──────────────────────────────────────────────┐
-│  SignLanguageComponent.onResultadoListo()    │
-│  ├─ Show result locally (immediate feedback) │
-│  ├─ Push to resumen array                    │
-│  └─ Trigger background save                  │
-└────────┬───────────────────────────────────────┘
-         │ Background: ActividadesService.guardarSign()
-         │ POST /actividades/sign (with retry)
-         ▼
-┌─────────────────────────────────────┐
-│  NestJS: actividades.controller     │
-│  ├─ Receive sign result             │
-│  ├─ Create actividad + resultado    │
-│  └─ Validate (>=70% confidence)     │
-└────────┬────────────────────────────┘
-         │ Response updates UI (ok/error)
-         ▼
-┌────────────────────────────────┐
-│  Frontend: Update resumen       │
-│  [{ letra, confianza, ok/err }] │
-└────────────────────────────────┘
+SignLanguage page opens → HandTracker: camera + MediaPipe model (served locally)
+loop per frame:
+   detectForVideo → landmarks → smoothing → score of each vowel (A E I O U)
+   target ≥ 70, margin ≥ 15 over rival, held 800 ms → correct
+   timeout (7 s) → attribute the failure to the rival held ≥ 400 ms, or NINGUNA
+each vowel → shown immediately in the summary → POST /api/actividades/sign in background
+summary → per-letter save status, "retry save" for failures
 ```
 
-### 4. **Vowel Detection Flow**
+### 4. Vowel detection (Hablemos)
 
 ```
-┌─────────────────────────────┐
-│  TalkPageComponent          │
-│  onPracticeStart()          │
-│  (selected vocal: e.g., 'A')│
-└────────┬────────────────────┘
-         │
-         ▼
-┌────────────────────────────────────┐
-│  vowel-detector.service.listen()   │
-│  ├─ Request microphone permission  │
-│  ├─ Start AudioContext.record()    │
-│  ├─ Capture 2000ms of audio        │
-│  └─ Convert to Mel-spectrogram     │
-└────────┬───────────────────────────┘
-         │ Raw audio buffer
-         ▼
-┌──────────────────────────────────────────┐
-│  HuggingFace Transformers (local WASM)   │
-│  ├─ Feature extraction (MFCC)           │
-│  ├─ Pass to pre-trained vowel model     │
-│  └─ Output: {A:0.8, E:0.1, ...}        │
-└────────┬─────────────────────────────────┘
-         │ Confidence of detected vowel
-         ▼
-┌──────────────────────────────────────┐
-│  TalkPageComponent                   │
-│  ├─ Compare detected vs selected     │
-│  ├─ practiceState = 'success/fail'   │
-│  └─ Show feedback + waveform visual  │
-└──────────────────────────────────────┘
-         │ (Optional: Save to server)
-         ▼
+TalkPage → VowelDetectorService.listen(vowel, 2000 ms)
+   ├─ getUserMedia (clear message if denied / missing / busy)
+   ├─ AnalyserNode FFT every 30 ms while there is voice (RMS gate)
+   ├─ accumulated spectrum → smoothed envelope → F1 (200–900 Hz), F2 (900–2800 Hz)
+   └─ nearest reference vowel in log(F1, F2) → { detected, confidence }
+TalkPage → success / failure feedback → POST /api/actividades/pronunciacion
+```
+
+### 5. Mis logros
+
+```
+MisLogros page → skeleton → GET /api/mis-logros
+MisLogrosService (backend)
+   ├─ one query: all the student's activities with their result
+   ├─ days in ZONA_HORARIA → week, streak, stars per activity
+   ├─ last 5 attempts per letter → mastered / practising / to discover
+   └─ recent failures → hints; Une palabras detail → known words
+frontend → known words ∩ word bank → "12 of 30" line
 ```
 
 ---
 
 ## External Services and APIs
 
-### Client-Side ML Libraries
+### Client-side libraries
+1. **@mediapipe/tasks-vision** — HandLandmarker (GPU delegate). The WASM files are
+   copied from `node_modules` at build time and the model lives in
+   `public/mediapipe/`: **no CDN at runtime** (school networks often block them).
+2. **Web Audio API** — microphone capture and FFT for Hablemos (no library).
+3. **Chart.js** — only used by the legacy `dashboard-page` (mock data).
+4. **Google Fonts** — Nunito and Playwrite CU (`index.html`).
 
-1. **@mediapipe/tasks-vision** (v0.10.32)
-   - Hand gesture recognition for sign language
-   - Landmarker detection running in WebGL
-   - Models bundled in WASM; no external API calls
+### Server-side integrations
+- None: no third-party auth or APIs. Database is a local MariaDB/MySQL.
 
-2. **@huggingface/transformers** (v4.1.0)
-   - Vowel classification from audio spectrograms
-   - Local WASM inference; offline capable
-   - Pre-trained models cache in browser
-
-3. **vosk-browser** (v0.0.8)
-   - Optional speech-to-text (Vosk offline ASR)
-   - WebRTC audio capture
-   - GPU-accelerated inference if available
-
-### Server-Side External Integrations
-
-- **None listed** – system is self-contained
-- Database is internal MySQL instance
-- JWT tokens are internal (no third-party auth)
-
-### Environment Variables (Backend)
+### Environment variables (backend `.env`)
 
 ```env
-DATABASE_URL=mysql://user:pass@localhost:3306/contuvoz_db
+DATABASE_URL="mysql://user:pass@localhost:3306/nest_db"
+JWT_SECRET="long-random-secret"
+PORT=4000
+HOST=127.0.0.1            # production: only reachable through Nginx
+FRONTEND_URL="http://localhost:4200"
 ACCESS_TOKEN_EXPIRA=15m
 REFRESH_TOKEN_DIAS=7
-JWT_SECRET=your-secret-key
-PORT=4000
-FRONTEND_URL=http://localhost:4200
+ZONA_HORARIA=America/Santiago
+NODE_ENV=production       # production: Secure refresh cookie
 ```
+
+Frontend: `src/environments/environment.development.ts` →
+`http://localhost:4000/api`; `environment.ts` (production) → `/api` (relative).
 
 ---
 
 ## Important Module Dependencies
 
-### Frontend Dependency Graph
+### Frontend
 
 ```
-App (root)
-│
-├─ LoginComponent
-│  └─ AuthService
-│     └─ HttpClient
-│
-├─ HomePageComponent
-│  └─ AuthService
-│
-├─ DrawPageComponent
-│  ├─ LetterTracerComponent
-│  ├─ LetterSelectorComponent
-│  └─ ActividadesService
-│     └─ HttpClient
-│
-├─ SignLanguageComponent
-│  ├─ HandTrackerComponent
-│  │  └─ signLanguage.service (MediaPipe)
-│  └─ ActividadesService
-│
-├─ TalkPageComponent
-│  ├─ VocalSelectorComponent
-│  ├─ PracticeButtonComponent
-│  └─ VowelDetectorService (HuggingFace)
-│
-├─ DashboardPageComponent
-│  └─ ActividadesService
-│
-└─ GestionUsuariosComponent (admin)
-   ├─ authGuard + rolGuard
-   └─ UsuariosService
+App
+├─ BarraSuperior ── AuthService, LogoutButton
+├─ Login ── AuthService
+├─ Home ── Option (activity grid)
+├─ DrawPage ── LetterSelector, LetterTracer, ActividadesService
+├─ SignLanguage ── HandTracker ── signLanguage.service (MediaPipe), ActividadesService
+├─ TalkPage ── VocalSelector, PracticeButton, ResultFeedback, MascotHeader,
+│              WaveformVisualizer, VowelDetectorService, ActividadesService
+├─ UnePalabras ── banco-palabras, ActividadesService
+├─ MisLogros ── MisLogrosService
+├─ GestionUsuarios ── UsuariosService, UsuarioForm (ColegiosService),
+│                     VinculosModal (VinculosService)
+└─ DashboardPage (legacy, mock data, Chart.js)
+Activities also use AvisoModoPractica.
 ```
 
-### Backend Dependency Graph
+### Backend
 
 ```
 AppModule
-│
-├─ ConfigModule (env vars)
-├─ ScheduleModule (scheduled tasks)
-├─ PrismaModule (DB access)
-│
-├─ AuthModule
-│  ├─ JwtModule (sign/verify)
-│  ├─ PassportModule (jwt strategy)
-│  └─ AuthService → PrismaService
-│
+├─ ConfigModule, ScheduleModule, PrismaModule (global)
+├─ AuthModule ── JwtModule, PassportModule, SesionesCleanupService
 ├─ ActividadesModule
-│  ├─ ActividadesService → PrismaService
-│  └─ ActividadesController
-│     └─ JwtGuard (protected)
-│
-├─ UsuariosModule
-│  ├─ UsuariosService → PrismaService
-│  └─ UsuariosController
-│     └─ JwtGuard + RolGuard
-│
+├─ VinculosModule (exports VinculosService)
+├─ UsuariosModule ── imports VinculosModule (auto-link on create)
+├─ MisLogrosModule ── imports VinculosModule (puedeVerEstudiante)
 └─ ColegiosModule
-   ├─ ColegiosService → PrismaService
-   └─ ColegiosController
 ```
 
-### Key Interdependencies
+### Key interdependencies
 
-| Module | Depends On | Purpose |
+| Module | Depends on | Purpose |
 |--------|-----------|---------|
-| ActividadesService | PrismaService | Persist & query activity results |
-| AuthService | JwtService, PrismaService | Token generation, session tracking |
-| auth.interceptor | AuthService | Attach JWT to requests, trigger refresh |
-| All guarded routes | AuthService (signals) | Check login status, enforce roles |
-| DrawPageComponent | ActividadesService | Submit drawing results |
-| SignLanguageComponent | signLanguage.service + ActividadesService | Detect gestures, persist |
-| TalkPageComponent | VowelDetectorService | Local audio analysis |
+| ActividadesService (front) | AuthService | Hide saving for roles that can't save |
+| auth.interceptor | AuthService | Attach JWT, shared refresh on 401 |
+| UsuariosService (back) | VinculosService | Link the teacher who creates a student |
+| MisLogrosController | VinculosService | Who may see another student's dashboard |
+| VinculosModal | Users list from GestionUsuarios | Candidates (same school, active, right role) |
 
 ---
 
@@ -403,201 +318,78 @@ AppModule
 
 ```mermaid
 graph TB
-    subgraph Client["Client (Angular 21)"]
+    subgraph Client["Browser (Angular 21)"]
         direction LR
-        Login["Login<br/>Component"]
-        Home["Home<br/>Page"]
-        Draw["Draw<br/>Activity"]
-        Sign["Sign Language<br/>Activity"]
-        Talk["Vowel<br/>Activity"]
-        Dashboard["Dashboard<br/>Page"]
-        Admin["Admin<br/>Users"]
-        
-        AuthSvc["AuthService<br/>(JWT + Refresh)"]
-        ActSvc["ActividadesService<br/>(HTTP)"]
+        Pages["Activities<br/>Mis logros<br/>User management"]
+        AuthSvc["AuthService<br/>+ interceptor"]
+        Services["HTTP services<br/>(actividades, usuarios,<br/>vinculos, mis-logros)"]
         SignSvc["signLanguage.service<br/>(MediaPipe)"]
-        VowelSvc["VowelDetectorService<br/>(HuggingFace)"]
-        Interceptor["auth.interceptor<br/>(+ JWT to requests)"]
-        
-        Login --> AuthSvc
-        Home --> AuthSvc
-        Draw --> ActSvc
-        Sign --> SignSvc
-        Sign --> ActSvc
-        Talk --> VowelSvc
-        Talk --> ActSvc
-        Dashboard --> ActSvc
-        Admin --> ActSvc
-        
-        AuthSvc -.-> Interceptor
-        ActSvc --> Interceptor
+        VowelSvc["VowelDetectorService<br/>(Web Audio)"]
+        Pages --> Services
+        Pages --> SignSvc
+        Pages --> VowelSvc
+        Services --> AuthSvc
     end
-    
-    subgraph Backend["Backend (NestJS 11)"]
-        direction LR
-        AuthCtrl["Auth<br/>Controller"]
-        AuthMod["Auth<br/>Service"]
-        ActCtrl["Actividades<br/>Controller"]
-        ActMod["Actividades<br/>Service"]
-        UsrCtrl["Usuarios<br/>Controller"]
-        UsrMod["Usuarios<br/>Service"]
-        ColCtrl["Colegios<br/>Controller"]
-        ColMod["Colegios<br/>Service"]
-        
-        Prisma["Prisma<br/>ORM"]
-        JWT["JWT<br/>Module"]
-        
-        AuthCtrl --> AuthMod
-        AuthMod --> JWT
-        AuthMod --> Prisma
-        
-        ActCtrl --> ActMod
-        ActMod --> Prisma
-        
-        UsrCtrl --> UsrMod
-        UsrMod --> Prisma
-        
-        ColCtrl --> ColMod
-        ColMod --> Prisma
-    end
-    
-    subgraph Libs["ML Libraries (Browser)"]
-        MediaPipe["MediaPipe<br/>HandLandmarker"]
-        HF["HuggingFace<br/>Transformers"]
-        Vosk["Vosk<br/>ASR"]
-    end
-    
-    subgraph DB["Database (MySQL)"]
-        direction LR
-        Usuario["usuario"]
-        Actividad["actividad"]
-        ResDrawing["resultado_pintado"]
-        ResPronun["resultado_pronunciacion"]
-        ResSign["resultado_sign"]
-        Sesion["sesion"]
-        SesionToken["sesion_token"]
-        
-        Actividad --> ResDrawing
-        Actividad --> ResPronun
-        Actividad --> ResSign
-        Sesion --> Usuario
-        SesionToken --> Usuario
-    end
-    
-    Client -->|HTTP/REST| Backend
-    Backend --> DB
-    Sign -.->|WebGL| MediaPipe
-    Talk -.->|WASM| HF
-    Talk -.->|WebRTC| Vosk
-```
 
----
+    subgraph Server["VPS"]
+        Nginx["Nginx<br/>/ → dist<br/>/api/ → backend"]
+        subgraph Backend["NestJS 11 (/api)"]
+            Auth["auth"]
+            Act["actividades"]
+            Usr["usuarios"]
+            Vin["vinculos"]
+            Log["mis-logros"]
+            Col["colegios"]
+            Prisma["Prisma"]
+            Auth --> Prisma
+            Act --> Prisma
+            Usr --> Prisma
+            Usr --> Vin
+            Vin --> Prisma
+            Log --> Prisma
+            Log --> Vin
+            Col --> Prisma
+        end
+        DB[("MariaDB<br/>17 tables")]
+        Prisma --> DB
+        Nginx --> Backend
+    end
 
-## Module Dependencies Diagram
-
-```mermaid
-graph LR
-    subgraph Frontend
-        A["AuthService"]
-        B["ActividadesService"]
-        C["signLanguage.service"]
-        D["VowelDetectorService"]
-        E["auth.interceptor"]
-        
-        A -->|refresh token flow| E
-        E -->|attach JWT| B
-        B -->|use auth token| E
-    end
-    
-    subgraph Backend
-        F["AuthService"]
-        G["ActividadesService"]
-        H["UsuariosService"]
-        I["PrismaService"]
-        J["JwtModule"]
-        
-        F --> J
-        F --> I
-        G --> I
-        H --> I
-    end
-    
-    subgraph Database
-        K["MySQL<br/>schema"]
-    end
-    
-    subgraph MLLibs
-        L["MediaPipe<br/>WASM"]
-        M["HuggingFace<br/>WASM"]
-    end
-    
-    A -->|calls| F
-    B -->|calls| G
-    C -->|local inference| L
-    D -->|local inference| M
-    
-    F -->|read/write| K
-    G -->|read/write| K
-    H -->|read/write| K
-    I -->|ORM| K
+    Client -->|HTTPS| Nginx
 ```
 
 ---
 
 ## Key User Request Flow: Sign Language Activity
 
-This flow illustrates the most complex activity (real-time ML + network resilience):
-
 ```mermaid
 sequenceDiagram
-    actor User
-    participant UI as SignLanguage<br/>Component
-    participant ML as signLanguage<br/>Service
-    participant HTTP as ActividadesService
-    participant Auth as auth.interceptor
+    actor Child
+    participant UI as SignLanguage page
+    participant HT as HandTracker
+    participant ML as signLanguage.service
     participant API as Backend
     participant DB as Database
-    
-    User->>UI: Click "Iniciar Evaluación"
-    activate UI
-    UI->>ML: Start hand tracking loop
-    activate ML
-    
-    loop For each gesture
-        ML->>ML: Capture video frame
-        ML->>ML: MediaPipe.detectForVideo()
-        ML->>ML: Classify letter (A-Z)
-        ML->>ML: Calculate confidence %
-        ML->>UI: onResultadoListo({letter, conf})
-        
-        Note over UI: Show result immediately<br/>(offline-first)
-        UI->>UI: Push to resumen array
-        UI->>UI: Display feedback
-        
-        Note over HTTP: Background save (don't block)
-        par Save to server
-            HTTP->>Auth: POST /actividades/sign
-            Auth->>Auth: Attach JWT token
-            Auth->>API: Send request
-            activate API
+
+    Child->>UI: Opens Comunícate
+    UI->>HT: Mount (camera starts)
+    HT->>ML: esperarModelo() (local WASM + model)
+    loop Each vowel A, E, I, O, U (7 s each)
+        HT->>ML: detectForVideo(frame)
+        ML-->>HT: landmarks
+        HT->>HT: score all vowels, margin, hold 800 ms
+        HT-->>UI: resultadoListo(letter, detected, confidence, held)
+        UI->>UI: add to summary immediately
+        par Save in background
+            UI->>API: POST /api/actividades/sign
             API->>DB: INSERT actividad + resultado_sign
-            DB-->>API: OK
-            API-->>Auth: 201 {id, aprobado}
-            deactivate API
-        and User continues
-            User->>UI: Practice next letter
+            API-->>UI: aprobado
+        and Child continues
+            Child->>HT: next vowel
         end
-        
-        HTTP-->>UI: Update state (ok/error)
     end
-    
-    User->>UI: End evaluation
-    UI->>ML: Stop camera
-    deactivate ML
-    
-    Note over UI: Display resumen summary<br/>with save status per letter
-    UI->>UI: Show retry button if errors
-    deactivate UI
+    HT-->>UI: testTerminado (camera off)
+    UI->>UI: summary with save status, retry if needed
 ```
 
 ---
@@ -605,127 +397,104 @@ sequenceDiagram
 ## Dependencies and Versions
 
 ### Frontend
-- **Angular**: 21.1.0
-- **TypeScript**: ~5.9.2
-- **RxJS**: ~7.8.0
-- **TailwindCSS**: 4.1.12 (styling)
-- **@mediapipe/tasks-vision**: 0.10.32
-- **@huggingface/transformers**: 4.1.0
-- **vosk-browser**: 0.0.8
-- **Test**: Vitest 4.0.8
+- Angular ^21.1.0 · TypeScript ~5.9.2 · RxJS ~7.8.0 · Tailwind CSS ^4.1.12
+- @mediapipe/tasks-vision ^0.10.32 · Chart.js ^4.5.1
+- Tests: Vitest ^4.0.8
 
 ### Backend
-- **NestJS**: 11.0.1
-- **TypeScript**: 5.7.3
-- **Prisma**: 6.19.3
-- **@nestjs/jwt**: 11.0.2
-- **@nestjs/passport**: 11.0.5
-- **passport-jwt**: 4.0.1
-- **bcrypt**: 6.0.0
-- **Test**: Jest 30.0.0
+- NestJS ^11.0.1 · TypeScript ^5.7.3 · Prisma / @prisma/client ^6.19.3
+- @nestjs/jwt, @nestjs/passport, passport-jwt, bcrypt ^6, @nestjs/schedule
+- Tests: Jest ^30.0.0
 
 ### Database
-- **MySQL**: (version not specified; use 8.0+)
-- **Prisma Client**: 6.19.3
+- MariaDB 11 in development (MySQL 8 compatible: generated columns and `CHECK`
+  constraints are required).
 
 ---
 
 ## Deployment Topology
 
+See [DEPLOY.md](DEPLOY.md) for the step-by-step guide.
+
 ```
-┌──────────────────────────────────┐
-│  Browser (Client)                │
-│  ├─ Angular 21 SPA               │
-│  ├─ ML models (WASM)             │
-│  └─ WebGL/WebRTC                 │
-└────────────┬─────────────────────┘
-             │ HTTP/REST
-             ▼
-┌──────────────────────────────────┐
-│  NestJS Backend (Node.js)        │
-│  ├─ Port 4000                    │
-│  ├─ JWT/Passport auth            │
-│  ├─ CORS enabled                 │
-│  └─ Cookie support               │
-└────────────┬─────────────────────┘
-             │ SQL queries
-             ▼
-┌──────────────────────────────────┐
-│  MySQL Database                  │
-│  ├─ Prisma migrations            │
-│  └─ Indexed FK relations         │
-└──────────────────────────────────┘
+Client ──https──▶ Cloudflare ──tunnel──▶ VPS
+                                          ├─ cloudflared (systemd, quick tunnel)
+                                          ├─ Nginx :80 ─┬─ /      → dist/contuvoz/browser
+                                          │             └─ /api/  → 127.0.0.1:4000
+                                          ├─ NestJS (PM2, HOST=127.0.0.1)
+                                          └─ MariaDB (local user, not root)
 ```
+
+HTTPS is required: browsers only allow camera and microphone on secure origins.
+Frontend and backend share one origin, which the `sameSite=strict` refresh cookie
+needs. Updates: `deploy/actualizar.sh`.
 
 ---
 
 ## Development & Testing
 
-### Running Locally
+### Running locally
 
-**Frontend**:
 ```bash
-cd <repo-root>
+# Frontend (repo root)
 npm install
-npm start                    # ng serve on :4200
-npm test                     # Vitest
-```
+npm start            # http://localhost:4200
+npm test             # Vitest
 
-**Backend**:
-```bash
+# Backend
 cd server-nest
 npm install
-npm run start:dev           # NestJS on :4000
-npm run test                # Jest
-npm run test:cov            # Coverage
+npx prisma generate
+npm run start:dev    # http://localhost:4000/api
+npm test             # Jest
 ```
 
-**Database**:
+### Database
+
 ```bash
-# Ensure MySQL is running (localhost:3306)
-cd server-nest
-npx prisma migrate dev      # Sync schema
-npx prisma db seed          # (if seed.ts exists)
+mariadb -u root -p -e "CREATE DATABASE nest_db CHARACTER SET utf8mb4"
+mariadb -u root -p nest_db < "script DB + insert/01_estructura.sql"
+mariadb -u root -p nest_db < "script DB + insert/02_datos_base.sql"
+cd server-nest && npm run crear-admin
 ```
 
-### Key Configuration Files
-- **Frontend**: `angular.json`, `tsconfig.json`, `src/environments/`
-- **Backend**: `.env`, `prisma/schema.prisma`, `nest-cli.json`
-- **Database**: Schema in `prisma/schema.prisma`
+### Key configuration files
+- Frontend: `angular.json` (budgets, MediaPipe WASM asset copy),
+  `src/environments/`, `src/styles.css`.
+- Backend: `.env`, `prisma/schema.prisma`, `src/main.ts` (`/api` prefix, proxy).
+- Deployment: `deploy/` (Nginx, tunnel service, `.env` template, update script).
 
 ---
 
 ## Security Considerations
 
 1. **Authentication**
-   - JWT access tokens: 15 minutes (short-lived)
-   - Refresh tokens: 7 days (stored as hash, single-use)
-   - Tokens bound to IP + User-Agent for session hijacking detection
-
-2. **Session Tracking**
-   - Every login attempt logged (`sesion` table)
-   - Token revocation on logout
-   - Failed login attempts tracked
-
-3. **Data Protection**
-   - Passwords hashed with bcrypt (salt rounds: 10)
-   - HTTP-only cookies prevent XSS token theft
-   - CORS restricted to frontend URL
-
+   - Access token 15 min, in memory only.
+   - Refresh token 7 days, HTTP-only cookie, stored hashed, rotated on each use,
+     revoked on logout. IP and User-Agent are **recorded** for auditing (not
+     enforced).
+2. **Session tracking**: every login attempt in `sesion`; expired sessions closed
+   by an hourly job.
+3. **Data protection**: bcrypt for passwords; `sameSite=strict` + `secure` cookie
+   in production; the backend only listens on localhost behind Nginx.
 4. **Authorization**
-   - Role-based guards on admin routes
-   - Users can only access their own activity records
-   - Role checked in JWT claims at every protected endpoint
+   - Roles checked from the JWT on every protected route; scope by school and
+     role (`PUEDE_GESTIONAR`).
+   - A child's details (dashboard, links) are visible to admins of their scope,
+     their linked teachers/guardians, and the child.
+   - Teachers can currently edit/deactivate any student of their school (product
+     decision for now).
+   - Activity scores are self-reported by the browser (see Activities above).
 
 ---
 
 ## Future Enhancements
 
-- [ ] WebSocket for real-time collaborative dashboards
-- [ ] Video recording of gestures for teacher review
-- [ ] Gamification (badges, progress bars, leaderboards)
-- [ ] Multi-language support (i18n)
-- [ ] Mobile app (React Native or Flutter)
-- [ ] Advanced analytics (learning curves, remediation recommendations)
-- [ ] Export reports (PDF, CSV)
-- [ ] Offline-first PWA with service workers
+- [ ] Teacher and guardian dashboards (backend endpoint already exists:
+      `GET /api/mis-logros/estudiante/:id`)
+- [ ] Medals computed from real data (currently fixed in code)
+- [ ] Biblioteca (library) section — `archivo_biblioteca` table exists
+- [ ] Ñ in the Pinta letras letter selector
+- [ ] Calibrate Hablemos with children's voices
+- [ ] Stable public URL (named Cloudflare tunnel + domain)
+- [ ] Move the users module out of `usuarios/dto/`
