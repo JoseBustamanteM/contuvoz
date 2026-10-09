@@ -1,0 +1,24 @@
+# Túnel de Cloudflare (Quick Tunnel) para ContuVoz.
+# Copiar a /etc/systemd/system/contuvoz-tunel.service (ver DEPLOY.md).
+#
+# Da una dirección https://<algo>.trycloudflare.com sin cuenta ni dominio, y se
+# vuelve a levantar solo si se cae o si se reinicia la VPS.
+#
+# ⚠️ La dirección CAMBIA cada vez que el servicio se reinicia. Para verla:
+#   journalctl -u contuvoz-tunel --no-pager | grep -o 'https://[a-z0-9-]*\.trycloudflare\.com' | tail -1
+# Para una dirección fija hace falta una cuenta de Cloudflare y un dominio
+# (túnel con nombre).
+
+[Unit]
+Description=ContuVoz - tunel de Cloudflare (quick tunnel)
+After=network-online.target nginx.service
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/cloudflared tunnel --no-autoupdate --url http://localhost:80
+Restart=always
+RestartSec=5
+DynamicUser=yes
+
+[Install]
+WantedBy=multi-user.target

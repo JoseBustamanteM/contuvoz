@@ -19,6 +19,10 @@ contuvoz/
 └── server-nest/   Backend NestJS + Prisma + MySQL/MariaDB
 ```
 
+## Despliegue
+
+Para subirla a una VPS con un túnel de Cloudflare (HTTPS sin dominio), ver [DEPLOY.md](DEPLOY.md).
+
 ## Requisitos
 
 - Node.js 20.19 o superior

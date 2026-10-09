@@ -52,7 +52,7 @@ async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'strict',
-    path: '/auth', // 👈 debe coincidir con setRefreshCookie
+    path: '/api/auth', // debe coincidir con setRefreshCookie
   });
   return { ok: true };
 }
@@ -70,7 +70,8 @@ async me(@Req() req: Request) {
     secure: process.env.NODE_ENV === 'production', // 👈 false en dev, true en prod
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000,
-    path: '/auth',
+    // Con el prefijo global /api (main.ts) las rutas de auth viven en /api/auth.
+    path: '/api/auth',
   });
 }
 }
