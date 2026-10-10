@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "demo": "ng build && node deploy/servidor-demo.js",
+    "demo:servir": "node deploy/servidor-demo.js"
   },
   "prettier": {
     "printWidth": 100,

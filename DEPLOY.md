@@ -10,6 +10,36 @@ Cliente ──https──▶ Cloudflare ──túnel──▶ VPS: cloudflared �
                                                                     └─ /api/ → NestJS (PM2) → MariaDB
 ```
 
+## Demo rápida desde tu PC (sin VPS)
+
+Para mostrarla mientras la VPS no está lista. La app funciona solo **mientras tu
+PC esté encendido** y con estas tres terminales abiertas:
+
+```bash
+# 1) Backend
+cd server-nest
+npm run start:dev
+```
+
+```bash
+# 2) Frontend de producción + servidor (sirve la app y manda /api al backend)
+npm run demo
+```
+
+```bash
+# 3) Túnel de Cloudflare
+cloudflared tunnel --url http://localhost:8080
+```
+
+La terminal 3 imprime una dirección `https://…trycloudflare.com`: esa es la que se
+comparte. Cambia cada vez que se vuelve a abrir el túnel. Si no cambiaste el
+frontend, basta con `npm run demo:servir` (no lo recompila).
+
+> No sirve `npm start` para esto: en modo desarrollo el frontend llama a
+> `http://localhost:4000`, que para el cliente es su propio computador.
+
+---
+
 Los archivos de configuración están en [`deploy/`](deploy/). Los comandos son para
 **Ubuntu 22.04/24.04 o Debian 12**. Los que empiezan con `sudo` piden la clave de
 tu usuario en la VPS.
