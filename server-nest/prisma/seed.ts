@@ -24,6 +24,8 @@
 import { PrismaClient } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 const prisma = new PrismaClient();
 
@@ -239,27 +241,132 @@ async function seedUsuarios(roles: { idRol: number }[], colegios: { idColegio: n
   return usuarios;
 }
 
+// helper
+
+function escapePdfText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x20-\x7E]/g, '')
+    .replace(/[\\()]/g, '\\$&');
+}
+
+function createSimplePdf(title: string, description: string): Buffer {
+  const safeTitle = escapePdfText(title);
+  const safeDescription = escapePdfText(description);
+
+  const stream = [
+    'BT',
+    '/F1 18 Tf',
+    '50 780 Td',
+    `(${safeTitle}) Tj`,
+    '0 -35 Td',
+    '/F1 11 Tf',
+    `(${safeDescription}) Tj`,
+    'ET',
+  ].join('\n');
+
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+
+    '<< /Type /Page /Parent 2 0 R ' +
+      '/MediaBox [0 0 595 842] ' +
+      '/Resources << /Font << /F1 4 0 R >> >> ' +
+      '/Contents 5 0 R >>',
+
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+
+    `<< /Length ${Buffer.byteLength(stream, 'ascii')} >>\n` +
+      'stream\n' +
+      `${stream}\n` +
+      'endstream',
+  ];
+
+  let pdf = '%PDF-1.4\n';
+
+  const offsets: number[] = [0];
+
+  objects.forEach((object, index) => {
+    offsets[index + 1] = Buffer.byteLength(pdf, 'ascii');
+
+    pdf += `${index + 1} 0 obj\n`;
+    pdf += `${object}\n`;
+    pdf += 'endobj\n';
+  });
+
+  const xrefOffset = Buffer.byteLength(pdf, 'ascii');
+
+  pdf += `xref\n`;
+  pdf += `0 ${objects.length + 1}\n`;
+  pdf += `0000000000 65535 f \n`;
+
+  for (let i = 1; i <= objects.length; i++) {
+    pdf += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
+  }
+
+  pdf += `trailer\n`;
+  pdf += `<< /Size ${objects.length + 1} /Root 1 0 R >>\n`;
+  pdf += `startxref\n`;
+  pdf += `${xrefOffset}\n`;
+  pdf += `%%EOF\n`;
+
+  return Buffer.from(pdf, 'ascii');
+}
+
 // ---- Archivo biblioteca (this is very likely the "upload PDF" table) ----
 
 async function seedArchivos(usuarios: { idUsuario: number }[]) {
-  const tiposArchivo = ['pdf', 'docx', 'video', 'imagen'];
+  const uploadDir = join(process.cwd(), 'uploads', 'biblioteca');
+
+  await mkdir(uploadDir, {
+    recursive: true,
+  });
+
   let count = 0;
 
   for (let i = 0; i < NUM_ARCHIVOS; i++) {
-    const tipoArchivo = randomItem(tiposArchivo);
-    const ext = tipoArchivo === 'imagen' ? 'png' : tipoArchivo;
+    const tituloArchivo = faker.lorem.words({
+      min: 2,
+      max: 5,
+    });
+
+    const descripcionArchivo = faker.lorem.sentence();
+
+    const filename = `${faker.string.uuid()}.pdf`;
+
+    const filePath = join(uploadDir, filename);
+
+    /*
+     * Create a real PDF file on disk.
+     */
+    await writeFile(
+      filePath,
+      createSimplePdf(
+        tituloArchivo,
+        descripcionArchivo,
+      ),
+    );
 
     await prisma.archivoBiblioteca.create({
       data: {
-        tituloArchivo: faker.lorem.words({ min: 2, max: 5 }),
-        descripcionArchivo: faker.lorem.sentence(),
-        rutaArchivoUrl: `/uploads/biblioteca/${faker.string.uuid()}.${ext}`,
-        tipoArchivo,
+        tituloArchivo,
+
+        descripcionArchivo,
+
+        rutaArchivoUrl: `/uploads/biblioteca/${filename}`,
+
+        tipoArchivo: 'pdf',
+
         idUsuario: randomItem(usuarios).idUsuario,
+
         imagenUrl: faker.image.urlPicsumPhotos(),
+
         imagenDescripcionUrl: faker.image.urlPicsumPhotos(),
       },
     });
+
     count++;
   }
 
