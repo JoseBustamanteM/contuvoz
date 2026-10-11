@@ -4,30 +4,57 @@ import { DrawPageComponent } from './pages/drawPage/drawPage.component';
 import { SignLanguageComponent } from './pages/signLanguage/signLanguage.component';
 import { TalkPageComponent } from './pages/talkPage/talkpage.component';
 import { DashboardPageComponent } from './pages/dashboard-page/dashboard-page.component';
-
+import { DbTestComponent } from './pages/db-test/db-test.component';
+import { LoginComponent } from './pages/login/login.component';
+import { authGuard } from './guards/auth.guard';
+import { rolGuard } from './guards/rol.guard';
+import { GestionUsuariosComponent } from './pages/gestion-usuarios/gestion-usuarios.component';
+import { BibliotecaComponent } from './pages/biblioteca/biblioteca.component';
 export const routes: Routes = [
+
+  { path: 'login', component: LoginComponent },
   {
     path: '',
-    component: HomePageComponent
+    component: HomePageComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'drawPage',
-    component: DrawPageComponent
+    component: DrawPageComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'signPage',
-    component: SignLanguageComponent
+    component: SignLanguageComponent,
+    canActivate: [authGuard]
   },
    {
     path: 'talkPage',
-    component: TalkPageComponent
+    component: TalkPageComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'biblioteca',
+    component: BibliotecaComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'dashboard-page',
-    component: DashboardPageComponent
+    component: DashboardPageComponent,
+    canActivate: [authGuard]
   },
+    {
+    path: 'test-db',
+    component: DbTestComponent,
+  },
+   {
+  path: 'gestion-usuarios',
+  component: GestionUsuariosComponent,
+  canActivate: [authGuard, rolGuard],
+},
   {
     path: '**',
     redirectTo: ''
-  }
+  },
+
 ];

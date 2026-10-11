@@ -1,15 +1,16 @@
-// Variables de colores (puedes ajustarlos a tu marca)
-$primary-color: #6C5CE7; // Un morado suave
+$primary-color: #6c5ce7;
 $secondary-color: #a29bfe;
-
 $text-color: #2d3436;
 
 :host {
   display: block;
   min-height: 100vh;
-
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding: 2rem;
+  padding: 1rem;
+}
+
+@media (min-width: 600px) {
+  :host { padding: 2rem; }
 }
 
 .talk-page-container {
@@ -18,79 +19,39 @@ $text-color: #2d3436;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 
   h1 {
-    font-size: 2.5rem;
+    font-size: clamp(1.6rem, 6vw, 2.5rem);
     color: $text-color;
     text-align: center;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 
-    // Un pequeño emoji animado si quieres
-    span {
-      display: inline-block;
-      animation: wave 2s infinite;
-    }
+    span { display: inline-block; animation: wave 2s infinite; }
   }
 
   .camera-area {
-    // Contenedor del componente hijo
     border: 8px solid white;
     border-radius: 24px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    background: #000; // Fondo negro mientras carga
-
-    // Aseguramos que el componente hijo no se desborde
+    background: #000;
     display: flex;
     justify-content: center;
     align-items: center;
+    max-width: 100%;
   }
 
   .controls {
     display: flex;
     gap: 1rem;
     margin-top: 1rem;
-
-    button {
-      background-color: $primary-color;
-      color: white;
-      border: none;
-      padding: 1rem 2rem;
-      font-size: 1.2rem;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-
-      &:hover {
-        transform: translateY(-3px);
-        background-color: darken($primary-color, 10%);
-        box-shadow: 0 6px 20px rgba(108, 92, 231, 0.6);
-      }
-
-      &:active {
-        transform: translateY(1px);
-      }
-
-      &:disabled {
-        background-color: #b2bec3;
-        cursor: not-allowed;
-        box-shadow: none;
-        transform: none;
-      }
-    }
   }
 }
 
-// Animación de saludo
 @keyframes wave {
-  0% { transform: rotate(0deg); }
-  25% { transform: rotate(20deg); }
-  75% { transform: rotate(-15deg); }
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(20deg); }
+  75%  { transform: rotate(-15deg); }
   100% { transform: rotate(0deg); }
 }

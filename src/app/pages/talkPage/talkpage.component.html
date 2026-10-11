@@ -1,12 +1,12 @@
+<app-back-button />
+
 <div class="talk-page">
 
-  <!-- Encabezado con mascota y título motivacional -->
   <app-mascot-header
     [practiceState]="practiceState()"
     [selectedVocal]="selectedVocal()"
   />
 
-  <!-- Selector de vocales -->
   <section class="talk-page__selector-section" aria-label="Selecciona una vocal">
     <h2 class="talk-page__section-label">¿Qué vocal quieres practicar?</h2>
     <app-vocal-selector
@@ -16,26 +16,26 @@
     />
   </section>
 
-  <!-- Botón de práctica -->
   <section class="talk-page__action-section" aria-label="Iniciar práctica">
     <app-practice-button
       [selectedVocal]="selectedVocal()"
       [practiceState]="practiceState()"
       (practiceStart)="onPracticeStart()"
-      (practiceFinish)="onAudioResult(false)"
     />
-    <!-- practiceFinish siempre llama onAudioResult(false) como placeholder.
-         En la siguiente fase se conectará el SpeechRecognitionService
-         y se evaluará el resultado real antes de emitir éxito/fallo. -->
+
+    @if (practiceState() === 'listening') {
+      <div class="talk-page__wave" aria-hidden="true">
+        <app-waveform-visualizer />
+      </div>
+    }
   </section>
 
-  <!-- Sección de resultado (aprobado / reprobado) -->
   @if (practiceState() === 'success' || practiceState() === 'failure') {
     <section class="talk-page__feedback-section" aria-live="polite" aria-label="Resultado">
       <app-result-feedback
         [practiceState]="practiceState()"
         [selectedVocal]="selectedVocal()"
-        (retry)="onRetry()"
+        [detectedVocal]="detectedVocal()"
       />
     </section>
   }

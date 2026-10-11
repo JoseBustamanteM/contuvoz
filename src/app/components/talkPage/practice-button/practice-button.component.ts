@@ -42,10 +42,10 @@ export class PracticeButtonComponent implements OnDestroy {
   }
 
   private _startCountdown(): void {
-    this.countdown.set(3);
+    this.countdown.set(2);
     this.progressWidth.set(100);
 
-    const TOTAL_MS = 3000;
+    const TOTAL_MS = 2000;
     const TICK_MS  = 50; // refresco suave para la barra
     let elapsed    = 0;
 

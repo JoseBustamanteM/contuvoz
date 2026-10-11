@@ -1,9 +1,0 @@
-<div class="selector-container mb-5">
-  <label for="letterSelect">Letra:</label>
-
-  <select id="letterSelect" (change)="onChange($event)" class="styled-select">
-    @for (letter of alphabet; track letter) {
-      <option [value]="letter">{{ letter }}</option>
-    }
-  </select>
-</div>

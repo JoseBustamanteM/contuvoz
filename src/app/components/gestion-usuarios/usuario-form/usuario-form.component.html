@@ -1,0 +1,70 @@
+<div class="modal-overlay" (click)="onCancelar()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>{{ esEdicion ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="formulario">
+      <label>Rol</label>
+      <select formControlName="idRol">
+        <option [value]="0" disabled>Selecciona un rol</option>
+        @for (rol of rolesDisponibles; track rol) {
+          <option [ngValue]="rol">{{ nombreRol[rol] }}</option>
+        }
+      </select>
+
+    @if (esAdministrador() && !esEdicion) {
+  <label>Colegio</label>
+  <select formControlName="idColegio">
+    <option [ngValue]="0" disabled>Selecciona un colegio</option>
+    @for (colegio of colegios(); track colegio.idColegio) {
+      <option [ngValue]="colegio.idColegio">{{ colegio.nomColegio }}</option>
+    }
+  </select>
+}
+
+      <label>RUT</label>
+      <input type="text" formControlName="rutUsuario" placeholder="11111111-1" />
+
+      <label>{{ esEdicion ? 'Nueva contraseña (opcional)' : 'Contraseña' }}</label>
+      <input type="password" formControlName="password" />
+
+      <div class="fila-doble">
+        <div>
+          <label>Primer nombre</label>
+          <input type="text" formControlName="primerNombre" />
+        </div>
+        <div>
+          <label>Segundo nombre</label>
+          <input type="text" formControlName="segundoNombre" />
+        </div>
+      </div>
+
+      <div class="fila-doble">
+        <div>
+          <label>Apellido paterno</label>
+          <input type="text" formControlName="aPaterno" />
+        </div>
+        <div>
+          <label>Apellido materno</label>
+          <input type="text" formControlName="aMaterno" />
+        </div>
+      </div>
+
+      <label>Teléfono</label>
+      <input type="text" formControlName="telefonoUsuario" />
+
+      <label>Correo</label>
+      <input type="email" formControlName="correo" />
+
+      @if (error()) {
+        <p class="error-box">{{ error() }}</p>
+      }
+
+      <div class="botones">
+        <button type="button" (click)="onCancelar()" class="btn-cancelar">Cancelar</button>
+        <button type="submit" [disabled]="guardando()" class="btn-guardar">
+          {{ guardando() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
