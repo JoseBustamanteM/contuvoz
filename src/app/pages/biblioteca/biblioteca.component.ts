@@ -3,16 +3,21 @@ import {
   ChangeDetectionStrategy,
   Component,
   OnInit,
+  computed,
   inject,
   signal,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+
+import { AuthService } from '../../services/auth.service';
 import {
+  EditarArchivoBiblioteca,
   BibliotecaService,
   CrearArchivoBiblioteca,
 } from '../../services/biblioteca.service';
+import { Rol } from '../../interfaces/rol.enum';
 
 import { ArchivoBiblioteca } from '../../interfaces/biblioteca.interface';
 import { environment } from '../../../environments/environment';
@@ -44,6 +49,8 @@ import { environment } from '../../../environments/environment';
           </a>
         </div>
 
+        @if (puedeGestionar()) {
+        <!-- formulario de subida -->
         <section class="mb-8 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div class="mb-5">
             <h2 class="text-xl font-semibold text-slate-900">
@@ -174,6 +181,7 @@ import { environment } from '../../../environments/environment';
 
           </div>
         </section>
+        }
 
         @if (cargando()) {
           <div class="rounded-2xl bg-gray-100 p-8 text-center">
@@ -254,6 +262,110 @@ import { environment } from '../../../environments/environment';
                   >
                     Abrir recurso
                   </a>
+                  @if (puedeGestionar()) {
+                  @if (archivoEnEdicion() === archivo.idArchivo) {
+
+                    <div class="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+                      <div>
+                        <label
+                          class="mb-1 block text-xs font-semibold text-slate-600"
+                        >
+                          Título
+                        </label>
+
+                        <input
+                          type="text"
+                          maxlength="200"
+                          [ngModel]="tituloEdicion()"
+                          (ngModelChange)="tituloEdicion.set($event)"
+                          class="w-full rounded-lg border border-slate-300
+                                bg-white px-3 py-2 text-sm outline-none
+                                focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        />
+                      </div>
+
+                      <div>
+                        <label
+                          class="mb-1 block text-xs font-semibold text-slate-600"
+                        >
+                          Descripción
+                        </label>
+
+                        <textarea
+                          rows="3"
+                          maxlength="5000"
+                          [ngModel]="descripcionEdicion()"
+                          (ngModelChange)="descripcionEdicion.set($event)"
+                          class="w-full rounded-lg border border-slate-300
+                                bg-white px-3 py-2 text-sm outline-none
+                                focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        ></textarea>
+                      </div>
+
+                      <div class="flex gap-2">
+
+                        <button
+                          type="button"
+                          [disabled]="guardandoEdicion()"
+                          (click)="guardarEdicion(archivo)"
+                          class="flex-1 rounded-lg bg-blue-600 px-3 py-2
+                                text-sm font-semibold text-white
+                                transition hover:bg-blue-700
+                                disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {{ guardandoEdicion() ? 'Guardando...' : 'Guardar' }}
+                        </button>
+
+                        <button
+                          type="button"
+                          [disabled]="guardandoEdicion()"
+                          (click)="cancelarEdicion()"
+                          class="rounded-lg border border-slate-300
+                                bg-white px-3 py-2 text-sm font-semibold
+                                text-slate-700 transition hover:bg-slate-100"
+                        >
+                          Cancelar
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  } @else {
+
+                    <div class="mt-2 grid grid-cols-2 gap-2">
+
+                      <button
+                        type="button"
+                        (click)="editarArchivo(archivo)"
+                        class="rounded-xl border border-slate-300
+                              bg-white px-4 py-2 text-sm font-semibold
+                              text-slate-700 transition hover:bg-slate-100"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        [disabled]="eliminandoId() === archivo.idArchivo"
+                        (click)="eliminarArchivo(archivo)"
+                        class="rounded-xl border border-red-200
+                              bg-white px-4 py-2 text-sm font-semibold
+                              text-red-600 transition hover:bg-red-50
+                              disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {{
+                          eliminandoId() === archivo.idArchivo
+                            ? 'Eliminando...'
+                            : 'Eliminar'
+                        }}
+                      </button>
+
+                    </div>
+
+                  }
+                }
 
                 </div>
               </article>
@@ -269,6 +381,25 @@ import { environment } from '../../../environments/environment';
 })
 export class BibliotecaComponent implements OnInit {
   private bibliotecaService = inject(BibliotecaService);
+  private authService = inject(AuthService);
+
+  archivoEnEdicion = signal<number | null>(null);
+
+  tituloEdicion = signal('');
+  descripcionEdicion = signal('');
+
+  guardandoEdicion = signal(false);
+  eliminandoId = signal<number | null>(null);
+
+  puedeGestionar = computed(() => {
+    const rol = this.authService.usuario()?.idRol;
+
+    return (
+      rol === Rol.ADMINISTRADOR ||
+      rol === Rol.ADMIN_COLEGIO ||
+      rol === Rol.PROFESOR
+    );
+  });
 
   tituloArchivo = signal('');
   descripcionArchivo = signal('');
@@ -349,6 +480,111 @@ export class BibliotecaComponent implements OnInit {
         this.errorSubida.set(mensaje);
       },
     });
+  }
+
+  editarArchivo(archivo: ArchivoBiblioteca): void {
+    this.archivoEnEdicion.set(archivo.idArchivo);
+    this.tituloEdicion.set(archivo.tituloArchivo);
+    this.descripcionEdicion.set(
+      archivo.descripcionArchivo ?? '',
+    );
+  }
+
+  cancelarEdicion(): void {
+    this.archivoEnEdicion.set(null);
+    this.tituloEdicion.set('');
+    this.descripcionEdicion.set('');
+    this.guardandoEdicion.set(false);
+  }
+
+  guardarEdicion(archivo: ArchivoBiblioteca): void {
+    const titulo = this.tituloEdicion().trim();
+    const descripcion = this.descripcionEdicion().trim();
+
+    if (!titulo) {
+      this.error.set('El título es obligatorio.');
+      return;
+    }
+
+    const datos: EditarArchivoBiblioteca = {
+      tituloArchivo: titulo,
+      descripcionArchivo: descripcion,
+    };
+
+    this.guardandoEdicion.set(true);
+    this.error.set(null);
+
+    this.bibliotecaService
+      .editar(archivo.idArchivo, datos)
+      .subscribe({
+        next: (archivoActualizado) => {
+          this.archivos.update((archivos) =>
+            archivos.map((item) =>
+              item.idArchivo === archivoActualizado.idArchivo
+                ? archivoActualizado
+                : item,
+            ),
+          );
+
+          this.cancelarEdicion();
+        },
+
+        error: (err) => {
+          console.error(
+            'Error editando archivo:',
+            err,
+          );
+
+          this.error.set(
+            err?.error?.message ||
+              'No se pudo actualizar el recurso.',
+          );
+
+          this.guardandoEdicion.set(false);
+        },
+      });
+  }
+
+  eliminarArchivo(archivo: ArchivoBiblioteca): void {
+    const confirmado = window.confirm(
+      `¿Eliminar "${archivo.tituloArchivo}"?\n\nEsta acción no se puede deshacer.`,
+    );
+
+    if (!confirmado) {
+      return;
+    }
+
+    this.eliminandoId.set(archivo.idArchivo);
+    this.error.set(null);
+
+    this.bibliotecaService
+      .eliminar(archivo.idArchivo)
+      .subscribe({
+        next: () => {
+          this.archivos.update((archivos) =>
+            archivos.filter(
+              (item) =>
+                item.idArchivo !== archivo.idArchivo,
+            ),
+          );
+
+          this.eliminandoId.set(null);
+        },
+
+        error: (err) => {
+          console.error(
+            'Error eliminando archivo:',
+            err,
+          );
+
+          this.error.set(
+            err?.error?.message ||
+              'No se pudo eliminar el recurso.',
+          );
+
+          this.eliminandoId.set(null);
+        },
+      });
   }
 
   getArchivoUrl(rutaArchivoUrl: string): string {
