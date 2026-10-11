@@ -10,7 +10,7 @@ import {
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-
+import { NgClass } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import {
   EditarArchivoBiblioteca,
@@ -23,7 +23,7 @@ import { ArchivoBiblioteca } from '../../interfaces/biblioteca.interface';
 import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-biblioteca',
-  imports: [RouterLink, DatePipe, FormsModule],
+  imports: [RouterLink, DatePipe, FormsModule, NgClass],
   template: `
     <div class="min-h-[100dvh] bg-white px-4 py-6">
       <div class="mx-auto w-full max-w-5xl">
@@ -222,14 +222,32 @@ import { environment } from '../../../environments/environment';
                 class="overflow-hidden rounded-2xl bg-white shadow-md
                        ring-1 ring-gray-100"
               >
+                  <!-- Miniatura del recurso -->
+                  <div class="relative mb-4 flex h-40 items-center justify-center overflow-hidden rounded-xl bg-gray-50">
 
-                @if (archivo.imagenUrl) {
-                  <img
-                    [src]="archivo.imagenUrl"
-                    [alt]="archivo.imagenDescripcionUrl || archivo.tituloArchivo"
-                    class="h-40 w-full object-cover"
-                  />
-                }
+                    @if (esImagen(archivo)) {
+                      <img
+                        [src]="getArchivoUrl(archivo.rutaArchivoUrl)"
+                        [alt]="archivo.tituloArchivo"
+                        class="h-full w-full object-cover"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <div class="flex flex-col items-center gap-3">
+                        <div
+                          class="flex h-20 w-16 items-center justify-center rounded-lg text-lg font-bold shadow-sm"
+                          [ngClass]="getColorTipo(archivo)"
+                        >
+                          {{ getEtiquetaTipo(archivo) }}
+                        </div>
+                        <span class="text-sm text-gray-500">
+                          {{ getEtiquetaTipo(archivo) }}
+                        </span>
+                      </div>
+                    }
+
+                  </div>
+
 
                 <div class="p-5">
 
@@ -412,6 +430,41 @@ export class BibliotecaComponent implements OnInit {
   archivos = signal<ArchivoBiblioteca[]>([]);
   cargando = signal(true);
   error = signal<string | null>(null);
+
+  esImagen(archivo: ArchivoBiblioteca): boolean {
+    return archivo.tipoArchivo === 'imagen';
+  }
+
+  getEtiquetaTipo(archivo: ArchivoBiblioteca): string {
+    switch (archivo.tipoArchivo) {
+      case 'pdf':
+        return 'PDF';
+      case 'docx':
+        return 'WORD';
+      case 'imagen':
+        return 'IMAGEN';
+      case 'video':
+        return 'VIDEO';
+      default:
+        return 'ARCHIVO';
+    }
+  }
+
+  getColorTipo(archivo: ArchivoBiblioteca): string {
+    switch (archivo.tipoArchivo) {
+      case 'pdf':
+        return 'bg-red-100 text-red-700';
+      case 'docx':
+        return 'bg-blue-100 text-blue-700';
+      case 'imagen':
+        return 'bg-emerald-100 text-emerald-700';
+      case 'video':
+        return 'bg-purple-100 text-purple-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  }
+
 
   ngOnInit() {
     this.cargarArchivos();
