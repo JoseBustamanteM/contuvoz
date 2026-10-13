@@ -59,11 +59,23 @@
     }
   </div>
 
-  <!-- La letra ya no avanza sola: el niño pasa a la siguiente cuando quiere. -->
+  <!-- La letra ya no avanza sola: el niño decide. Si no la logró, lo primero
+       que se le ofrece es intentarla de nuevo. -->
   @if (veredicto() && !testFinalizado()) {
-    <button #btnSiguiente type="button" class="btn-siguiente" (click)="siguienteLetra()">
-      {{ esUltimaLetra() ? 'Ver mis resultados 🏆' : 'Siguiente letra ➜' }}
-    </button>
+    <div class="acciones-veredicto">
+      @if (veredicto() === 'no-logrado') {
+        <button #btnPrincipal type="button" class="btn-siguiente" (click)="reintentarLetra()">
+          🔄 Intentar de nuevo
+        </button>
+        <button type="button" class="btn-siguiente btn-siguiente--secundario" (click)="siguienteLetra()">
+          {{ esUltimaLetra() ? 'Ver mis resultados 🏆' : 'Siguiente letra ➜' }}
+        </button>
+      } @else {
+        <button #btnPrincipal type="button" class="btn-siguiente" (click)="siguienteLetra()">
+          {{ esUltimaLetra() ? 'Ver mis resultados 🏆' : 'Siguiente letra ➜' }}
+        </button>
+      }
+    </div>
   }
 
   <!-- Referencia visual de la seña. El campo `image` de VowelLevel existía pero
@@ -79,6 +91,10 @@
     </div>
   }
 
+  <!-- Panel de depuración (porcentajes por vocal y medidas crudas), oculto para
+       que los niños no vean los números. Para calibrar, descomentar este bloque
+       (y dejar DEBUG_SIGN = true en signLanguage.service.ts).
+
   @if (debug) {
     <div class="debug-panel">
       @for (item of puntajesDebug() | keyvalue; track item.key) {
@@ -93,4 +109,5 @@
       }
     </div>
   }
+  -->
 </div>

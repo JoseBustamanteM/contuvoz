@@ -11,6 +11,8 @@ const UMBRAL_APROBADO = 70;
  *  después se actualiza el estado de guardado. Así el niño ve su resultado
  *  aunque la BD esté caída. */
 export interface EntradaResumen {
+  /** Único por intento: con "Intentar de nuevo" una letra puede tener varios. */
+  id: number;
   letraEsperada: string;
   letraDetectada: string;
   porcConfianza: number;
@@ -34,14 +36,24 @@ export class SignLanguageComponent {
   /** Arranca en true: se llega acá eligiendo la actividad en el menú, así que el
    *  botón "Iniciar evaluación" era un clic de más. La cámara se enciende sola. */
   evaluacionActiva = signal(true);
+
+  /** TODOS los intentos, en orden (cada uno se guarda en la BD). */
   resumen = signal<EntradaResumen[]>([]);
+  private siguienteId = 0;
+
+  /** Lo que ve el niño al final: una medalla por letra, con su ÚLTIMO intento. */
+  resumenPorLetra = computed(() => {
+    const porLetra = new Map<string, EntradaResumen>();
+    for (const e of this.resumen()) porLetra.set(e.letraEsperada, e);
+    return [...porLetra.values()];
+  });
 
   /** El resumen se muestra cuando la evaluación terminó y hay resultados.
    *  Al terminar se desmonta el tracker, así que la cámara ya está apagada. */
   mostrarResumen = computed(() => !this.evaluacionActiva() && this.resumen().length > 0);
 
   /** Cuántas letras logró de las 5, para el mensaje de cierre. */
-  totalAprobadas = computed(() => this.resumen().filter((e) => e.aprobado).length);
+  totalAprobadas = computed(() => this.resumenPorLetra().filter((e) => e.aprobado).length);
 
   /** Cuántas letras no lograron guardarse. Habilita el botón de reintento. */
   fallosDeGuardado = computed(
@@ -61,6 +73,7 @@ export class SignLanguageComponent {
     //    localmente. Antes la entrada solo aparecía si el POST respondía bien, así
     //    que un fallo de red borraba la letra del resumen del niño.
     const entrada: EntradaResumen = {
+      id: this.siguienteId++,
       letraEsperada: resultado.letraEsperada,
       letraDetectada: resultado.letraDetectada,
       porcConfianza: resultado.porcConfianza,
@@ -81,7 +94,7 @@ export class SignLanguageComponent {
   private guardarEntrada(entrada: EntradaResumen) {
     this.actividadesService.guardarSign(entrada.datos).subscribe({
       next: (guardado) => {
-        this.actualizarEntrada(entrada.letraEsperada, {
+        this.actualizarEntrada(entrada.id, {
           guardado: 'ok',
           // El servidor tiene la última palabra sobre la aprobación.
           aprobado: guardado.aprobadoSign,
@@ -89,7 +102,7 @@ export class SignLanguageComponent {
         this.terminarReintentoSiCorresponde();
       },
       error: () => {
-        this.actualizarEntrada(entrada.letraEsperada, { guardado: 'error' });
+        this.actualizarEntrada(entrada.id, { guardado: 'error' });
         this.terminarReintentoSiCorresponde();
       },
     });
@@ -103,12 +116,11 @@ export class SignLanguageComponent {
     }
   }
 
-  /** Actualiza por letra esperada: las respuestas HTTP pueden llegar desordenadas
-   *  (el retry con backoff puede tardar hasta 4s), así que no sirve usar el índice. */
-  private actualizarEntrada(letra: string, cambios: Partial<EntradaResumen>) {
-    this.resumen.update((r) =>
-      r.map((e) => (e.letraEsperada === letra ? { ...e, ...cambios } : e)),
-    );
+  /** Actualiza por id de intento: las respuestas HTTP pueden llegar desordenadas
+   *  (el retry con backoff puede tardar hasta 4s) y una letra puede tener varios
+   *  intentos, así que no sirve ni el índice ni la letra. */
+  private actualizarEntrada(id: number, cambios: Partial<EntradaResumen>) {
+    this.resumen.update((r) => r.map((e) => (e.id === id ? { ...e, ...cambios } : e)));
   }
 
   /** Reintenta solo las letras que fallaron, sin rehacer las señas. */
@@ -120,7 +132,7 @@ export class SignLanguageComponent {
     // se apagaba en el mismo instante y el botón nunca mostraba "Reintentando…".
     this.reintentando.set(true);
     for (const entrada of fallidas) {
-      this.actualizarEntrada(entrada.letraEsperada, { guardado: 'pendiente' });
+      this.actualizarEntrada(entrada.id, { guardado: 'pendiente' });
       this.guardarEntrada(entrada);
     }
   }

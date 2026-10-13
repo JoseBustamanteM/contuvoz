@@ -50,7 +50,7 @@
 
       <!-- Medallas en fila: se lee de un vistazo, en vez de una lista vertical. -->
       <ul class="medallas">
-        @for (r of resumen(); track r.letraEsperada) {
+        @for (r of resumenPorLetra(); track r.letraEsperada) {
           <li class="medalla" [class.ok]="r.aprobado" [class.fail]="!r.aprobado">
             <span class="medalla-letra">{{ r.letraEsperada }}</span>
             <span class="medalla-icono" aria-hidden="true">{{ r.aprobado ? '✅' : '❌' }}</span>

@@ -91,10 +91,10 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
 
   esUltimaLetra = computed(() => this.indiceActual() === VOCALES.length - 1);
 
-  /** Al aparecer el botón "Siguiente" recibe el foco: con teclado o lector de
-   *  pantalla se avanza sin buscarlo. */
-  private btnSiguiente = viewChild<ElementRef<HTMLButtonElement>>('btnSiguiente');
-  private enfocarSiguiente = effect(() => this.btnSiguiente()?.nativeElement.focus({ preventScroll: true }));
+  /** Al aparecer el veredicto, su botón principal ("Intentar de nuevo" o
+   *  "Siguiente") recibe el foco: con teclado o lector de pantalla no hay que buscarlo. */
+  private btnPrincipal = viewChild<ElementRef<HTMLButtonElement>>('btnPrincipal');
+  private enfocarPrincipal = effect(() => this.btnPrincipal()?.nativeElement.focus({ preventScroll: true }));
 
   /** Mensaje de error de cámara, para mostrarlo en el HTML en vez de dejar el recuadro vacío. */
   errorCamara = signal<string | null>(null);
@@ -247,6 +247,14 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
     const veredicto: Veredicto = acerto ? 'logrado' : 'no-logrado';
     this.veredicto.set(veredicto);
     this.resultados.update((r) => ({ ...r, [letraEsperada]: veredicto }));
+  }
+
+  /** Botón "Intentar de nuevo": la misma letra, con 7 segundos nuevos. El
+   *  intento fallido ya quedó guardado (como en las otras actividades, cada
+   *  intento cuenta); el círculo de la letra toma el resultado del último. */
+  reintentarLetra() {
+    if (this.veredicto() !== 'no-logrado') return;
+    this.iniciarLetraActual();
   }
 
   /** Botón "Siguiente letra" (o "Ver mis resultados" en la última). */

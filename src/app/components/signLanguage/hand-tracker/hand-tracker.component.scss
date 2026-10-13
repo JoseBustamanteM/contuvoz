@@ -215,3 +215,19 @@
     max-width: 100px;
   }
 }
+
+// Botones bajo el veredicto: "Intentar de nuevo" (principal) y "Siguiente".
+.acciones-veredicto {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.btn-siguiente--secundario {
+  background: #fff;
+  color: #4834d4;
+  box-shadow: inset 0 0 0 3px #a29bfe, 0 5px 0 #a29bfe;
+
+  &:active { box-shadow: inset 0 0 0 3px #a29bfe, 0 2px 0 #a29bfe; }
+}
