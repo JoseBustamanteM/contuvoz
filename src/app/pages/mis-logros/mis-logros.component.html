@@ -19,7 +19,7 @@
 
     } @else if (error()) {
       <div class="tarjeta estado">
-        <img src="images/gecko cara.png" alt="" class="estado__gecko" />
+        <img src="images/gecko-cara.webp" alt="" class="estado__gecko" />
         <p class="estado__titulo">No pudimos traer tus logros</p>
         <button type="button" class="btn-jugar" (click)="cargar()">Intentar de nuevo</button>
       </div>
@@ -27,7 +27,7 @@
     } @else if (resumen(); as r) {
       <!-- ══════════ Arriba: lo primero que ve el niño ══════════ -->
       <header class="saludo">
-        <img src="images/gecko cara.png" alt="" class="saludo__gecko" />
+        <img src="images/gecko-cara.webp" alt="" class="saludo__gecko" />
         <div>
           <h1 class="saludo__titulo">¡Hola, {{ nombre() }}!</h1>
           <p class="saludo__sub">
@@ -121,7 +121,7 @@
                           <span class="linea__hito" [class.linea__hito--logrado]="h.logrado" [style.left.%]="h.pct">⭐</span>
                         }
                         <span class="linea__meta" [class.linea__hito--logrado]="l.completa">🏆</span>
-                        <img src="images/gecko cara.png" alt="" class="linea__gecko" [style.left.%]="l.pct" />
+                        <img src="images/gecko-cara.webp" alt="" class="linea__gecko" [style.left.%]="l.pct" />
                       </div>
                       <div class="linea__marcas">
                         <span>0</span>

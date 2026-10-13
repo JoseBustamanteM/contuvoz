@@ -97,6 +97,11 @@ a save error.
   comes from the server. Shared admin styles in `src/styles/_gestion.scss`.
 - All feature routes are **lazy loaded** (`app.routes.ts`); only login and home
   are in the initial bundle.
+- **Preloading after login** (`services/precarga.service.ts`): with a session,
+  `PrecargaTrasLogin` preloads every lazy route (except `data: { precargar: false }`),
+  and `PrecargaService` warms images, the drawing font and the MediaPipe hand model
+  (initialised in the background; skipped when the browser asks to save data).
+- Images are WebP sized for their display (`public/images`, ~376 KB total).
 
 ### Backend (NestJS 11) - `server-nest/`
 

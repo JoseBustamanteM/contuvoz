@@ -51,6 +51,9 @@ export const routes: Routes = [
         (m) => m.DashboardPageComponent,
       ),
     canActivate: [authGuard],
+    // Dashboard antiguo con datos de ejemplo y Chart.js (225 kB), sin enlace
+    // desde ninguna parte: no vale la pena bajarlo en segundo plano.
+    data: { precargar: false },
   },
   {
     path: 'gestion-usuarios',

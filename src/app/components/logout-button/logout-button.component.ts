@@ -53,7 +53,7 @@ import { AuthService } from '../../services/auth.service';
           (click)="$event.stopPropagation()"
         >
           <img
-            src="/images/gecko cara.png"
+            src="images/gecko-cara.webp"
             alt=""
             aria-hidden="true"
             class="mx-auto mb-3 h-24 w-24 object-contain"
