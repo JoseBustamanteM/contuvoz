@@ -4,7 +4,8 @@ export interface ResultadoPintado {
   trazoExterno: number;
   areaCompletada: number;
   puntajeFinal: number;
-  duracionPintado: number;
+  /** Segundos que duró el intento (se guarda en actividad.duracion). */
+  duracion: number;
 }
 
 export interface ResultadoPintadoGuardado extends ResultadoPintado {

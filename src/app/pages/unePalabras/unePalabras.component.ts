@@ -152,7 +152,7 @@ export class UnePalabrasComponent {
       errores: this.errores(),
       // El servidor lo recalcula igual; se envía por compatibilidad con el DTO.
       puntajeFinal: total > 0 ? (aciertos / total) * 100 : 0,
-      duracionUne: duracion,
+      duracion,
       pares: this.palabras().map((p) => p.texto),
       confusiones: [...this.confusiones.values()],
     };

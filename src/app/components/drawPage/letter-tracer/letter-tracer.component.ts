@@ -182,7 +182,7 @@ export class LetterTracerComponent implements AfterViewInit {
     const penaltyPercent = (outsidePixels / targetPixels) * 100;
     const puntajeFinal = Math.max(0, Math.min(100, areaCompletada - penaltyPercent * 0.75));
 
-    const duracionPintado = this.inicioTrazado
+    const duracion = this.inicioTrazado
       ? Math.round((Date.now() - this.inicioTrazado) / 1000)
       : 0;
 
@@ -197,7 +197,7 @@ export class LetterTracerComponent implements AfterViewInit {
       trazoExterno: this.redondear(trazoExterno),
       areaCompletada: this.redondear(areaCompletada),
       puntajeFinal: this.redondear(puntajeFinal),
-      duracionPintado,
+      duracion,
     });
 
     // Lienzo limpio para el próximo intento, con el mensaje de resultado a la

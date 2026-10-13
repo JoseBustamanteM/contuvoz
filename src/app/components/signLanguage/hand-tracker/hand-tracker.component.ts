@@ -1,6 +1,6 @@
 import {
   Component, ElementRef, ViewChild, AfterViewInit, OnDestroy,
-  signal, computed, Output, EventEmitter,
+  signal, computed, Output, EventEmitter, viewChild, effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SignLanguageService, DEBUG_SIGN } from '../../../services/signLanguage.service';
@@ -37,11 +37,7 @@ const UMBRAL_ATRIBUCION = 50;
  *  aprueba nada. */
 const MS_ATRIBUCION = 400;
 
-/** Pausa tras acertar, para que el niño alcance a ver el esqueleto verde. */
-const MS_CELEBRACION = 900;
-
-/** Pausa entre letras, mostrando el resultado. */
-const MS_ENTRE_LETRAS = 1500;
+export type Veredicto = 'logrado' | 'no-logrado';
 
 @Component({
   selector: 'hand-tracker',
@@ -85,6 +81,21 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
   isCorrect = signal(false);
   testFinalizado = signal(false);
 
+  /** Resultado de la letra actual. Mientras es null se está evaluando; cuando
+   *  tiene valor, se muestra "¡Lo lograste!" o "¡Casi lo logras!" y la letra
+   *  espera el botón "Siguiente" (ya no avanza sola). */
+  veredicto = signal<Veredicto | null>(null);
+
+  /** Veredicto de cada letra ya evaluada, para colorear los círculos de arriba. */
+  resultados = signal<Record<string, Veredicto>>({});
+
+  esUltimaLetra = computed(() => this.indiceActual() === VOCALES.length - 1);
+
+  /** Al aparecer el botón "Siguiente" recibe el foco: con teclado o lector de
+   *  pantalla se avanza sin buscarlo. */
+  private btnSiguiente = viewChild<ElementRef<HTMLButtonElement>>('btnSiguiente');
+  private enfocarSiguiente = effect(() => this.btnSiguiente()?.nativeElement.focus({ preventScroll: true }));
+
   /** Mensaje de error de cámara, para mostrarlo en el HTML en vez de dejar el recuadro vacío. */
   errorCamara = signal<string | null>(null);
 
@@ -96,7 +107,9 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
   private animationId?: number;
   private smoothed?: Landmark[];
   private intervaloTimer?: ReturnType<typeof setInterval>;
-  private timeoutAvance?: ReturnType<typeof setTimeout>;
+
+  /** Cuándo empezó a contar la letra actual, para su duración. */
+  private inicioLetra = 0;
 
   private loopIniciado = false;
   private letraCerrada = false;
@@ -184,6 +197,8 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
     this.inicioRetencion = null;
     this.letraCerrada = false;
     this.isCorrect.set(false);
+    this.veredicto.set(null);
+    this.inicioLetra = performance.now();
 
     if (this.intervaloTimer) clearInterval(this.intervaloTimer);
 
@@ -224,22 +239,29 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
       // aplique la regla completa (umbral Y sostenida) al calcular aprobado_sign.
       // Sin esto, un pico de 100 que duró 3 frames se guardaba como aprobado.
       sostenida: acerto,
+      // Del inicio de la letra al veredicto: hasta 7 s, menos si la logró antes.
+      duracion: Math.round((performance.now() - this.inicioLetra) / 1000),
     });
 
-    // Si acertó, se le da un momento extra con el esqueleto en verde antes de avanzar.
-    const pausa = acerto ? MS_CELEBRACION + MS_ENTRE_LETRAS : MS_ENTRE_LETRAS;
+    // Ya no se avanza sola: se muestra el veredicto y se espera el botón.
+    const veredicto: Veredicto = acerto ? 'logrado' : 'no-logrado';
+    this.veredicto.set(veredicto);
+    this.resultados.update((r) => ({ ...r, [letraEsperada]: veredicto }));
+  }
 
-    this.timeoutAvance = setTimeout(() => {
-      const siguiente = this.indiceActual() + 1;
-      if (siguiente >= VOCALES.length) {
-        this.testFinalizado.set(true);
-        this.detenerLoop();
-        this.testTerminado.emit();
-      } else {
-        this.indiceActual.set(siguiente);
-        this.iniciarLetraActual();
-      }
-    }, pausa);
+  /** Botón "Siguiente letra" (o "Ver mis resultados" en la última). */
+  siguienteLetra() {
+    if (!this.veredicto()) return;
+
+    const siguiente = this.indiceActual() + 1;
+    if (siguiente >= VOCALES.length) {
+      this.testFinalizado.set(true);
+      this.detenerLoop();
+      this.testTerminado.emit();
+      return;
+    }
+    this.indiceActual.set(siguiente);
+    this.iniciarLetraActual();
   }
 
   /** Evalúa un frame y decide si cuenta como acierto. */
@@ -385,9 +407,6 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
     this.destruido = true;
     this.detenerLoop();
     if (this.intervaloTimer) clearInterval(this.intervaloTimer);
-    // Sin esto, si el niño sale durante la pausa de 1.5s el callback igual se ejecuta
-    // sobre un componente destruido y emite testTerminado.
-    if (this.timeoutAvance) clearTimeout(this.timeoutAvance);
 
     const stream = this.videoRef?.nativeElement?.srcObject as MediaStream | null;
     stream?.getTracks().forEach((t) => t.stop());

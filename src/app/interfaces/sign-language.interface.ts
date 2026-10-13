@@ -26,6 +26,8 @@
     letraDetectada: string;
     porcConfianza: number;
     sostenida: boolean;
+    /** Segundos que duró la letra (se guarda en actividad.duracion). */
+    duracion: number;
   }
 
   export interface ResultadoSignGuardado extends ResultadoSign {

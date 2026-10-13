@@ -2,6 +2,7 @@ import {
   IsString, IsInt, IsNumber, IsArray, ValidateNested, Min, Max, Length, ArrayMaxSize,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ConDuracionDto } from './con-duracion.dto';
 
 /** Una confusión: el niño tocó `palabra` y la unió con el dibujo de `eligio`. */
 export class ConfusionDto {
@@ -10,12 +11,11 @@ export class ConfusionDto {
   @IsInt() @Min(1) veces!: number;
 }
 
-export class GuardarUnePalabrasDto {
+export class GuardarUnePalabrasDto extends ConDuracionDto {
   @IsInt() @Min(1) @Max(20) totalPares!: number;
   @IsInt() @Min(0) aciertos!: number;
   @IsInt() @Min(0) errores!: number;
   @IsNumber() @Min(0) @Max(100) puntajeFinal!: number;
-  @IsInt() @Min(0) duracionUne!: number;
 
   /** Las palabras que tocaron en esta ronda, en orden. */
   @IsArray()

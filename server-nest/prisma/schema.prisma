@@ -132,6 +132,8 @@ model Actividad {
   idUsuario              Int                     @map("id_usuario")
   idTipoActividad        Int                     @map("id_tipo_actividad")
   fechaActividad         DateTime                @default(now()) @map("fecha_actividad") @db.DateTime(0)
+  /// Segundos que duró el intento (NULL en Comunícate/Hablemos anteriores al 2026-10-13).
+  duracion               Int?
   usuario                Usuario                 @relation(fields: [idUsuario], references: [idUsuario], map: "actividad_ibfk_1")
   tipoActividad          TipoActividad           @relation(fields: [idTipoActividad], references: [idTipoActividad], map: "actividad_ibfk_2")
   resultadoPintado       ResultadoPintado?
@@ -153,7 +155,6 @@ model ResultadoPintado {
   areaCompletada  Float     @map("area_completada")
   puntajeFinal    Float     @map("puntaje_final")
   aprobadoPintado Boolean   @default(false) @map("aprobado_pintado")
-  duracionPintado Int       @map("duracion_pintado")
   actividad       Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_pintado_ibfk_1")
 
   @@map("resultado_pintado")
@@ -207,7 +208,6 @@ model ResultadoUnePalabras {
   errores      Int
   puntajeFinal Float     @default(0) @map("puntaje_final")
   aprobadoUne  Boolean   @default(false) @map("aprobado_une")
-  duracionUne  Int       @map("duracion_une")
   detalle      Json
   actividad    Actividad @relation(fields: [idActividad], references: [idActividad])
 

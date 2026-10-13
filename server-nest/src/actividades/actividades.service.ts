@@ -27,6 +27,7 @@ export class ActividadesService {
         data: {
           idUsuario,
           idTipoActividad: TIPO_PINTADO,
+          duracion: dto.duracion,
         },
       });
 
@@ -39,7 +40,6 @@ export class ActividadesService {
           areaCompletada: dto.areaCompletada,
           puntajeFinal: dto.puntajeFinal,
           aprobadoPintado: dto.puntajeFinal >= UMBRAL_APROBADO,
-          duracionPintado: dto.duracionPintado,
         },
       });
 
@@ -48,14 +48,14 @@ export class ActividadesService {
         data: { ultActividad: new Date() },
       });
 
-      return resultado;
+      return { ...resultado, duracion: actividad.duracion };
     });
   }
 
   async guardarSign(idUsuario: number, dto: GuardarSignDto) {
   return this.prisma.$transaction(async (tx) => {
     const actividad = await tx.actividad.create({
-      data: { idUsuario, idTipoActividad: TIPO_SIGN },
+      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion },
     });
 
     const resultado = await tx.resultadoSign.create({
@@ -73,7 +73,7 @@ export class ActividadesService {
       data: { ultActividad: new Date() },
     });
 
-    return resultado;
+    return { ...resultado, duracion: actividad.duracion };
   });
 }
 
@@ -88,7 +88,7 @@ export class ActividadesService {
 
     return this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_UNE },
+        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion },
       });
 
       const resultado = await tx.resultadoUnePalabras.create({
@@ -99,7 +99,6 @@ export class ActividadesService {
           errores: dto.errores,
           puntajeFinal: puntajeVerificado,
           aprobadoUne: puntajeVerificado >= UMBRAL_APROBADO_UNE,
-                    duracionUne: dto.duracionUne,
           detalle: {
             pares: dto.pares,
             confusiones: dto.confusiones.map((c) => ({
@@ -116,7 +115,7 @@ export class ActividadesService {
         data: { ultActividad: new Date() },
       });
 
-      return resultado;
+      return { ...resultado, duracion: actividad.duracion };
     });
   }
 
@@ -129,7 +128,7 @@ export class ActividadesService {
 
     return this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION },
+        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion },
       });
 
       const resultado = await tx.resultadoPronunciacion.create({
@@ -147,7 +146,7 @@ export class ActividadesService {
         data: { ultActividad: new Date() },
       });
 
-      return resultado;
+      return { ...resultado, duracion: actividad.duracion };
     });
   }
 

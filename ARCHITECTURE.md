@@ -117,6 +117,10 @@ All routes live under the global prefix **`/api`** (`main.ts`).
 - `POST /api/actividades/pintado | sign | pronunciacion | une-palabras`.
 - Creates `actividad` + the matching `resultado_*` row in one transaction and
   updates `usuario.ult_actividad`.
+- Every activity sends `duracion` (whole seconds, 0–3600), stored in
+  `actividad.duracion`: drawing = first stroke → verify; sign = letter start →
+  verdict; speech = tap "Practicar" → result; word matching = first touch → end
+  of round. Older sign/speech rows have `NULL`.
 - Approval is decided on the server from the submitted metrics (e.g. sign:
   confidence ≥ 70 **and** held; speech: correct vowel **and** confidence ≥ 30;
   word matching: score recomputed from hits/pairs).
@@ -207,7 +211,9 @@ loop per frame:
    detectForVideo → landmarks → smoothing → score of each vowel (A E I O U)
    target ≥ 70, margin ≥ 15 over rival, held 800 ms → correct
    timeout (7 s) → attribute the failure to the rival held ≥ 400 ms, or NINGUNA
-each vowel → shown immediately in the summary → POST /api/actividades/sign in background
+verdict shown over the camera: "¡Lo lograste!" (immediately on success) or
+   "¡Casi lo logras!" (at 7 s) → waits for the "Siguiente letra" button
+each vowel → added to the summary → POST /api/actividades/sign in background (with duracion)
 summary → per-letter save status, "retry save" for failures
 ```
 

@@ -1,6 +1,7 @@
 import { IsString, IsNumber, Min, Max, Length } from 'class-validator';
+import { ConDuracionDto } from './con-duracion.dto';
 
-export class GuardarPronunciacionDto {
+export class GuardarPronunciacionDto extends ConDuracionDto {
   /** La vocal que se le pidió decir. */
   @IsString() @Length(1, 10) textoEsperado!: string;
 

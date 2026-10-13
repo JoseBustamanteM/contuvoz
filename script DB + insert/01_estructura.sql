@@ -28,11 +28,13 @@ CREATE TABLE `actividad` (
   `id_usuario` int(11) NOT NULL,
   `id_tipo_actividad` int(11) NOT NULL,
   `fecha_actividad` datetime NOT NULL DEFAULT current_timestamp(),
+  `duracion` int(11) DEFAULT NULL COMMENT 'Segundos que duró el intento',
   PRIMARY KEY (`id_actividad`),
   KEY `idx_actividad_usuario` (`id_usuario`),
   KEY `idx_actividad_tipo` (`id_tipo_actividad`),
   CONSTRAINT `actividad_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE,
-  CONSTRAINT `actividad_ibfk_2` FOREIGN KEY (`id_tipo_actividad`) REFERENCES `tipo_actividad` (`id_tipo_actividad`) ON UPDATE CASCADE
+  CONSTRAINT `actividad_ibfk_2` FOREIGN KEY (`id_tipo_actividad`) REFERENCES `tipo_actividad` (`id_tipo_actividad`) ON UPDATE CASCADE,
+  CONSTRAINT `chk_actividad_duracion` CHECK (`duracion` is null or `duracion` >= 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -165,7 +167,6 @@ CREATE TABLE `resultado_pintado` (
   `area_completada` double NOT NULL,
   `puntaje_final` double NOT NULL,
   `aprobado_pintado` tinyint(1) NOT NULL DEFAULT 0 CHECK (`aprobado_pintado` in (0,1)),
-  `duracion_pintado` int(11) NOT NULL,
   PRIMARY KEY (`id_res_pintado`),
   UNIQUE KEY `id_actividad` (`id_actividad`),
   CONSTRAINT `resultado_pintado_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE
@@ -227,7 +228,6 @@ CREATE TABLE `resultado_une_palabras` (
   `errores` int(11) NOT NULL,
   `puntaje_final` double NOT NULL DEFAULT 0,
   `aprobado_une` tinyint(1) NOT NULL DEFAULT 0,
-  `duracion_une` int(11) NOT NULL,
   `detalle` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`detalle`)),
   PRIMARY KEY (`id_res_une`),
   UNIQUE KEY `uq_res_une_actividad` (`id_actividad`),

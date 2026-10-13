@@ -11,7 +11,8 @@ export interface ResultadoUnePalabras {
   aciertos: number;
   errores: number;
   puntajeFinal: number;
-  duracionUne: number;
+  /** Segundos que duró el intento (se guarda en actividad.duracion). */
+  duracion: number;
   pares: string[];
   confusiones: Confusion[];
 }
@@ -26,7 +27,8 @@ export interface ResultadoUnePalabrasGuardado {
   errores: number;
   puntajeFinal: number;
   aprobadoUne: boolean;
-  duracionUne: number;
+  /** Segundos que duró el intento (se guarda en actividad.duracion). */
+  duracion: number;
   detalle: {
     pares: string[];
     confusiones: Confusion[];

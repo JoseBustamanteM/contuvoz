@@ -1,6 +1,7 @@
-import { IsString, IsNumber, IsInt, Min, Max, Length } from 'class-validator';
+import { IsString, IsNumber, Min, Max, Length } from 'class-validator';
+import { ConDuracionDto } from './con-duracion.dto';
 
-export class GuardarPintadoDto {
+export class GuardarPintadoDto extends ConDuracionDto {
   @IsString()
   @Length(1, 10)
   letraEsperada!: string;
@@ -24,8 +25,4 @@ export class GuardarPintadoDto {
   @Min(0)
   @Max(100)
   puntajeFinal!: number;
-
-  @IsInt()
-  @Min(0)
-  duracionPintado!: number;
 }

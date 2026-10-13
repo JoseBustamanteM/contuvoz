@@ -70,6 +70,10 @@ export class TalkPageComponent {
     this.detectedVocal.set(null);
     this.errorGuardado.set(false);
 
+    // Duración del intento: de tocar "Practicar" al resultado (incluye la
+    // espera del permiso del micrófono la primera vez).
+    const inicio = performance.now();
+
     try {
       const result = await this.detector.listen(vocal, DURACION_ESCUCHA_MS);
       this.detectedVocal.set(result.detected as VocalLetter | null);
@@ -85,6 +89,7 @@ export class TalkPageComponent {
         textoDetectado: result.detected ?? 'NINGUNA',
         // El detector devuelve 0..1 y la columna espera 0..100.
         porcConfianza: Math.round(result.confidence * 100),
+        duracion: Math.round((performance.now() - inicio) / 1000),
       });
     } catch {
       // No se pudo abrir el micrófono: no hubo intento, así que no se guarda

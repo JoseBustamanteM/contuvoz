@@ -1,10 +1,13 @@
 <div class="ls-chile-container">
   <div class="status-bar">
     @for (letra of VOCALES; track letra; let i = $index) {
+      <!-- Cada letra evaluada queda verde (logrado) o naranja (no logrado). -->
       <div
         class="dot"
         [class.active]="i === indiceActual() && !testFinalizado()"
-        [class.done]="i < indiceActual()"
+        [class.dot--logrado]="resultados()[letra] === 'logrado'"
+        [class.dot--no-logrado]="resultados()[letra] === 'no-logrado'"
+        [attr.aria-label]="letra + (resultados()[letra] === 'logrado' ? ': lograda' : resultados()[letra] === 'no-logrado' ? ': por practicar' : '')"
       >
         {{ letra }}
       </div>
@@ -30,6 +33,20 @@
       <!-- Mientras baja el modelo NO se muestra el cronómetro: no había empezado
            a contar todavía, y verlo congelado confunde. -->
       <div class="instruction-overlay">Preparando la cámara…</div>
+    } @else if (veredicto(); as v) {
+      <!-- Veredicto de la letra: grande, con vocabulario para niños y sin palabras
+           de error. Se queda hasta que tocan "Siguiente". -->
+      <div class="veredicto" [class.veredicto--logrado]="v === 'logrado'" role="status">
+        @if (v === 'logrado') {
+          <span class="veredicto__emoji" aria-hidden="true">🌟</span>
+          <p class="veredicto__titulo">¡Lo lograste!</p>
+          <p class="veredicto__texto">¡Hiciste muy bien la {{ currentLevel().letter }}!</p>
+        } @else {
+          <span class="veredicto__emoji" aria-hidden="true">💪</span>
+          <p class="veredicto__titulo">¡Casi lo logras!</p>
+          <p class="veredicto__texto">La {{ currentLevel().letter }} es difícil. ¡Sigue practicando!</p>
+        }
+      </div>
     } @else if (!testFinalizado()) {
       <div class="instruction-overlay">
         Haz la letra <span>{{ currentLevel().letter }}</span>
@@ -37,18 +54,21 @@
       <div class="timer-badge">{{ tiempoRestante() }}s</div>
     }
 
-    @if (isCorrect()) {
-      <div class="win-msg">¡Bien! 🎉</div>
-    }
-
     @if (testFinalizado()) {
       <div class="win-msg">¡Evaluación completa! 🏆</div>
     }
   </div>
 
+  <!-- La letra ya no avanza sola: el niño pasa a la siguiente cuando quiere. -->
+  @if (veredicto() && !testFinalizado()) {
+    <button #btnSiguiente type="button" class="btn-siguiente" (click)="siguienteLetra()">
+      {{ esUltimaLetra() ? 'Ver mis resultados 🏆' : 'Siguiente letra ➜' }}
+    </button>
+  }
+
   <!-- Referencia visual de la seña. El campo `image` de VowelLevel existía pero
        no se mostraba en ningún lado: el niño solo tenía la descripción escrita. -->
-  @if (!testFinalizado() && !errorCamara() && !errorModelo() && !cargandoModelo()) {
+  @if (!veredicto() && !testFinalizado() && !errorCamara() && !errorModelo() && !cargandoModelo()) {
     <div class="referencia">
       <img
         class="referencia-img"

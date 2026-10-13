@@ -9,7 +9,8 @@
       justify-content: center; align-items: center; background: #e0e0e0;
       font-weight: bold; transition: 0.3s;
       &.active { background: #6c5ce7; color: white; transform: scale(1.2); }
-      &.done { background: #00b894; color: white; }
+      &.dot--logrado { background: #00b894; color: white; }
+      &.dot--no-logrado { background: #fdcb6e; color: #7a4a00; }
     }
   }
 
@@ -50,6 +51,63 @@
 @keyframes bounce {
   from { transform: translate(-50%, -60%); }
   to   { transform: translate(-50%, -40%); }
+}
+
+// ── Veredicto de la letra ("¡Lo lograste!" / "¡Casi lo logras!") ──
+// Misma ruta que las demás reglas de la tarjeta de cámara, para que no pierda
+// por especificidad. Ocupa el centro de la cámara: el niño mira ahí.
+.ls-chile-container .camera-card .veredicto {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  text-align: center;
+  background: rgba(253, 203, 110, 0.88);
+  color: #5c3700;
+  animation: veredicto-aparecer 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &--logrado {
+    background: rgba(0, 184, 148, 0.88);
+    color: #fff;
+  }
+
+  p { margin: 0; }
+}
+
+.veredicto__emoji { font-size: clamp(3rem, 14vw, 5rem); line-height: 1; }
+.veredicto__titulo { font-size: clamp(1.8rem, 8vw, 2.8rem); font-weight: 900; }
+.veredicto__texto { font-size: clamp(1rem, 4.5vw, 1.35rem); font-weight: 700; }
+
+@keyframes veredicto-aparecer {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.btn-siguiente {
+  min-height: 56px;
+  padding: 0.8rem 2.2rem;
+  border: none;
+  border-radius: 999px;
+  background: #6c5ce7;
+  color: #fff;
+  font-size: clamp(1.15rem, 5vw, 1.4rem);
+  font-weight: 900;
+  box-shadow: 0 5px 0 #4834d4;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+
+  &:hover { transform: translateY(-2px); }
+  &:active { transform: translateY(3px); box-shadow: 0 2px 0 #4834d4; }
+  &:focus-visible { outline: 4px solid #a29bfe; outline-offset: 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-chile-container .camera-card .veredicto { animation: none; }
 }
 
 .timer-badge {
