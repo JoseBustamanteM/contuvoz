@@ -13,9 +13,17 @@
 h1 { color: #2c3e50; margin: 0; }
 p  { color: #7f8c8d; margin: 0; }
 
+.zona-mensajes {
+  flex: 0 0 66px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
 .resultado-box {
-  margin-top: 8px;
-  padding: 10px 16px;
+  padding: 6px 16px;
   border-radius: 12px;
   text-align: center;
   animation: aparecer 0.3s ease;

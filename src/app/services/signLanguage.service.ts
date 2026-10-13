@@ -46,19 +46,29 @@ export class SignLanguageService {
       // - modelo: public/mediapipe/hand_landmarker.task (float16, versión 1).
       const vision = await conTimeout(FilesetResolver.forVisionTasks('mediapipe/wasm'));
 
-      this.handLandmarker = await conTimeout(
-        HandLandmarker.createFromOptions(vision, {
-          baseOptions: {
-            modelAssetPath: 'mediapipe/hand_landmarker.task',
-            delegate: 'GPU',
-          },
-          runningMode: 'VIDEO',
-          numHands: 1,
-          minHandDetectionConfidence: 0.6,
-          minHandPresenceConfidence: 0.6,
-          minTrackingConfidence: 0.6,
-        }),
-      );
+      const crear = (delegate: 'GPU' | 'CPU') =>
+        conTimeout(
+          HandLandmarker.createFromOptions(vision, {
+            baseOptions: {
+              modelAssetPath: 'mediapipe/hand_landmarker.task',
+              delegate,
+            },
+            runningMode: 'VIDEO',
+            numHands: 1,
+            minHandDetectionConfidence: 0.6,
+            minHandPresenceConfidence: 0.6,
+            minTrackingConfidence: 0.6,
+          }),
+        );
+
+      // Algunos celulares no pueden usar la GPU (WebGL) para el modelo: en ese
+      // caso se usa la CPU, más lenta pero funciona.
+      try {
+        this.handLandmarker = await crear('GPU');
+      } catch (eGpu) {
+        console.warn('Detector de manos sin GPU, se usa la CPU', eGpu);
+        this.handLandmarker = await crear('CPU');
+      }
 
       this.isModelReady.set(true);
     } catch (e) {
@@ -117,6 +127,27 @@ export class SignLanguageService {
   // Utilidades de escala: todo se mide relativo al tamaño de LA MANO,
   // no a la imagen completa. Así da igual si el niño está cerca o lejos.
   // ===========================================================
+
+  /**
+   * MediaPipe da x como fracción del ANCHO del video e y como fracción del ALTO.
+   * Así, la misma mano mide distinto según la forma de la cámara. Los umbrales
+   * de abajo se midieron con una webcam horizontal 16:9; en un celular el video
+   * es vertical (9:16) y la mano quedaba tan deformada en los cálculos que
+   * ninguna seña alcanzaba el puntaje (el modelo cargaba, pero no reconocía nada).
+   *
+   * Esto lleva los puntos a la proporción de calibración: en 16:9 no cambia
+   * nada, en cualquier otra forma de video se corrige. z usa la escala de x.
+   * Solo para puntuar: para dibujar el esqueleto se usan los puntos originales.
+   */
+  aProporcionDeCalibracion(landmarks: Landmark[], ancho: number, alto: number): Landmark[] {
+    if (!ancho || !alto) return landmarks;
+    const factor = ancho / alto / SignLanguageService.PROPORCION_CALIBRACION;
+    if (Math.abs(factor - 1) < 0.01) return landmarks;
+    return landmarks.map((p) => ({ ...p, x: p.x * factor, z: (p.z ?? 0) * factor }));
+  }
+
+  /** Ancho/alto del video con que se calibraron los umbrales (webcam 1280×720). */
+  private static readonly PROPORCION_CALIBRACION = 16 / 9;
 
   private dist(a: Landmark, b: Landmark): number {
     return Math.hypot(a.x - b.x, a.y - b.y);

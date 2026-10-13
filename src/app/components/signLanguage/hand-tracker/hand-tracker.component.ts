@@ -375,7 +375,13 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
         });
 
         // Durante la pausa entre letras se sigue dibujando la mano, pero no se puntúa.
-        if (!this.letraCerrada) this.evaluarFrame(hand);
+        // Se puntúa con la mano llevada a la forma de la cámara de calibración
+        // (16:9): en un celular vertical, sin esto, no se reconocía ninguna seña.
+        if (!this.letraCerrada) {
+          this.evaluarFrame(
+            this.signService.aProporcionDeCalibracion(hand, video.videoWidth, video.videoHeight),
+          );
+        }
       } else {
         this.smoothed = undefined;
         this.inicioRetencion = null;

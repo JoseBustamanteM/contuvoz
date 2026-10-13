@@ -53,12 +53,23 @@
   flex-shrink: 0;   // 👈 que no se encoja para dejarle espacio al canvas
 }
 
+// Cartel sobre el borde superior del lienzo. Va en posición absoluta para no
+// quitarle alto al lienzo, y no captura toques: se puede seguir pintando.
 .result-box {
-  font-size: 1.3rem;
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: fit-content;
+  z-index: 3;
+  max-width: calc(100% - 20px);
+  font-size: 1.05rem;
   font-weight: bold;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: #f8f9fa;
-  min-height: 1.5em;
-  flex-shrink: 0;   // 👈 igual
+  line-height: 1.25;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background-color: rgba(248, 249, 250, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
 }

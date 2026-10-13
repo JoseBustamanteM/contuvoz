@@ -13,13 +13,16 @@
             (touchmove)="draw($event)"
             (touchend)="stopDrawing()">
     </canvas>
+
+    <!-- Encima del lienzo y sin ocupar espacio: si empujara el lienzo, este se
+         achicaría y el trazo siguiente se vería más delgado. -->
+    @if (resultMessage()) {
+      <div class="result-box" [style.color]="resultColor()">
+        {{ resultMessage() }}
+      </div>
+    }
   </div>
 
-  @if (resultMessage()) {
-    <div class="result-box" [style.color]="resultColor()">
-      {{ resultMessage() }}
-    </div>
-  }
 
   <div class="controls">
   <button (click)="verify()" [disabled]="!tieneTrazo()" class="btn btn-verify">

@@ -99,7 +99,11 @@ export class LetterTracerComponent implements AfterViewInit {
 
   startDrawing(event: MouseEvent | TouchEvent) {
     // El cronómetro parte con el primer trazo, no al abrir la página
-    if (this.inicioTrazado === null) this.inicioTrazado = Date.now();
+    // y el cartel del intento anterior se quita para no tapar la letra.
+    if (this.inicioTrazado === null) {
+      this.inicioTrazado = Date.now();
+      this.resultMessage.set('');
+    }
 
     this.isDrawing = true;
     this.tieneTrazo.set(true);

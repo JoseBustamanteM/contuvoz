@@ -15,30 +15,29 @@
         (resultadoListo)="onResultadoListo($event)">
       </letter-tracer>
 
-      @if (ultimoResultado(); as r) {
-        <div class="resultado-box" [class.aprobado]="r.aprobadoPintado" [class.reprobado]="!r.aprobadoPintado">
-          @if (r.aprobadoPintado) {
-            <p class="titulo">🎉 ¡Lo lograste con la letra {{ r.letraEsperada }}!</p>
-          } @else {
-            <p class="titulo">💪 Casi lo tienes con la letra {{ r.letraEsperada }}</p>
-          }
-          <p class="detalle">Puntaje: {{ r.puntajeFinal }}%</p>
-        </div>
-      }
-
-      @if (estadoGuardado() === 'guardando') {
-        <p class="text-sm text-gray-500">Guardando tu progreso...</p>
-      }
-
-
-      @if (estadoGuardado() === 'error') {
-  <div class="error-guardado">
-    <p class="text-sm text-red-500">No se pudo guardar tu progreso 😕</p>
-    <button (click)="reintentarManualmente()" class="btn-reintentar">
-      Reintentar
-    </button>
-  </div>
-}
+      <!-- Alto fijo, haya mensaje o no: si el mensaje empujara el lienzo hacia
+           arriba, este se achicaría y el trazo se vería más delgado. -->
+      <div class="zona-mensajes">
+        @if (ultimoResultado(); as r) {
+          <div class="resultado-box" [class.aprobado]="r.aprobadoPintado" [class.reprobado]="!r.aprobadoPintado">
+            @if (r.aprobadoPintado) {
+              <p class="titulo">🎉 ¡Lo lograste con la letra {{ r.letraEsperada }}!</p>
+            } @else {
+              <p class="titulo">💪 Casi lo tienes con la letra {{ r.letraEsperada }}</p>
+            }
+            <p class="detalle">Puntaje: {{ r.puntajeFinal }}%</p>
+          </div>
+        } @else if (estadoGuardado() === 'guardando') {
+          <p class="text-sm text-gray-500">Guardando tu progreso...</p>
+        } @else if (estadoGuardado() === 'error') {
+          <div class="error-guardado">
+            <p class="text-sm text-red-500">No se pudo guardar tu progreso 😕</p>
+            <button (click)="reintentarManualmente()" class="btn-reintentar">
+              Reintentar
+            </button>
+          </div>
+        }
+      </div>
     </main>
   </section>
 </div>
