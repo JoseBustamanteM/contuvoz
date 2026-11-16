@@ -42,7 +42,7 @@ async login(rutUsuario: string, password: string, ip: string, userAgent: string)
   const sesion = await this.prisma.sesion.create({
     data: {
       idUsuario: usuario?.idUsuario ?? null,
-      rutIntentado: rutUsuario,
+      rutIntentado: rutUsuario.slice(0, 20),
       exitosa: loginValido ? true : false,
       ipOrigen: ip,
       userAgent,

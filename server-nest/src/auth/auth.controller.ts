@@ -19,10 +19,22 @@ export class AuthController {
     this.cookieSegura = config.get('NODE_ENV', { infer: true }) === 'production';
   }
 
+  /**
+   * IP y navegador del visitante, recortados al largo de las columnas
+   * (ip_origen 45, user_agent 255). Los navegadores dentro de apps (Facebook,
+   * Instagram…) mandan user agents más largos; sin recortar, guardar la
+   * sesión fallaba y el login respondía 500.
+   */
+  private datosCliente(req: Request) {
+    return {
+      ip: (req.ip ?? '').slice(0, 45),
+      userAgent: (req.headers['user-agent'] ?? '').slice(0, 255),
+    };
+  }
+
   @Post('login')
   async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const ip = req.ip ?? '';
-    const userAgent = req.headers['user-agent'] ?? '';
+    const { ip, userAgent } = this.datosCliente(req);
 
     const { accessToken, refreshTokenPlano } = await this.authService.login(
       dto.rutUsuario,
@@ -38,8 +50,7 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const refreshToken = req.cookies['refresh_token'];
-    const ip = req.ip ?? '';
-    const userAgent = req.headers['user-agent'] ?? '';
+    const { ip, userAgent } = this.datosCliente(req);
 
     const { accessToken, refreshTokenPlano } = await this.authService.refrescarToken(
       refreshToken,
