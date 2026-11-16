@@ -8,7 +8,10 @@ import { WaveformVisualizerComponent } from '../../components/talkPage/waveform-
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
 import { VowelDetectorService } from '../../services/vowel-detector.service';
 import { ActividadesService } from '../../services/actividades.service';
-import { ResultadoPronunciacion } from '../../interfaces/pronunciacion.interface';
+import {
+  ResultadoPronunciacion,
+  apruebaPronunciacion,
+} from '../../interfaces/pronunciacion.interface';
 
 export type VocalLetter = 'A' | 'E' | 'I' | 'O' | 'U';
 export type PracticeState = 'idle' | 'listening' | 'success' | 'failure';
@@ -56,6 +59,10 @@ export class TalkPageComponent {
   /** Último intento que no se pudo guardar, para el botón de reintento. */
   private pendienteDeGuardar: ResultadoPronunciacion | null = null;
 
+  /** Cuenta los intentos, para no aplicar la respuesta del servidor a un
+   *  intento que el niño ya dejó atrás. */
+  private intentoActual = 0;
+
   onVocalSelected(vocal: VocalLetter): void {
     this.selectedVocal.set(vocal);
     this.practiceState.set('idle');
@@ -76,8 +83,17 @@ export class TalkPageComponent {
 
     try {
       const result = await this.detector.listen(vocal, DURACION_ESCUCHA_MS);
+      // El detector devuelve 0..1 y la columna espera 0..100.
+      const porcConfianza = Math.round(result.confidence * 100);
+
+      // Misma regla que el servidor (vocal correcta Y confianza mínima): lo
+      // que ve el niño es lo que queda en Mis logros. Se decide aquí, sin
+      // esperar la respuesta, para que el resultado aparezca al instante y
+      // también funcione en modo práctica, donde no se guarda nada.
+      const aprobado = apruebaPronunciacion(vocal, result.detected, porcConfianza);
+      this.intentoActual++;
       this.detectedVocal.set(result.detected as VocalLetter | null);
-      this.practiceState.set(result.success ? 'success' : 'failure');
+      this.practiceState.set(aprobado ? 'success' : 'failure');
 
       // El intento se guarda SIEMPRE, acierte o no: un fallo es un dato
       // pedagógico tan válido como un acierto (con qué vocal se confunde).
@@ -87,8 +103,7 @@ export class TalkPageComponent {
         // 'NINGUNA', igual que en señas. Distingue "se equivocó de vocal"
         // de "no llegó a hablar", que son cosas distintas para la profesora.
         textoDetectado: result.detected ?? 'NINGUNA',
-        // El detector devuelve 0..1 y la columna espera 0..100.
-        porcConfianza: Math.round(result.confidence * 100),
+        porcConfianza,
         duracion: Math.round((performance.now() - inicio) / 1000),
       });
     } catch {
@@ -105,11 +120,20 @@ export class TalkPageComponent {
     this.pendienteDeGuardar = datos;
     this.guardando.set(true);
     this.errorGuardado.set(false);
+    const intento = this.intentoActual;
 
     this.actividadesService.guardarPronunciacion(datos).subscribe({
-      next: () => {
+      next: (guardado) => {
         this.guardando.set(false);
         this.pendienteDeGuardar = null;
+
+        // El servidor tiene la última palabra. Si alguna vez las reglas
+        // quedaran distintas (umbral cambiado en un lado y no en el otro), la
+        // pantalla se corrige para mostrar lo que de verdad se guardó. Solo si
+        // el niño sigue viendo este mismo intento.
+        if (intento === this.intentoActual && this.practiceState() !== 'listening') {
+          this.practiceState.set(guardado.aprobadoPronun ? 'success' : 'failure');
+        }
       },
       error: () => {
         this.guardando.set(false);

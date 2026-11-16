@@ -14,6 +14,8 @@ const UMBRAL_APROBADO_SIGN = 70;
 const TIPO_UNE = 4
 const UMBRAL_APROBADO_UNE = 80
 const TIPO_PRONUNCIACION = 3;
+// ⚠️ Espejo en src/app/interfaces/pronunciacion.interface.ts (el frontend
+// muestra el resultado con esta misma regla): si cambia acá, cambiar allá.
 const UMBRAL_APROBADO_PRONUN = 30;
 
 

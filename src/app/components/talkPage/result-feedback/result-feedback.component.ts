@@ -32,6 +32,10 @@ export class ResultFeedbackComponent {
     if (!said) {
       return 'No te escuché bien. Acércate al micrófono e inténtalo 🎤';
     }
+    // Reconoció la vocal pedida pero sin seguridad suficiente para aprobar.
+    if (said === target) {
+      return `Casi era la "${target}". Dila otra vez, más fuerte y larga`;
+    }
     return `Dijiste la "${said}" en lugar de la "${target}"`;
   });
 
