@@ -78,8 +78,14 @@ export class LoginComponent {
         // El backend no distingue clave incorrecta de usuario inactivo, a propósito:
         // así no se puede averiguar qué RUTs existen.
         return 'RUT o contraseña incorrectos. Si tu cuenta fue desactivada, pide ayuda a tu profesor.';
-      case 429:
-        return 'Demasiados intentos seguidos. Espera un minuto antes de volver a intentar.';
+      case 429: {
+        // El backend dice cuántos minutos esperar; si el 429 viene de Nginx
+        // (sin ese mensaje), se usa el genérico.
+        const mensaje = (err.error as { message?: unknown } | null)?.message;
+        return typeof mensaje === 'string'
+          ? mensaje
+          : 'Demasiados intentos seguidos. Espera un minuto antes de volver a intentar.';
+      }
       default:
         return err.status >= 500
           ? 'El servidor tuvo un problema. Inténtalo de nuevo en unos minutos.'

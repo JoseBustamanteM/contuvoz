@@ -228,6 +228,9 @@ model Sesion {
   sesionTokens SesionToken[]
 
   @@index([idUsuario], map: "idx_sesion_usuario")
+  /// Límite de intentos fallidos por RUT y por IP (auth.service.ts).
+  @@index([rutIntentado, fechaInicio], map: "idx_sesion_rut_fecha")
+  @@index([ipOrigen, fechaInicio], map: "idx_sesion_ip_fecha")
   @@map("sesion")
 }
 

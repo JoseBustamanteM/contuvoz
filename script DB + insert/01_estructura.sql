@@ -269,6 +269,8 @@ CREATE TABLE `sesion` (
   `motivo_fin` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_sesion`),
   KEY `idx_sesion_usuario` (`id_usuario`),
+  KEY `idx_sesion_rut_fecha` (`rut_intentado`,`fecha_inicio`),
+  KEY `idx_sesion_ip_fecha` (`ip_origen`,`fecha_inicio`),
   CONSTRAINT `sesion_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

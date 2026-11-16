@@ -1,5 +1,7 @@
 // auth/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException, HttpStatus, Injectable, UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
@@ -8,6 +10,14 @@ import type { SignOptions } from 'jsonwebtoken';
 import { limpiarRut } from '../common/validators/rut.validator';
 import { ConfigService } from '@nestjs/config';
 import type { Entorno } from '../config/entorno';
+
+const VENTANA_INTENTOS_MS = 15 * 60 * 1000;
+const MAX_FALLOS_POR_RUT = 5;
+const MAX_FALLOS_POR_IP = 100;
+
+/** Hash de una clave que nadie tiene, con el mismo costo que las reales
+ *  (usuarios.service usa 10). Ver login(). */
+const HASH_FICTICIO = bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10);
 
 @Injectable()
 export class AuthService {
@@ -30,31 +40,97 @@ export class AuthService {
     return crypto.createHash('sha256').update(tokenPlano).digest('hex');
   }
 
-async login(rutUsuario: string, password: string, ip: string, userAgent: string) {
-  const rutNormalizado = limpiarRut(rutUsuario);
+  async login(rutUsuario: string, password: string, ip: string, userAgent: string) {
+    // Normalizado (sin puntos ni guion) para que "19.497.449-3" y "194974493"
+    // cuenten como el mismo RUT al limitar intentos.
+    const rutNormalizado = limpiarRut(rutUsuario).slice(0, 20);
 
-  const usuario = await this.prisma.usuario.findFirst({
-    where: { rutUsuario: rutNormalizado, activo: true },
-  });
+    await this.verificarLimiteDeIntentos(rutNormalizado, ip);
 
-  const loginValido = usuario && (await bcrypt.compare(password, usuario.claveHash));
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { rutUsuario: rutNormalizado, activo: true },
+    });
 
-  const sesion = await this.prisma.sesion.create({
-    data: {
-      idUsuario: usuario?.idUsuario ?? null,
-      rutIntentado: rutUsuario.slice(0, 20),
-      exitosa: loginValido ? true : false,
-      ipOrigen: ip,
-      userAgent,
-    },
-  });
+    // Si el RUT no existe se compara igual contra un hash ficticio: así la
+    // respuesta tarda lo mismo y no se puede saber por el tiempo qué RUTs
+    // tienen cuenta.
+    const claveCorrecta = await bcrypt.compare(
+      password,
+      usuario?.claveHash ?? HASH_FICTICIO,
+    );
+    const loginValido = !!usuario && claveCorrecta;
 
-  if (!loginValido) {
-    throw new UnauthorizedException('Credenciales inválidas');
+    const sesion = await this.prisma.sesion.create({
+      data: {
+        idUsuario: usuario?.idUsuario ?? null,
+        rutIntentado: rutNormalizado,
+        exitosa: loginValido,
+        ipOrigen: ip,
+        userAgent,
+      },
+    });
+
+    if (!loginValido) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    return this.generarTokens(usuario.idUsuario, ip, userAgent, sesion.idSesion);
   }
 
-  return this.generarTokens(usuario.idUsuario, ip, userAgent, sesion.idSesion);
-}
+  /**
+   * Límite de intentos fallidos, contados en la tabla `sesion` (que ya
+   * registra cada intento con su RUT e IP):
+   *
+   * - Por RUT: 5 fallos en 15 minutos bloquean ese RUT hasta que el más
+   *   antiguo de esos 5 cumpla 15 minutos. Un login correcto reinicia la
+   *   cuenta. Los intentos bloqueados no se registran, para que alguien no
+   *   pueda mantener bloqueada la cuenta de otro indefinidamente.
+   * - Por IP: 100 fallos en 15 minutos. Es holgado a propósito: todo un
+   *   colegio sale a internet con la misma IP y los niños se equivocan.
+   */
+  private async verificarLimiteDeIntentos(rut: string, ip: string) {
+    const ahora = Date.now();
+    const desde = new Date(ahora - VENTANA_INTENTOS_MS);
+
+    const ultimoExito = await this.prisma.sesion.findFirst({
+      where: { rutIntentado: rut, exitosa: true, fechaInicio: { gte: desde } },
+      orderBy: { fechaInicio: 'desc' },
+      select: { fechaInicio: true },
+    });
+
+    const fallosRut = await this.prisma.sesion.findMany({
+      where: {
+        rutIntentado: rut,
+        exitosa: false,
+        fechaInicio: ultimoExito ? { gt: ultimoExito.fechaInicio } : { gte: desde },
+      },
+      orderBy: { fechaInicio: 'desc' },
+      take: MAX_FALLOS_POR_RUT,
+      select: { fechaInicio: true },
+    });
+
+    if (fallosRut.length >= MAX_FALLOS_POR_RUT) {
+      const masAntiguo = fallosRut[fallosRut.length - 1].fechaInicio.getTime();
+      const minutos = Math.max(1, Math.ceil((masAntiguo + VENTANA_INTENTOS_MS - ahora) / 60_000));
+      throw new HttpException(
+        `Demasiados intentos fallidos con este RUT. Espera ${minutos} ${minutos === 1 ? 'minuto' : 'minutos'} antes de volver a intentar.`,
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    if (!ip) return;
+
+    const fallosIp = await this.prisma.sesion.count({
+      where: { ipOrigen: ip, exitosa: false, fechaInicio: { gte: desde } },
+    });
+
+    if (fallosIp >= MAX_FALLOS_POR_IP) {
+      throw new HttpException(
+        'Demasiados intentos fallidos desde esta conexión. Espera unos minutos antes de volver a intentar.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+  }
 
   async generarTokens(
     idUsuario: number,
