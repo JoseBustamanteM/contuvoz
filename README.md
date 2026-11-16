@@ -65,6 +65,7 @@ Los scripts no incluyen usuarios. El primer administrador se crea después de co
 | `2026-11-16_intento_actividad.sql` | Columna `id_intento` en `actividad` con índice único por usuario: un intento reenviado por falla de red no se guarda dos veces |
 | `2026-11-16_version_reglas.sql` | Columna `version_reglas` en `actividad`: con qué versión de las reglas se evaluó cada intento (todo lo anterior queda en 1) |
 | `2026-11-16_letras_pronunciacion.sql` | `texto_esperado` y `texto_detectado` de `resultado_pronunciacion` pasan de `TEXT` a `VARCHAR(10)`, como en las otras actividades |
+| `2026-11-16_checks_resultados.sql` | Restricciones `CHECK` de rango en las tablas de resultados (puntajes y confianza entre 0 y 100, aciertos ≤ pares). El script indica cómo comprobar antes que ninguna fila las viola |
 
 ```bash
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-06_vinculo_estudiante.sql"
@@ -73,6 +74,7 @@ mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_indices_sesi
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_intento_actividad.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_version_reglas.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_letras_pronunciacion.sql"
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_checks_resultados.sql"
 ```
 
 Luego, en `server-nest`, `npx prisma generate`.

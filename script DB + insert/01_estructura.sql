@@ -172,7 +172,8 @@ CREATE TABLE `resultado_pintado` (
   `aprobado_pintado` tinyint(1) NOT NULL DEFAULT 0 CHECK (`aprobado_pintado` in (0,1)),
   PRIMARY KEY (`id_res_pintado`),
   UNIQUE KEY `id_actividad` (`id_actividad`),
-  CONSTRAINT `resultado_pintado_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE
+  CONSTRAINT `resultado_pintado_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE,
+  CONSTRAINT `chk_pintado_rangos` CHECK (`trazo_interno` between 0 and 100 and `trazo_externo` between 0 and 100 and `area_completada` between 0 and 100 and `puntaje_final` between 0 and 100)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -192,7 +193,8 @@ CREATE TABLE `resultado_pronunciacion` (
   `aprobado_pronun` tinyint(1) NOT NULL DEFAULT 0 CHECK (`aprobado_pronun` in (0,1)),
   PRIMARY KEY (`id_res_pronun`),
   UNIQUE KEY `id_actividad` (`id_actividad`),
-  CONSTRAINT `resultado_pronunciacion_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE
+  CONSTRAINT `resultado_pronunciacion_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE,
+  CONSTRAINT `chk_pronun_confianza` CHECK (`porc_confianza` between 0 and 100)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -212,7 +214,8 @@ CREATE TABLE `resultado_sign` (
   `aprobado_sign` tinyint(1) NOT NULL DEFAULT 0 CHECK (`aprobado_sign` in (0,1)),
   PRIMARY KEY (`id_res_sign`),
   UNIQUE KEY `id_actividad` (`id_actividad`),
-  CONSTRAINT `resultado_sign_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE
+  CONSTRAINT `resultado_sign_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE,
+  CONSTRAINT `chk_sign_confianza` CHECK (`porc_confianza` between 0 and 100)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -234,7 +237,8 @@ CREATE TABLE `resultado_une_palabras` (
   `detalle` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`detalle`)),
   PRIMARY KEY (`id_res_une`),
   UNIQUE KEY `uq_res_une_actividad` (`id_actividad`),
-  CONSTRAINT `fk_res_une_actividad` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`)
+  CONSTRAINT `fk_res_une_actividad` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`),
+  CONSTRAINT `chk_une_rangos` CHECK (`total_pares` between 1 and 20 and `aciertos` between 0 and `total_pares` and `errores` >= 0 and `puntaje_final` between 0 and 100)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
