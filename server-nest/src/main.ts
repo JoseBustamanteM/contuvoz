@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
+import type { Entorno } from './config/entorno';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -21,15 +23,18 @@ async function bootstrap() {
 
   app.use(cookieParser());
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  const config = app.get<ConfigService<Entorno, true>>(ConfigService);
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:4200',
+    origin: config.get('FRONTEND_URL', { infer: true }),
     credentials: true,
   });
 
   // HOST=127.0.0.1 en el servidor: el backend solo es accesible a través de
   // Nginx, no directo desde internet por el puerto 4000.
-  const puerto = process.env.PORT ?? 4000;
-  if (process.env.HOST) await app.listen(puerto, process.env.HOST);
+  const puerto = config.get('PORT', { infer: true });
+  const host = config.get('HOST', { infer: true });
+  if (host) await app.listen(puerto, host);
   else await app.listen(puerto);
 }
 bootstrap();

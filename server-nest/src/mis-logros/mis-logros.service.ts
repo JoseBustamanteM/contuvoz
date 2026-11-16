@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
+import type { Entorno } from '../config/entorno';
 
 /**
  * Calcula el dashboard "Mis logros" de un estudiante a partir de las tablas de
@@ -17,11 +19,9 @@ import { PrismaService } from '../prisma/prisma.service';
  *
  * ⚠️ Fechas: Prisma guarda fecha_actividad en UTC, pero el día del niño es el
  * de Chile. Una actividad a las 21:30 queda guardada como 00:30 del día
- * siguiente; por eso los días se calculan convirtiendo a ZONA_HORARIA y no con
- * DATE() en SQL.
+ * siguiente; por eso los días se calculan convirtiendo a la zona horaria del
+ * .env (ZONA_HORARIA, por defecto America/Santiago) y no con DATE() en SQL.
  */
-
-const ZONA_HORARIA = process.env.ZONA_HORARIA ?? 'America/Santiago';
 
 const TIPO = { PINTA: 1, SIGN: 2, HABLEMOS: 3, UNE: 4 } as const;
 
@@ -74,7 +74,17 @@ interface Intento {
 
 @Injectable()
 export class MisLogrosService {
-  constructor(private prisma: PrismaService) {}
+  /** Formatea una fecha como YYYY-MM-DD (en-CA) en la zona horaria del .env. */
+  private readonly formatoDia: Intl.DateTimeFormat;
+
+  constructor(
+    private prisma: PrismaService,
+    config: ConfigService<Entorno, true>,
+  ) {
+    this.formatoDia = new Intl.DateTimeFormat('en-CA', {
+      timeZone: config.get('ZONA_HORARIA', { infer: true }),
+    });
+  }
 
   async resumen(idEstudiante: number): Promise<ResumenEstudiante> {
     // Una sola consulta: todas las actividades con su resultado, de la más
@@ -231,11 +241,10 @@ export class MisLogrosService {
     return d.pares.filter((p): p is string => typeof p === 'string' && !confundidas.has(p));
   }
 
-  // ── Fechas (siempre en ZONA_HORARIA, como 'YYYY-MM-DD') ──
+  // ── Fechas (siempre en la zona horaria del .env, como 'YYYY-MM-DD') ──
 
   private diaLocal(fecha: Date): string {
-    // en-CA formatea como YYYY-MM-DD.
-    return new Intl.DateTimeFormat('en-CA', { timeZone: ZONA_HORARIA }).format(fecha);
+    return this.formatoDia.format(fecha);
   }
 
   /** 0 = lunes … 6 = domingo. */

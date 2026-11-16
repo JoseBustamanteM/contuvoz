@@ -6,18 +6,25 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import type { SignOptions } from 'jsonwebtoken';
 import { limpiarRut } from '../common/validators/rut.validator';
-
-
-const ACCESS_TOKEN_EXPIRA = (process.env.ACCESS_TOKEN_EXPIRA ??
-  '15m') as SignOptions['expiresIn'];
-const REFRESH_TOKEN_DIAS = Number(process.env.REFRESH_TOKEN_DIAS ?? 7);
+import { ConfigService } from '@nestjs/config';
+import type { Entorno } from '../config/entorno';
 
 @Injectable()
 export class AuthService {
+  private readonly accessTokenExpira: SignOptions['expiresIn'];
+  /** Días de vida de cada refresh token (también lo usa la cookie). */
+  readonly refreshTokenDias: number;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+    config: ConfigService<Entorno, true>,
+  ) {
+    this.accessTokenExpira = config.get('ACCESS_TOKEN_EXPIRA', {
+      infer: true,
+    }) as SignOptions['expiresIn'];
+    this.refreshTokenDias = config.get('REFRESH_TOKEN_DIAS', { infer: true });
+  }
 
   private hashRefreshToken(tokenPlano: string): string {
     return crypto.createHash('sha256').update(tokenPlano).digest('hex');
@@ -66,14 +73,14 @@ async login(rutUsuario: string, password: string, ip: string, userAgent: string)
   }
     const accessToken = this.jwtService.sign(
       { sub: idUsuario, rol: usuario.idRol },
-      { expiresIn: ACCESS_TOKEN_EXPIRA },
+      { expiresIn: this.accessTokenExpira },
     );
 
     const refreshTokenPlano = crypto.randomBytes(64).toString('hex');
     const hash = this.hashRefreshToken(refreshTokenPlano);
 
     const fechaExpiracion = new Date();
-    fechaExpiracion.setDate(fechaExpiracion.getDate() + REFRESH_TOKEN_DIAS);
+    fechaExpiracion.setDate(fechaExpiracion.getDate() + this.refreshTokenDias);
 
     await this.prisma.sesionToken.create({
       data: {

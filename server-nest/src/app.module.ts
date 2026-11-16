@@ -9,10 +9,12 @@ import { UsuariosModule } from './usuarios/dto/usuarios.module';
 import { ColegiosModule } from './colegios/colegios.module';
 import { VinculosModule } from './vinculos/vinculos.module';
 import { MisLogrosModule } from './mis-logros/mis-logros.module';
+import { validarEntorno } from './config/entorno';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    // Carga y valida el .env al arrancar (ver src/config/entorno.ts).
+    ConfigModule.forRoot({ isGlobal: true, validate: validarEntorno }),
     ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
