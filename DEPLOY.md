@@ -248,6 +248,87 @@ Si el cambio trae un script en `script DB + insert/cambios/`, aplícalo antes:
 sudo mariadb contuvoz < "/opt/contuvoz/script DB + insert/cambios/NOMBRE.sql"
 ```
 
+## Respaldos
+
+La base tiene los datos de los niños y su progreso: si se pierde, no hay forma
+de recuperarla sin un respaldo.
+
+### Activar el respaldo diario
+
+Una sola vez (y otra vez solo si cambian estos archivos):
+
+```bash
+sudo cp /opt/contuvoz/deploy/contuvoz-respaldo.service /opt/contuvoz/deploy/contuvoz-respaldo.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now contuvoz-respaldo.timer
+```
+
+Cada día a las 03:30 deja un archivo `contuvoz_AAAA-MM-DD_HHMM.sql.gz` en
+`/var/backups/contuvoz` (solo root puede leerlo) y borra los de más de 14 días.
+Si la VPS estaba apagada a esa hora, lo hace al encender.
+
+Hacer uno ahora y revisar que quedó:
+
+```bash
+sudo systemctl start contuvoz-respaldo
+sudo ls -lh /var/backups/contuvoz
+```
+
+Ver si el último falló: `journalctl -u contuvoz-respaldo --no-pager | tail -20`.
+Cuándo toca el próximo: `systemctl list-timers contuvoz-respaldo.timer`.
+
+### Copia fuera de la VPS
+
+Los respaldos en la misma VPS no sirven si se pierde la VPS. Al menos una vez
+por semana, baja el más reciente a tu PC.
+
+1. En la VPS, deja una copia del último respaldo en tu carpeta personal:
+
+   ```bash
+   sudo install -m 600 -o "$USER" "$(sudo ls -t /var/backups/contuvoz/*.sql.gz | head -1)" ~/contuvoz_respaldo.sql.gz
+   ```
+
+2. En tu PC (PowerShell), bájala:
+
+   ```bash
+   scp USUARIO@IP_DE_LA_VPS:contuvoz_respaldo.sql.gz .
+   ```
+
+3. De vuelta en la VPS, borra la copia: `rm ~/contuvoz_respaldo.sql.gz`.
+
+Guárdalo en un lugar privado: tiene RUTs, nombres y correos. No lo subas a git
+ni a carpetas compartidas.
+
+### Probar que se puede restaurar
+
+Un respaldo que nunca se probó puede no servir. Cada cierto tiempo, en la VPS,
+restaurarlo en una base **aparte** (no toca la real) y contar las filas:
+
+```bash
+sudo mariadb -e "CREATE DATABASE contuvoz_prueba CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+sudo sh -c 'zcat "$(ls -t /var/backups/contuvoz/*.sql.gz | head -1)" | mariadb contuvoz_prueba'
+sudo mariadb contuvoz_prueba -e "SELECT COUNT(*) AS usuarios FROM usuario; SELECT COUNT(*) AS actividades FROM actividad;"
+sudo mariadb -e "DROP DATABASE contuvoz_prueba;"
+```
+
+Los números deben parecerse a los de la base real.
+
+### Restaurar de verdad
+
+Solo si la base real se dañó o se perdió. **Reemplaza todo lo que haya en
+`contuvoz`** por lo del respaldo: lo registrado después de ese respaldo se
+pierde.
+
+```bash
+pm2 stop contuvoz-api
+sudo systemctl start contuvoz-respaldo
+sudo sh -c 'zcat /var/backups/contuvoz/NOMBRE_DEL_RESPALDO.sql.gz | mariadb contuvoz'
+pm2 start contuvoz-api
+```
+
+El `systemctl start` de la segunda línea guarda primero el estado actual, por si
+hay que volver atrás.
+
 ## Comandos útiles
 
 | Para | Comando |

@@ -1,0 +1,11 @@
+# Respaldo de la base de ContuVoz. Lo dispara contuvoz-respaldo.timer.
+# Copiar a /etc/systemd/system/ junto con el .timer (ver DEPLOY.md, "Respaldos").
+
+[Unit]
+Description=ContuVoz - respaldo de la base de datos
+After=mariadb.service
+Requires=mariadb.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /opt/contuvoz/deploy/respaldo.sh

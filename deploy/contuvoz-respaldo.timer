@@ -1,0 +1,13 @@
+# Respaldo diario de la base de ContuVoz, a las 03:30.
+# Persistent=true: si la VPS estaba apagada a esa hora, se hace al encender.
+
+[Unit]
+Description=ContuVoz - respaldo diario de la base de datos
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
