@@ -1,6 +1,6 @@
 // auth/auth.service.ts
 import {
-  HttpException, HttpStatus, Injectable, UnauthorizedException,
+  HttpException, HttpStatus, Injectable, Logger, UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -21,8 +21,12 @@ const HASH_FICTICIO = bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
+/** Margen para que dos pestañas renueven a la vez sin que cuente como reúso. */
+const GRACIA_REUSO_MS = 30 * 1000;
+
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly accessTokenExpira: SignOptions['expiresIn'];
   /** Días de vida de cada refresh token (también lo usa la cookie). */
   readonly refreshTokenDias: number;
@@ -212,9 +216,14 @@ export class AuthService {
       include: { sesion: { select: { fechaInicio: true, fechaFin: true } } },
     });
 
+    if (!tokenValido) {
+      await this.detectarReuso(hash);
+      throw new UnauthorizedException('Sesión expirada, inicia sesión de nuevo');
+    }
+
     // Sin sesión asociada o con la sesión ya cerrada, no se renueva: toca
     // iniciar sesión de nuevo.
-    if (!tokenValido || !tokenValido.idSesion || !tokenValido.sesion || tokenValido.sesion.fechaFin) {
+    if (!tokenValido.idSesion || !tokenValido.sesion || tokenValido.sesion.fechaFin) {
       throw new UnauthorizedException('Sesión expirada, inicia sesión de nuevo');
     }
 
@@ -237,6 +246,54 @@ export class AuthService {
       tokenValido.idSesion,
       tokenValido.sesion.fechaInicio,
     );
+  }
+
+  /**
+   * Detección de reúso. Cada refresh token sirve una sola vez: al usarlo se
+   * revoca y se entrega otro. Si vuelve a llegar uno ya reemplazado, alguien
+   * más tiene una copia (por ejemplo, la cookie robada): no se sabe quién es
+   * el legítimo, así que se cierra esa sesión completa y ambos tienen que
+   * volver a ingresar.
+   *
+   * Se da un margen de GRACIA_REUSO_MS desde el reemplazo: dos pestañas que
+   * renuevan casi a la vez mandan el mismo token y una pierde, sin que haya
+   * nada raro (ver refresh() en el auth.service del frontend).
+   */
+  private async detectarReuso(hash: string) {
+    const usado = await this.prisma.sesionToken.findFirst({
+      where: { refreshTokenHash: hash, revocado: true },
+      select: {
+        idSesionToken: true,
+        idSesion: true,
+        sesion: { select: { fechaFin: true } },
+      },
+    });
+    // Desconocido, sin sesión o con la sesión ya cerrada (logout, cambio de
+    // clave…): no hay nada que proteger.
+    if (!usado?.idSesion || !usado.sesion || usado.sesion.fechaFin) return;
+
+    // Su reemplazo es el token siguiente de la misma sesión. Si no hay
+    // reemplazo, se revocó por otro motivo y no es reúso.
+    const reemplazo = await this.prisma.sesionToken.findFirst({
+      where: { idSesion: usado.idSesion, idSesionToken: { gt: usado.idSesionToken } },
+      orderBy: { idSesionToken: 'asc' },
+      select: { fechaCreacion: true },
+    });
+    if (!reemplazo) return;
+    if (Date.now() - reemplazo.fechaCreacion.getTime() < GRACIA_REUSO_MS) return;
+
+    const idSesion = usado.idSesion;
+    await this.prisma.$transaction([
+      this.prisma.sesionToken.updateMany({
+        where: { idSesion, revocado: false },
+        data: { revocado: true },
+      }),
+      this.prisma.sesion.updateMany({
+        where: { idSesion, fechaFin: null },
+        data: { fechaFin: new Date(), motivoFin: 'reuso_token' },
+      }),
+    ]);
+    this.logger.warn(`Refresh token reutilizado: sesión ${idSesion} cerrada`);
   }
 
   async logout(refreshTokenPlano: string) {
