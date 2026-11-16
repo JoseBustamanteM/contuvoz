@@ -8,19 +8,20 @@ import { ConDuracionDto } from './con-duracion.dto';
 export class ConfusionDto {
   @IsString() @Length(1, 50) palabra!: string;
   @IsString() @Length(1, 50) eligio!: string;
-  @IsInt() @Min(1) veces!: number;
+  @IsInt() @Min(1) @Max(100) veces!: number;
 }
 
 export class GuardarUnePalabrasDto extends ConDuracionDto {
   @IsInt() @Min(1) @Max(20) totalPares!: number;
-  @IsInt() @Min(0) aciertos!: number;
-  @IsInt() @Min(0) errores!: number;
+  @IsInt() @Min(0) @Max(20) aciertos!: number;
+  @IsInt() @Min(0) @Max(1000) errores!: number;
   @IsNumber() @Min(0) @Max(100) puntajeFinal!: number;
 
   /** Las palabras que tocaron en esta ronda, en orden. */
   @IsArray()
   @ArrayMaxSize(20)
   @IsString({ each: true })
+  @Length(1, 50, { each: true })
   pares!: string[];
 
   /**

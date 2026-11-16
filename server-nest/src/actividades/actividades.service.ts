@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GuardarPintadoDto } from './dto/guardar-pintado.dto';
@@ -34,6 +34,48 @@ const VERSION_REGLAS = {
   [TIPO_UNE]: 1,
 } as const;
 
+
+/**
+ * Una ronda de Une palabras tiene que ser coherente consigo misma; si no, se
+ * rechaza con 400 en vez de guardar puntajes imposibles (por ejemplo, 5
+ * aciertos de 3 pares daba 166 %). Reglas, que son las del juego
+ * (unePalabras.component.ts):
+ * - `pares` trae las palabras de la ronda, sin repetir, una por par.
+ * - Cada confusión une dos palabras distintas de la ronda, sin repetirse.
+ * - `errores` es la suma de las `veces` de todas las confusiones.
+ * - Un acierto es una palabra resuelta sin ningún error: aciertos = pares
+ *   menos las palabras que tuvieron alguna confusión.
+ *
+ * No se valida contra el banco de palabras porque vive en el frontend; se
+ * podrá cuando pase a una tabla.
+ */
+function validarRondaUne(dto: GuardarUnePalabrasDto) {
+  const rechazar = (motivo: string) => {
+    throw new BadRequestException(`Ronda de Une palabras inválida: ${motivo}`);
+  };
+
+  const pares = new Set(dto.pares);
+  if (dto.pares.length !== dto.totalPares) rechazar('la cantidad de palabras no coincide con totalPares');
+  if (pares.size !== dto.pares.length) rechazar('hay palabras repetidas');
+
+  const vistas = new Set<string>();
+  const fallidas = new Set<string>();
+  let errores = 0;
+  for (const c of dto.confusiones) {
+    if (!pares.has(c.palabra) || !pares.has(c.eligio)) rechazar(`"${c.palabra}"→"${c.eligio}" no es de esta ronda`);
+    if (c.palabra === c.eligio) rechazar('una confusión une una palabra consigo misma');
+    const clave = `${c.palabra}→${c.eligio}`;
+    if (vistas.has(clave)) rechazar(`la confusión ${clave} está repetida`);
+    vistas.add(clave);
+    fallidas.add(c.palabra);
+    errores += c.veces;
+  }
+
+  if (errores !== dto.errores) rechazar('errores no coincide con las confusiones');
+  if (dto.aciertos !== dto.totalPares - fallidas.size) {
+    rechazar('aciertos no coincide con las palabras que no tuvieron errores');
+  }
+}
 
 @Injectable()
 export class ActividadesService {
@@ -159,6 +201,8 @@ export class ActividadesService {
 
 
   async guardarUnePalabras(idUsuario: number, dto: GuardarUnePalabrasDto) {
+    validarRondaUne(dto);
+
     // El puntaje llega calculado del cliente igual que en las otras actividades,
     // pero acá se puede VERIFICAR: aciertos y totalPares son enteros y la
     // relación entre ellos es aritmética simple, así que no hay razón para
