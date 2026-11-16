@@ -310,6 +310,9 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
       if (creador.idRol !== Rol.ADMINISTRADOR && !permitidos.includes(dto.idRol)) {
         throw new ForbiddenException('No puedes asignar ese rol');
       }
+      if (dto.idRol !== objetivo.idRol) {
+        await this.verificarPuedeCambiarRol(idUsuario);
+      }
     }
 
     if (dto.rutUsuario || dto.correo) {
@@ -381,8 +384,48 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
 
       await cerrarSesionesDeUsuario(tx, idUsuario, 'desactivado');
 
+      // Un profesor o apoderado desactivado deja de acompañar a sus alumnos:
+      // se cierran sus vínculos (queda el historial). Si no, el alumno no
+      // aparecía en "sin profesor" / "sin apoderado" aunque nadie activo lo
+      // acompañara. Al reactivarlo, los vínculos hay que volver a crearlos.
+      // Los de un ESTUDIANTE desactivado se mantienen: sigue siendo alumno
+      // de su profesor y, al reactivarlo, vuelve con todo.
+      if (objetivo.idRol === Rol.PROFESOR || objetivo.idRol === Rol.APODERADO) {
+        await tx.vinculoEstudiante.updateMany({
+          where: { idAdulto: idUsuario, ...VIGENTE },
+          data: { fechaFin: new Date(), deshabilitadoPor: creador.idUsuario },
+        });
+      }
+
       return desactivado;
     });
+  }
+
+  /**
+   * Un cambio de rol no puede dejar datos que ya no tienen sentido: si un
+   * estudiante pasa a apoderado, sus vínculos quedarían con un "estudiante"
+   * que no lo es, y sus actividades se mezclarían con las de un adulto. Solo
+   * se permite si no tiene vínculos vigentes ni actividades registradas;
+   * para lo demás, se crea un usuario nuevo con el rol correcto.
+   */
+  private async verificarPuedeCambiarRol(idUsuario: number) {
+    const [vinculos, actividades] = await Promise.all([
+      this.prisma.vinculoEstudiante.count({
+        where: { OR: [{ idEstudiante: idUsuario }, { idAdulto: idUsuario }], ...VIGENTE },
+      }),
+      this.prisma.actividad.count({ where: { idUsuario } }),
+    ]);
+
+    if (vinculos > 0) {
+      throw new ConflictException(
+        'No se puede cambiar el rol: tiene vínculos vigentes. Quítalos primero o crea un usuario nuevo.',
+      );
+    }
+    if (actividades > 0) {
+      throw new ConflictException(
+        'No se puede cambiar el rol: ya tiene actividades registradas. Crea un usuario nuevo con el rol correcto.',
+      );
+    }
   }
 
   async reactivar(creador: UsuarioToken, idUsuario: number) {

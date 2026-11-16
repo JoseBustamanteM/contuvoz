@@ -177,6 +177,11 @@ export class GestionUsuariosComponent implements OnInit {
     return u.idRol === Rol.ESTUDIANTE;
   }
 
+  /** Profesor o apoderado: al desactivarlo se cierran sus vínculos. */
+  esAdulto(u: UsuarioListado) {
+    return u.idRol === Rol.PROFESOR || u.idRol === Rol.APODERADO;
+  }
+
   tieneVinculo(u: UsuarioListado, tipo: TipoVinculo) {
     return (u.vinculosComoEstudiante ?? []).some((v) => v.tipoVinculo === tipo);
   }

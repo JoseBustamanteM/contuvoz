@@ -247,6 +247,10 @@
         <p class="modal__texto">
           @if (u.activo) {
             No podrá iniciar sesión hasta que lo reactives. Su progreso no se borra.
+            @if (esAdulto(u)) {
+              También deja de estar vinculado a sus estudiantes; si lo reactivas,
+              habrá que volver a vincularlo.
+            }
           } @else {
             Podrá volver a iniciar sesión con su RUT y contraseña.
           }
