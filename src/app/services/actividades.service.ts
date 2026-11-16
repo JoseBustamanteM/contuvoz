@@ -35,36 +35,36 @@ export class ActividadesService {
   });
 
   guardarPintado(datos: ResultadoPintado): Observable<ResultadoPintadoGuardado> {
-    return this.http.post<ResultadoPintadoGuardado>(`${this.API}/pintado`, datos).pipe(
-      retry({
-        count: 3,
-        delay: (error: HttpErrorResponse, intento) => {
-          // Solo reintentamos fallos de red o del servidor, nunca errores de datos
-          const esReintentable = error.status === 0 || error.status >= 500;
-          if (!esReintentable) throw error;
-
-          // Backoff progresivo: 1s, 2s, 4s
-          return timer(1000 * Math.pow(2, intento - 1));
-        },
-      }),
-    );
+    return this.guardar<ResultadoPintadoGuardado>('pintado', datos);
   }
 
   guardarSign(datos: ResultadoSign): Observable<ResultadoSignGuardado> {
-  return this.http.post<ResultadoSignGuardado>(`${this.API}/sign`, datos).pipe(
-    retry({
-      count: 3,
-      delay: (error: HttpErrorResponse, intento) => {
-        const esReintentable = error.status === 0 || error.status >= 500;
-        if (!esReintentable) throw error;
-        return timer(1000 * Math.pow(2, intento - 1));
-      },
-    }),
-  );
-}
+    return this.guardar<ResultadoSignGuardado>('sign', datos);
+  }
 
-   guardarUnePalabras(datos: ResultadoUnePalabras): Observable<ResultadoUnePalabrasGuardado> {
-    return this.http.post<ResultadoUnePalabrasGuardado>(`${this.API}/une-palabras`, datos).pipe(
+  guardarUnePalabras(datos: ResultadoUnePalabras): Observable<ResultadoUnePalabrasGuardado> {
+    return this.guardar<ResultadoUnePalabrasGuardado>('une-palabras', datos);
+  }
+
+  guardarPronunciacion(
+    datos: ResultadoPronunciacion,
+  ): Observable<ResultadoPronunciacionGuardado> {
+    return this.guardar<ResultadoPronunciacionGuardado>('pronunciacion', datos);
+  }
+
+  /**
+   * Envía un intento y reintenta si falla la red o el servidor (1s, 2s, 4s),
+   * nunca ante errores de datos.
+   *
+   * El idIntento se genera UNA vez, antes de los reintentos, y viaja en todos
+   * ellos: si el primer envío alcanzó a guardarse y solo se perdió la
+   * respuesta, el backend reconoce el intento y devuelve lo ya guardado en
+   * vez de duplicarlo (y duplicar las estrellas).
+   */
+  private guardar<T>(ruta: string, datos: object): Observable<T> {
+    const cuerpo = { ...datos, idIntento: nuevoIdIntento() };
+
+    return this.http.post<T>(`${this.API}/${ruta}`, cuerpo).pipe(
       retry({
         count: 3,
         delay: (error: HttpErrorResponse, intento) => {
@@ -75,22 +75,17 @@ export class ActividadesService {
       }),
     );
   }
+}
 
-    guardarPronunciacion(
-    datos: ResultadoPronunciacion,
-  ): Observable<ResultadoPronunciacionGuardado> {
-    return this.http
-      .post<ResultadoPronunciacionGuardado>(`${this.API}/pronunciacion`, datos)
-      .pipe(
-        retry({
-          count: 3,
-          delay: (error: HttpErrorResponse, intento) => {
-            const esReintentable = error.status === 0 || error.status >= 500;
-            if (!esReintentable) throw error;
-            return timer(1000 * Math.pow(2, intento - 1));
-          },
-        }),
-      );
-  }
+/** UUID v4. crypto.randomUUID solo existe en contextos seguros (HTTPS o
+ *  localhost); si la app se abre por http://IP en la red local, se arma con
+ *  getRandomValues, que sí está disponible. */
+function nuevoIdIntento(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
 
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6] & 0x0f) | 0x40;
+  b[8] = (b[8] & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
 }

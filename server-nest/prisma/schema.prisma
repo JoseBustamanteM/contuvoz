@@ -134,6 +134,9 @@ model Actividad {
   fechaActividad         DateTime                @default(now()) @map("fecha_actividad") @db.DateTime(0)
   /// Segundos que duró el intento (NULL en Comunícate/Hablemos anteriores al 2026-10-13).
   duracion               Int?
+  /// UUID del intento, generado en el navegador y repetido en sus reintentos.
+  /// Con el índice único evita guardar dos veces el mismo intento.
+  idIntento              String?                 @map("id_intento") @db.Char(36)
   usuario                Usuario                 @relation(fields: [idUsuario], references: [idUsuario], map: "actividad_ibfk_1")
   tipoActividad          TipoActividad           @relation(fields: [idTipoActividad], references: [idTipoActividad], map: "actividad_ibfk_2")
   resultadoPintado       ResultadoPintado?
@@ -141,6 +144,7 @@ model Actividad {
   resultadoSign          ResultadoSign?
   resultadoUnePalabras   ResultadoUnePalabras?
 
+  @@unique([idUsuario, idIntento], map: "uq_actividad_intento")
   @@index([idTipoActividad], map: "idx_actividad_tipo")
   @@index([idUsuario], map: "idx_actividad_usuario")
   @@map("actividad")

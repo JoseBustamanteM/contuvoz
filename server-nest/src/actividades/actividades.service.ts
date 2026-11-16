@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GuardarPintadoDto } from './dto/guardar-pintado.dto';
 import { GuardarSignDto } from './dto/guardar-sign.dto';
@@ -20,14 +21,74 @@ const UMBRAL_APROBADO_PRONUN = 30;
 export class ActividadesService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Guarda un intento una sola vez.
+   *
+   * El frontend reintenta si falla la red o el servidor, con el mismo
+   * idIntento. Si el primer envío alcanzó a guardarse (y solo se perdió la
+   * respuesta), se devuelve lo ya guardado en vez de crear otra fila: sin
+   * esto el niño recibía estrellas dobles. Si dos envíos llegan a la vez, el
+   * índice único (id_usuario, id_intento) deja pasar solo uno y el otro
+   * devuelve el mismo resultado.
+   */
+  private async guardarUnaVez<T>(
+    idUsuario: number,
+    idIntento: string | undefined,
+    guardar: () => Promise<T>,
+  ): Promise<T> {
+    if (!idIntento) return guardar();
+
+    const previo = await this.buscarIntento(idUsuario, idIntento);
+    if (previo) return previo as T;
+
+    try {
+      return await guardar();
+    } catch (error) {
+      // Dos envíos simultáneos del mismo intento: el perdedor falla al
+      // insertar (MariaDB lo informa como clave duplicada o como conflicto de
+      // transacción, según el momento). Si el otro ya lo guardó, se devuelve
+      // eso; si no, el error era otro y se propaga.
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        const ganador = await this.buscarIntento(idUsuario, idIntento);
+        if (ganador) return ganador as T;
+      }
+      throw error;
+    }
+  }
+
+  /** El resultado de un intento ya guardado, con la misma forma que devuelve
+   *  cada guardar*(): el resultado de su actividad más la duración. */
+  private async buscarIntento(idUsuario: number, idIntento: string) {
+    const actividad = await this.prisma.actividad.findUnique({
+      where: { idUsuario_idIntento: { idUsuario, idIntento } },
+      include: {
+        resultadoPintado: true,
+        resultadoSign: true,
+        resultadoUnePalabras: true,
+        resultadoPronunciacion: true,
+      },
+    });
+    if (!actividad) return null;
+
+    const resultado =
+      actividad.resultadoPintado ??
+      actividad.resultadoSign ??
+      actividad.resultadoUnePalabras ??
+      actividad.resultadoPronunciacion;
+    if (!resultado) return null;
+
+    return { ...resultado, duracion: actividad.duracion };
+  }
+
   async guardarPintado(idUsuario: number, dto: GuardarPintadoDto) {
     // Los dos inserts van juntos: si falla el segundo, no queda una actividad huérfana
-    return this.prisma.$transaction(async (tx) => {
+    return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
         data: {
           idUsuario,
           idTipoActividad: TIPO_PINTADO,
           duracion: dto.duracion,
+          idIntento: dto.idIntento,
         },
       });
 
@@ -49,13 +110,13 @@ export class ActividadesService {
       });
 
       return { ...resultado, duracion: actividad.duracion };
-    });
+    }));
   }
 
   async guardarSign(idUsuario: number, dto: GuardarSignDto) {
-  return this.prisma.$transaction(async (tx) => {
+  return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
     const actividad = await tx.actividad.create({
-      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion },
+      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion, idIntento: dto.idIntento },
     });
 
     const resultado = await tx.resultadoSign.create({
@@ -74,7 +135,7 @@ export class ActividadesService {
     });
 
     return { ...resultado, duracion: actividad.duracion };
-  });
+  }));
 }
 
 
@@ -86,9 +147,9 @@ export class ActividadesService {
     const puntajeVerificado =
       dto.totalPares > 0 ? (dto.aciertos / dto.totalPares) * 100 : 0;
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion },
+        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion, idIntento: dto.idIntento },
       });
 
       const resultado = await tx.resultadoUnePalabras.create({
@@ -116,7 +177,7 @@ export class ActividadesService {
       });
 
       return { ...resultado, duracion: actividad.duracion };
-    });
+    }));
   }
 
     async guardarPronunciacion(idUsuario: number, dto: GuardarPronunciacionDto) {
@@ -126,9 +187,9 @@ export class ActividadesService {
     const acerto =
       dto.textoDetectado.toUpperCase() === dto.textoEsperado.toUpperCase();
 
-    return this.prisma.$transaction(async (tx) => {
+    return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion },
+        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion, idIntento: dto.idIntento },
       });
 
       const resultado = await tx.resultadoPronunciacion.create({
@@ -147,7 +208,7 @@ export class ActividadesService {
       });
 
       return { ...resultado, duracion: actividad.duracion };
-    });
+    }));
   }
 
 
