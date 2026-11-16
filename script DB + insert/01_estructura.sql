@@ -186,8 +186,8 @@ DROP TABLE IF EXISTS `resultado_pronunciacion`;
 CREATE TABLE `resultado_pronunciacion` (
   `id_res_pronun` int(11) NOT NULL AUTO_INCREMENT,
   `id_actividad` int(11) NOT NULL,
-  `texto_esperado` text NOT NULL,
-  `texto_detectado` text NOT NULL,
+  `texto_esperado` varchar(10) NOT NULL,
+  `texto_detectado` varchar(10) NOT NULL,
   `porc_confianza` double NOT NULL,
   `aprobado_pronun` tinyint(1) NOT NULL DEFAULT 0 CHECK (`aprobado_pronun` in (0,1)),
   PRIMARY KEY (`id_res_pronun`),

@@ -2,6 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import type { Entorno } from '../config/entorno';
+import {
+  ABECEDARIO as ABECEDARIO_VALIDO,
+  VOCALES as VOCALES_VALIDAS,
+} from '../actividades/letras';
 
 /**
  * Calcula el dashboard "Mis logros" de un estudiante a partir de las tablas de
@@ -25,8 +29,9 @@ import type { Entorno } from '../config/entorno';
 
 const TIPO = { PINTA: 1, SIGN: 2, HABLEMOS: 3, UNE: 4 } as const;
 
-const VOCALES = ['A', 'E', 'I', 'O', 'U'];
-const ABECEDARIO = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
+// Las mismas listas que validan los DTO de actividades.
+const VOCALES: string[] = [...VOCALES_VALIDAS];
+const ABECEDARIO: string[] = [...ABECEDARIO_VALIDO];
 
 const INTENTOS_EVALUADOS = 5;
 const APROBADOS_PARA_DOMINAR = 3;

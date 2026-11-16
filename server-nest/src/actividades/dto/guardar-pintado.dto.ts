@@ -1,9 +1,10 @@
-import { IsString, IsNumber, Min, Max, Length } from 'class-validator';
+import { IsNumber, Min, Max, IsIn } from 'class-validator';
 import { ConDuracionDto } from './con-duracion.dto';
+import { ABECEDARIO, EnMayusculas } from '../letras';
 
 export class GuardarPintadoDto extends ConDuracionDto {
-  @IsString()
-  @Length(1, 10)
+  @EnMayusculas()
+  @IsIn(ABECEDARIO, { message: 'letraEsperada debe ser una letra de la A a la Z (o Ñ)' })
   letraEsperada!: string;
 
   @IsNumber()

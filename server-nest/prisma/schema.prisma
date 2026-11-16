@@ -170,8 +170,8 @@ model ResultadoPintado {
 model ResultadoPronunciacion {
   idResPronun    Int       @id @default(autoincrement()) @map("id_res_pronun")
   idActividad    Int       @unique(map: "id_actividad") @map("id_actividad")
-  textoEsperado  String    @map("texto_esperado") @db.Text
-  textoDetectado String    @map("texto_detectado") @db.Text
+  textoEsperado  String    @map("texto_esperado") @db.VarChar(10)
+  textoDetectado String    @map("texto_detectado") @db.VarChar(10)
   porcConfianza  Float     @map("porc_confianza")
   aprobadoPronun Boolean   @default(false) @map("aprobado_pronun")
   actividad      Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_pronunciacion_ibfk_1")
