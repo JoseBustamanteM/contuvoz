@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 import { VinculosService } from '../../../services/vinculos.service';
 import {
-  TipoVinculo, UsuarioListado, VinculoDetalle, VinculoResumen,
+  CandidatoVinculo, TipoVinculo, UsuarioListado, VinculoDetalle, VinculoResumen,
 } from '../../../interfaces/usuario-gestion.interface';
 import { Rol } from '../../../interfaces/rol.enum';
 
@@ -42,8 +42,10 @@ export class VinculosModalComponent {
 
   /** El estudiante, ya actualizado por la página tras cada cambio. */
   estudiante = input.required<UsuarioListado>();
-  /** Todos los usuarios cargados en la página: de ahí salen los candidatos. */
-  usuarios = input.required<UsuarioListado[]>();
+  /** Adultos que se pueden ofrecer al vincular. Para admins, los usuarios de
+   *  la página; para un profesor, además los apoderados del colegio que no
+   *  son suyos (solo con nombre). */
+  usuarios = input.required<CandidatoVinculo[]>();
 
   cambiado = output<string>();
   cerrado = output<void>();

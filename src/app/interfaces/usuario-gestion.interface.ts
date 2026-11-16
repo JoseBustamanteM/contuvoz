@@ -20,6 +20,14 @@ export interface UsuarioListado {
 
 export type TipoVinculo = 'PROFESOR' | 'APODERADO';
 
+/** Lo mínimo para ofrecer a alguien al vincular: nombre, rol y colegio. Es lo
+ *  que trae GET /usuarios/apoderados-vinculables (sin RUT, correo ni
+ *  teléfono), y un UsuarioListado también lo cumple. */
+export type CandidatoVinculo = Pick<
+  UsuarioListado,
+  'idUsuario' | 'primerNombre' | 'aPaterno' | 'aMaterno' | 'idRol' | 'idColegio' | 'activo'
+>;
+
 export interface PersonaVinculo {
   idUsuario: number;
   primerNombre: string;

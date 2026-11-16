@@ -57,6 +57,37 @@ const SELECT_LISTADO = {
   },
 } as const satisfies Prisma.UsuarioSelect;
 
+/**
+ * Usuarios que un PROFESOR puede ver con todos sus datos y gestionar (editar,
+ * desactivar, cambiar clave):
+ * - sus alumnos, con vínculo PROFESOR vigente con él;
+ * - los apoderados de esos alumnos (vínculo APODERADO vigente);
+ * - los apoderados que él mismo creó, para poder vincularlos recién creados.
+ *
+ * Antes veía y podía modificar a TODOS los estudiantes y apoderados del
+ * colegio, con RUT, correo y teléfono. Los demás apoderados del colegio solo
+ * los ve por nombre, para elegirlos al vincular (apoderadosVinculables).
+ */
+function alcanceProfesor(idProfesor: number): Prisma.UsuarioWhereInput {
+  const misAlumnos: Prisma.UsuarioWhereInput = {
+    vinculosComoEstudiante: {
+      some: { idAdulto: idProfesor, tipoVinculo: TipoVinculo.PROFESOR, ...VIGENTE },
+    },
+  };
+  return {
+    OR: [
+      { idRol: Rol.ESTUDIANTE, ...misAlumnos },
+      {
+        idRol: Rol.APODERADO,
+        vinculosComoAdulto: {
+          some: { tipoVinculo: TipoVinculo.APODERADO, ...VIGENTE, estudiante: misAlumnos },
+        },
+      },
+      { idRol: Rol.APODERADO, creadoPor: idProfesor },
+    ],
+  };
+}
+
 @Injectable()
 export class UsuariosService {
   constructor(
@@ -189,6 +220,10 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
       where.idColegio = filtroColegio;
     }
 
+    if (creador.idRol === Rol.PROFESOR) {
+      where.AND = [alcanceProfesor(creador.idUsuario)];
+    }
+
     return this.prisma.usuario.findMany({
       where,
       select: SELECT_LISTADO,
@@ -203,12 +238,39 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     });
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
-    await this.verificarAlcance(creador, usuario.idRol, usuario.idColegio);
+    await this.verificarAlcance(creador, idUsuario, usuario.idRol, usuario.idColegio);
     return usuario;
   }
 
-  /** Lanza ForbiddenException si el creador no tiene alcance sobre ese rol/colegio */
-  private async verificarAlcance(creador: UsuarioToken, idRolObjetivo: number, idColegioObjetivo: number) {
+  /**
+   * Apoderados activos del colegio del profesor, SOLO con nombre: los que
+   * puede elegir al vincular un apoderado a uno de sus alumnos. Sin RUT,
+   * correo ni teléfono, porque no son suyos (ver alcanceProfesor).
+   */
+  async apoderadosVinculables(creador: UsuarioToken) {
+    const { idColegio } = await this.datosCreador(creador.idUsuario);
+    return this.prisma.usuario.findMany({
+      where: { idRol: Rol.APODERADO, activo: true, idColegio },
+      select: {
+        idUsuario: true,
+        primerNombre: true,
+        aPaterno: true,
+        aMaterno: true,
+        idRol: true,
+        idColegio: true,
+        activo: true,
+      },
+      orderBy: { primerNombre: 'asc' },
+    });
+  }
+
+  /** Lanza ForbiddenException si el creador no tiene alcance sobre ese usuario */
+  private async verificarAlcance(
+    creador: UsuarioToken,
+    idUsuarioObjetivo: number,
+    idRolObjetivo: number,
+    idColegioObjetivo: number,
+  ) {
     if (creador.idRol === Rol.ADMINISTRADOR) return;
 
     const permitidos = PUEDE_GESTIONAR[creador.idRol] ?? [];
@@ -220,6 +282,17 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     if (creadorBD.idColegio !== idColegioObjetivo) {
       throw new ForbiddenException('No tienes permisos sobre este usuario');
     }
+
+    if (creador.idRol === Rol.PROFESOR) {
+      const enAlcance = await this.prisma.usuario.count({
+        where: { idUsuario: idUsuarioObjetivo, ...alcanceProfesor(creador.idUsuario) },
+      });
+      if (enAlcance === 0) {
+        throw new ForbiddenException(
+          'Solo puedes gestionar a tus alumnos y a sus apoderados',
+        );
+      }
+    }
   }
 
   async actualizar(creador: UsuarioToken, idUsuario: number, dto: ActualizarUsuarioDto) {
@@ -229,7 +302,7 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     });
     if (!objetivo) throw new NotFoundException('Usuario no encontrado');
 
-    await this.verificarAlcance(creador, objetivo.idRol, objetivo.idColegio);
+    await this.verificarAlcance(creador, idUsuario, objetivo.idRol, objetivo.idColegio);
 
     // Si además cambia el rol, el rol NUEVO también debe estar dentro de lo permitido
     if (dto.idRol !== undefined) {
@@ -297,7 +370,7 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     });
     if (!objetivo) throw new NotFoundException('Usuario no encontrado');
 
-    await this.verificarAlcance(creador, objetivo.idRol, objetivo.idColegio);
+    await this.verificarAlcance(creador, idUsuario, objetivo.idRol, objetivo.idColegio);
 
     return this.prisma.$transaction(async (tx) => {
       const desactivado = await tx.usuario.update({
@@ -319,7 +392,7 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     });
     if (!objetivo) throw new NotFoundException('Usuario no encontrado');
 
-    await this.verificarAlcance(creador, objetivo.idRol, objetivo.idColegio);
+    await this.verificarAlcance(creador, idUsuario, objetivo.idRol, objetivo.idColegio);
 
     return this.prisma.usuario.update({
       where: { idUsuario },

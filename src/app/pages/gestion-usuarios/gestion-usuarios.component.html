@@ -280,7 +280,7 @@
   @if (estudianteVinculos(); as est) {
     <vinculos-modal
       [estudiante]="est"
-      [usuarios]="usuarios()"
+      [usuarios]="candidatosVinculo()"
       (cambiado)="onVinculoCambiado($event)"
       (cerrado)="cerrarVinculos()" />
   }

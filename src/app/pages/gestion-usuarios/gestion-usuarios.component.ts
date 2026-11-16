@@ -3,7 +3,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { NgTemplateOutlet } from '@angular/common';
 import { UsuariosService } from '../../services/usuarios.service';
 import { AuthService } from '../../services/auth.service';
-import { TipoVinculo, UsuarioListado } from '../../interfaces/usuario-gestion.interface';
+import {
+  CandidatoVinculo, TipoVinculo, UsuarioListado,
+} from '../../interfaces/usuario-gestion.interface';
 import { NOMBRE_ROL, ROLES_GESTIONABLES, Rol } from '../../interfaces/rol.enum';
 import { UsuarioFormComponent } from '../../components/gestion-usuarios/usuario-form/usuario-form.component';
 import { VinculosModalComponent } from '../../components/gestion-usuarios/vinculos-modal/vinculos-modal.component';
@@ -33,6 +35,18 @@ export class GestionUsuariosComponent implements OnInit {
   private authService = inject(AuthService);
 
   usuarios = signal<UsuarioListado[]>([]);
+
+  /** Solo profesor: apoderados de su colegio que no son suyos, con nombre,
+   *  para poder elegirlos al vincular (la lista principal ya no los trae). */
+  private apoderadosVinculables = signal<CandidatoVinculo[]>([]);
+
+  /** Candidatos para el modal de vínculos: los usuarios de la página más,
+   *  para un profesor, los apoderados vinculables que no estén ya en ella. */
+  candidatosVinculo = computed<CandidatoVinculo[]>(() => {
+    const propios = this.usuarios();
+    const ids = new Set(propios.map((u) => u.idUsuario));
+    return [...propios, ...this.apoderadosVinculables().filter((a) => !ids.has(a.idUsuario))];
+  });
   cargando = signal(false);
   error = signal<string | null>(null);
   exito = signal<string | null>(null);
@@ -143,6 +157,14 @@ export class GestionUsuariosComponent implements OnInit {
         this.cargando.set(false);
       },
     });
+    if (this.authService.usuario()?.idRol === Rol.PROFESOR) {
+      this.usuariosService.apoderadosVinculables().subscribe({
+        next: (data) => this.apoderadosVinculables.set(data),
+        // Sin esta lista el modal solo ofrece los apoderados propios; no vale
+        // la pena tapar la página con un error por eso.
+        error: () => this.apoderadosVinculables.set([]),
+      });
+    }
   }
 
   /** Puede editar/desactivar a este usuario. El backend lo valida igual; esto

@@ -47,6 +47,14 @@ export class UsuariosController {
     );
   }
 
+  /** Apoderados del colegio que el profesor puede elegir al vincular, solo
+   *  con nombre. Va antes de ':id' para que Nest no lo tome como un id. */
+  @Roles(Rol.PROFESOR)
+  @Get('apoderados-vinculables')
+  async apoderadosVinculables(@UsuarioActual() creador: UsuarioToken) {
+    return this.usuariosService.apoderadosVinculables(creador);
+  }
+
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
   @Get(':id')
   async obtenerUno(

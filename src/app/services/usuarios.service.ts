@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
-  UsuarioListado, CrearUsuarioPayload, ActualizarUsuarioPayload,
+  UsuarioListado, CrearUsuarioPayload, ActualizarUsuarioPayload, CandidatoVinculo,
 } from '../interfaces/usuario-gestion.interface';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +17,12 @@ export class UsuariosService {
 
   return this.http.get<UsuarioListado[]>(this.API, { params });
 }
+
+  /** Solo profesores: apoderados de su colegio que puede elegir al vincular
+   *  (los que no son suyos vienen solo con nombre). */
+  apoderadosVinculables(): Observable<CandidatoVinculo[]> {
+    return this.http.get<CandidatoVinculo[]>(`${this.API}/apoderados-vinculables`);
+  }
 
   obtenerUno(id: number): Observable<UsuarioListado> {
     return this.http.get<UsuarioListado>(`${this.API}/${id}`);
