@@ -19,6 +19,8 @@ const MAX_FALLOS_POR_IP = 100;
  *  (usuarios.service usa 10). Ver login(). */
 const HASH_FICTICIO = bcrypt.hashSync(crypto.randomBytes(16).toString('hex'), 10);
 
+const DIA_MS = 24 * 60 * 60 * 1000;
+
 @Injectable()
 export class AuthService {
   private readonly accessTokenExpira: SignOptions['expiresIn'];
@@ -34,7 +36,11 @@ export class AuthService {
       infer: true,
     }) as SignOptions['expiresIn'];
     this.refreshTokenDias = config.get('REFRESH_TOKEN_DIAS', { infer: true });
+    this.sesionMaxDias = config.get('SESION_MAX_DIAS', { infer: true });
   }
+
+  /** Vida máxima de una sesión desde el login, aunque se siga renovando. */
+  private readonly sesionMaxDias: number;
 
   private hashRefreshToken(tokenPlano: string): string {
     return crypto.createHash('sha256').update(tokenPlano).digest('hex');
@@ -74,7 +80,13 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    return this.generarTokens(usuario.idUsuario, ip, userAgent, sesion.idSesion);
+    return this.generarTokens(
+      usuario.idUsuario,
+      ip,
+      userAgent,
+      sesion.idSesion,
+      sesion.fechaInicio,
+    );
   }
 
   /**
@@ -83,8 +95,8 @@ export class AuthService {
    *
    * - Por RUT: 5 fallos en 15 minutos bloquean ese RUT hasta que el más
    *   antiguo de esos 5 cumpla 15 minutos. Un login correcto reinicia la
-   *   cuenta. Los intentos bloqueados no se registran, para que alguien no
-   *   pueda mantener bloqueada la cuenta de otro indefinidamente.
+   *   cuenta. Los intentos hechos durante el bloqueo no se registran, así
+   *   que insistir no lo alarga.
    * - Por IP: 100 fallos en 15 minutos. Es holgado a propósito: todo un
    *   colegio sale a internet con la misma IP y los niños se equivocan.
    */
@@ -136,17 +148,18 @@ export class AuthService {
     idUsuario: number,
     ip: string,
     userAgent: string,
-    idSesion: number | null = null,
+    idSesion: number,
+    inicioSesion: Date,
   ) {
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { idUsuario, activo: true },
+      select: { idRol: true },
+    });
 
-     const usuario = await this.prisma.usuario.findFirst({
-    where: { idUsuario, activo: true },
-    select: { idRol: true },
-  });
+    if (!usuario) {
+      throw new UnauthorizedException('Usuario no disponible');
+    }
 
-  if (!usuario) {
-    throw new UnauthorizedException('Usuario no disponible');
-  }
     const accessToken = this.jwtService.sign(
       { sub: idUsuario, rol: usuario.idRol },
       { expiresIn: this.accessTokenExpira },
@@ -155,8 +168,16 @@ export class AuthService {
     const refreshTokenPlano = crypto.randomBytes(64).toString('hex');
     const hash = this.hashRefreshToken(refreshTokenPlano);
 
-    const fechaExpiracion = new Date();
-    fechaExpiracion.setDate(fechaExpiracion.getDate() + this.refreshTokenDias);
+    // Cada refresh dura REFRESH_TOKEN_DIAS, pero nunca más allá de la vida
+    // máxima de la sesión: sin este tope, rotar el token cada pocos días
+    // mantenía la sesión abierta para siempre.
+    const ahora = Date.now();
+    const fechaExpiracion = new Date(
+      Math.min(
+        ahora + this.refreshTokenDias * DIA_MS,
+        inicioSesion.getTime() + this.sesionMaxDias * DIA_MS,
+      ),
+    );
 
     await this.prisma.sesionToken.create({
       data: {
@@ -188,22 +209,33 @@ export class AuthService {
         revocado: false,
         fechaExpiracion: { gt: new Date() },
       },
+      include: { sesion: { select: { fechaInicio: true, fechaFin: true } } },
     });
 
-    if (!tokenValido) {
+    // Sin sesión asociada o con la sesión ya cerrada, no se renueva: toca
+    // iniciar sesión de nuevo.
+    if (!tokenValido || !tokenValido.idSesion || !tokenValido.sesion || tokenValido.sesion.fechaFin) {
       throw new UnauthorizedException('Sesión expirada, inicia sesión de nuevo');
     }
 
-    await this.prisma.sesionToken.update({
-      where: { idSesionToken: tokenValido.idSesionToken },
+    // Revocar solo si sigue sin revocar, en una sola operación: si llegan dos
+    // peticiones a la vez con el mismo token, solo una gana y la otra recibe
+    // 401 (antes ambas pasaban la búsqueda y generaban dos tokens nuevos).
+    const { count } = await this.prisma.sesionToken.updateMany({
+      where: { idSesionToken: tokenValido.idSesionToken, revocado: false },
       data: { revocado: true },
     });
+
+    if (count !== 1) {
+      throw new UnauthorizedException('Sesión expirada, inicia sesión de nuevo');
+    }
 
     return this.generarTokens(
       tokenValido.idUsuario,
       ip,
       userAgent,
       tokenValido.idSesion,
+      tokenValido.sesion.fechaInicio,
     );
   }
 

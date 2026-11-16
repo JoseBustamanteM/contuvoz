@@ -1,7 +1,7 @@
 // src/app/services/auth.service.ts
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap, catchError, of, shareReplay, finalize, switchMap} from 'rxjs';
+import { Observable, tap, catchError, of, shareReplay, finalize, switchMap, retry, timer } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 interface LoginResponse {
@@ -62,6 +62,11 @@ login(rutUsuario: string, password: string): Observable<UsuarioActual | null> {
     return this.http
       .post<LoginResponse>(`${this.API}/refresh`, {}, { withCredentials: true })
       .pipe(
+        // Si dos pestañas renuevan a la vez con la misma cookie, el backend
+        // acepta solo una y la otra recibe 401. Para entonces el navegador ya
+        // guardó la cookie nueva de la ganadora, así que un segundo intento
+        // poco después funciona. Si la sesión murió de verdad, falla igual.
+        retry({ count: 1, delay: () => timer(400) }),
         tap((res) => this.accessToken.set(res.accessToken)),
         catchError(() => {
           this.accessToken.set(null);

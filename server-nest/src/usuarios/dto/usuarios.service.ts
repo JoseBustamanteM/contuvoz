@@ -11,6 +11,7 @@ import { UsuarioToken } from '../../auth/decorators/usuario-actual.decorator';
 import { limpiarRut } from '../../common/validators/rut.validator';
 import { Prisma, TipoVinculo } from '@prisma/client';
 import { VIGENTE, VinculosService } from '../../vinculos/vinculos.service';
+import { cerrarSesionesDeUsuario } from '../../auth/sesiones';
 
 const PUEDE_GESTIONAR: Record<number, Rol[]> = {
   [Rol.ADMINISTRADOR]: [
@@ -253,21 +254,33 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
       if (duplicado) throw new ConflictException('RUT o correo ya en uso por otro usuario');
     }
 
-    return this.prisma.usuario.update({
-      where: { idUsuario },
-      data: {
-        idRol: dto.idRol,
-        rutUsuario: dto.rutUsuario ? limpiarRut(dto.rutUsuario) : undefined,
-        claveHash: dto.password ? await bcrypt.hash(dto.password, 10) : undefined,
-        primerNombre: dto.primerNombre,
-        segundoNombre: dto.segundoNombre,
-        aPaterno: dto.aPaterno,
-        aMaterno: dto.aMaterno,
-        telefonoUsuario: dto.telefonoUsuario,
-        correo: dto.correo,
-        urlAvatar: dto.urlAvatar,
-      },
-      select: SELECT_PUBLICO,
+    const claveHash = dto.password ? await bcrypt.hash(dto.password, 10) : undefined;
+    const cambiaRol = dto.idRol !== undefined && dto.idRol !== objetivo.idRol;
+
+    return this.prisma.$transaction(async (tx) => {
+      const actualizado = await tx.usuario.update({
+        where: { idUsuario },
+        data: {
+          idRol: dto.idRol,
+          rutUsuario: dto.rutUsuario ? limpiarRut(dto.rutUsuario) : undefined,
+          claveHash,
+          primerNombre: dto.primerNombre,
+          segundoNombre: dto.segundoNombre,
+          aPaterno: dto.aPaterno,
+          aMaterno: dto.aMaterno,
+          telefonoUsuario: dto.telefonoUsuario,
+          correo: dto.correo,
+          urlAvatar: dto.urlAvatar,
+        },
+        select: SELECT_PUBLICO,
+      });
+
+      // Con clave nueva u otro rol, las sesiones abiertas se cierran en todos
+      // sus equipos: quien conocía la clave anterior queda fuera.
+      if (claveHash) await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_clave');
+      else if (cambiaRol) await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_rol');
+
+      return actualizado;
     });
   }
 
@@ -286,10 +299,16 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
 
     await this.verificarAlcance(creador, objetivo.idRol, objetivo.idColegio);
 
-    return this.prisma.usuario.update({
-      where: { idUsuario },
-      data: { activo: false, deshabilitadoPor: creador.idUsuario },
-      select: SELECT_PUBLICO,
+    return this.prisma.$transaction(async (tx) => {
+      const desactivado = await tx.usuario.update({
+        where: { idUsuario },
+        data: { activo: false, deshabilitadoPor: creador.idUsuario },
+        select: SELECT_PUBLICO,
+      });
+
+      await cerrarSesionesDeUsuario(tx, idUsuario, 'desactivado');
+
+      return desactivado;
     });
   }
 
