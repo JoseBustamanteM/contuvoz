@@ -6,34 +6,42 @@ import { AuthService } from '../../services/auth.service';
   selector: 'app-logout-button',
   standalone: true,
   template: `
-    <!-- Mismo formato que los botones de la barra superior, en coral para que
-         se distinga como la acción de salir. Bajo 900px queda solo el ícono. -->
+    <!-- Misma forma de hoja colgando de la rama que los botones de la barra
+         superior (ver barra-superior.component.scss), en blanco y coral para
+         que se distinga como la acción de salir. Bajo 900px pasa a dibujo con
+         la palabra debajo, igual que las demás hojas. -->
     <button
       type="button"
       (click)="abrirConfirmacion()"
       [disabled]="cargando()"
       aria-label="Cerrar sesión"
       title="Salir"
-      class="inline-flex min-h-[40px] min-w-[40px] items-center justify-center gap-1.5 rounded-full
-             bg-rose-50 px-3.5 text-sm font-extrabold text-rose-600
-             shadow-[0_3px_0_#fecdd3] transition
-             hover:-translate-y-px hover:bg-rose-100
-             active:translate-y-0.5 active:shadow-[0_1px_0_#fecdd3]
+      class="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5
+             rounded-[6px_24px_6px_24px] whitespace-nowrap bg-white px-3.5 text-[0.92rem]
+             font-extrabold text-[#c4362a] shadow-[0_4px_0_#f2b8b1] transition
+             before:absolute before:bottom-full before:left-1/2 before:-ml-0.5 before:h-2 before:w-1
+             before:rounded-sm before:bg-[#5a7a00] before:content-['']
+             hover:translate-y-0.5 hover:bg-[#fff3f1]
              focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2
-             focus-visible:outline-rose-300
+             focus-visible:outline-[#c4362a]
              disabled:cursor-wait disabled:opacity-70
-             max-[899px]:w-10 max-[899px]:px-0"
+             max-[899px]:min-h-[48px] max-[899px]:min-w-[52px] max-[899px]:flex-col
+             max-[899px]:gap-px max-[899px]:rounded-[6px_20px_6px_20px] max-[899px]:px-1.5 max-[899px]:py-1
+             max-[899px]:text-[0.68rem] max-[899px]:leading-[1.1]
+             max-[559px]:min-w-[46px] max-[559px]:px-[3px] max-[559px]:text-[0.64rem]"
     >
       @if (cargando()) {
-        <svg class="size-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <svg class="size-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor"
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
         </svg>
       } @else {
-        <span class="text-lg leading-none" aria-hidden="true">🚪</span>
+        <svg class="size-5 flex-none fill-current" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3h7A1.5 1.5 0 0 1 14 4.5v3a1 1 0 1 1-2 0V5H6v14h6v-2.5a1 1 0 1 1 2 0v3a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 4 19.5zm13.3 3.800a1 1 0 0 1 1.4 0l3 3a1 1 0 0 1 0 1.4l-3 3a1 1 0 0 1-1.4-1.4l1.29-1.3H10a1 1 0 1 1 0-2h8.59l-1.3-1.3a1 1 0 0 1 0-1.4z"/>
+        </svg>
       }
-      <span class="max-[899px]:hidden">{{ cargando() ? 'Saliendo…' : 'Salir' }}</span>
+      <span>{{ cargando() ? 'Saliendo…' : 'Salir' }}</span>
     </button>
 
     @if (mostrarModal()) {
