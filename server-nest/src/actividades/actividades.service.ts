@@ -18,6 +18,22 @@ const TIPO_PRONUNCIACION = 3;
 // muestra el resultado con esta misma regla): si cambia acá, cambiar allá.
 const UMBRAL_APROBADO_PRONUN = 30;
 
+/**
+ * Versión de las reglas de cada actividad: umbral de aprobación y forma de
+ * calcular el puntaje o de detectar (canvas, MediaPipe, detector de vocales).
+ * Se guarda en actividad.version_reglas con cada intento.
+ *
+ * SUBIR el número de una actividad cuando cambie cualquiera de esas cosas,
+ * para que sus intentos nuevos no se mezclen con los antiguos como si
+ * valieran lo mismo. Todo lo guardado hasta el 2026-11-16 es la versión 1.
+ */
+const VERSION_REGLAS = {
+  [TIPO_PINTADO]: 1,
+  [TIPO_SIGN]: 1,
+  [TIPO_PRONUNCIACION]: 1,
+  [TIPO_UNE]: 1,
+} as const;
+
 
 @Injectable()
 export class ActividadesService {
@@ -91,6 +107,7 @@ export class ActividadesService {
           idTipoActividad: TIPO_PINTADO,
           duracion: dto.duracion,
           idIntento: dto.idIntento,
+          versionReglas: VERSION_REGLAS[TIPO_PINTADO],
         },
       });
 
@@ -118,7 +135,7 @@ export class ActividadesService {
   async guardarSign(idUsuario: number, dto: GuardarSignDto) {
   return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
     const actividad = await tx.actividad.create({
-      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion, idIntento: dto.idIntento },
+      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_SIGN] },
     });
 
     const resultado = await tx.resultadoSign.create({
@@ -151,7 +168,7 @@ export class ActividadesService {
 
     return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion, idIntento: dto.idIntento },
+        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_UNE] },
       });
 
       const resultado = await tx.resultadoUnePalabras.create({
@@ -191,7 +208,7 @@ export class ActividadesService {
 
     return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion, idIntento: dto.idIntento },
+        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_PRONUNCIACION] },
       });
 
       const resultado = await tx.resultadoPronunciacion.create({

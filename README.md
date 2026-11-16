@@ -63,12 +63,14 @@ Los scripts no incluyen usuarios. El primer administrador se crea después de co
 | `2026-10-13_duracion_actividad.sql` | Columna `duracion` (segundos) en `actividad` para todas las actividades; elimina `duracion_pintado` y `duracion_une` (copia sus datos antes) |
 | `2026-11-16_indices_sesion.sql` | Índices en `sesion` (RUT + fecha, IP + fecha) para el límite de intentos de login. Se puede ejecutar más de una vez |
 | `2026-11-16_intento_actividad.sql` | Columna `id_intento` en `actividad` con índice único por usuario: un intento reenviado por falla de red no se guarda dos veces |
+| `2026-11-16_version_reglas.sql` | Columna `version_reglas` en `actividad`: con qué versión de las reglas se evaluó cada intento (todo lo anterior queda en 1) |
 
 ```bash
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-06_vinculo_estudiante.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-13_duracion_actividad.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_indices_sesion.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_intento_actividad.sql"
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_version_reglas.sql"
 ```
 
 Luego, en `server-nest`, `npx prisma generate`.

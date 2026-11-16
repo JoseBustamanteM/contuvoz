@@ -30,6 +30,7 @@ CREATE TABLE `actividad` (
   `fecha_actividad` datetime NOT NULL DEFAULT current_timestamp(),
   `duracion` int(11) DEFAULT NULL COMMENT 'Segundos que duró el intento',
   `id_intento` char(36) DEFAULT NULL COMMENT 'UUID del intento, generado en el navegador',
+  `version_reglas` smallint(6) NOT NULL DEFAULT 1 COMMENT 'Versión de las reglas con que se evaluó el intento',
   PRIMARY KEY (`id_actividad`),
   UNIQUE KEY `uq_actividad_intento` (`id_usuario`,`id_intento`),
   KEY `idx_actividad_usuario` (`id_usuario`),

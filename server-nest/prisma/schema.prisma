@@ -137,6 +137,9 @@ model Actividad {
   /// UUID del intento, generado en el navegador y repetido en sus reintentos.
   /// Con el índice único evita guardar dos veces el mismo intento.
   idIntento              String?                 @map("id_intento") @db.Char(36)
+  /// Versión de las reglas con que se evaluó (VERSION_REGLAS en
+  /// actividades.service.ts). Sube cuando cambia un umbral o el detector.
+  versionReglas          Int                     @map("version_reglas") @db.SmallInt
   usuario                Usuario                 @relation(fields: [idUsuario], references: [idUsuario], map: "actividad_ibfk_1")
   tipoActividad          TipoActividad           @relation(fields: [idTipoActividad], references: [idTipoActividad], map: "actividad_ibfk_2")
   resultadoPintado       ResultadoPintado?
