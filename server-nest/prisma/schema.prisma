@@ -145,6 +145,8 @@ model Actividad {
   /// Versión de las reglas con que se evaluó (VERSION_REGLAS en
   /// actividades.service.ts). Sube cuando cambia un umbral o el detector.
   versionReglas          Int                     @map("version_reglas") @db.SmallInt
+  /// true si la hizo un adulto (demostración del profesor), no un alumno.
+  esDemo                 Boolean                 @default(false) @map("es_demo")
   usuario                Usuario                 @relation(fields: [idUsuario], references: [idUsuario], map: "actividad_ibfk_1")
   tipoActividad          TipoActividad           @relation(fields: [idTipoActividad], references: [idTipoActividad], map: "actividad_ibfk_2")
   resultadoPintado       ResultadoPintado?

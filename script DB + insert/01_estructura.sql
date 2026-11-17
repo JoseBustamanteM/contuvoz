@@ -31,6 +31,7 @@ CREATE TABLE `actividad` (
   `duracion` int(11) DEFAULT NULL COMMENT 'Segundos que duró el intento',
   `id_intento` char(36) DEFAULT NULL COMMENT 'UUID del intento, generado en el navegador',
   `version_reglas` smallint(6) NOT NULL DEFAULT 1 COMMENT 'Versión de las reglas con que se evaluó el intento',
+  `es_demo` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = la hizo un adulto (demostración), no un alumno',
   PRIMARY KEY (`id_actividad`),
   UNIQUE KEY `uq_actividad_intento` (`id_usuario`,`id_intento`),
   KEY `idx_actividad_usuario` (`id_usuario`),
@@ -38,7 +39,8 @@ CREATE TABLE `actividad` (
   KEY `idx_actividad_tipo` (`id_tipo_actividad`),
   CONSTRAINT `actividad_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE,
   CONSTRAINT `actividad_ibfk_2` FOREIGN KEY (`id_tipo_actividad`) REFERENCES `tipo_actividad` (`id_tipo_actividad`) ON UPDATE CASCADE,
-  CONSTRAINT `chk_actividad_duracion` CHECK (`duracion` is null or `duracion` >= 0)
+  CONSTRAINT `chk_actividad_duracion` CHECK (`duracion` is null or `duracion` >= 0),
+  CONSTRAINT `chk_actividad_es_demo` CHECK (`es_demo` in (0,1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

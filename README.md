@@ -70,6 +70,7 @@ Los scripts no incluyen usuarios. El primer administrador se crea después de co
 | `2026-11-17_auditoria.sql` | Tabla `auditoria`: quién creó, editó, desactivó o vinculó a quién (sin contraseñas) |
 | `2026-11-17_cambios_aplicados.sql` | Tabla `cambios_aplicados`, que registra qué scripts de esta carpeta tiene la base. Marca como aplicados todos los anteriores: úsalo solo si la base los tiene (ver DEPLOY.md, "Registro de scripts") |
 | `2026-11-17_contacto_opcional_estudiante.sql` | `correo` y `telefono_usuario` de `usuario` admiten NULL: opcionales para estudiantes (el backend los sigue exigiendo a los adultos) |
+| `2026-11-17_actividad_demo.sql` | Columna `es_demo` en `actividad`: marca las demostraciones de los adultos (las existentes se marcan según el rol) |
 
 ```bash
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-06_vinculo_estudiante.sql"
@@ -83,6 +84,7 @@ mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_indice_activ
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_auditoria.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_cambios_aplicados.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_contacto_opcional_estudiante.sql"
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_actividad_demo.sql"
 ```
 
 Luego, en `server-nest`, `npx prisma generate`.

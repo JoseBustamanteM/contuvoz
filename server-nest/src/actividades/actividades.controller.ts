@@ -39,6 +39,11 @@ import { GuardarPronunciacionDto } from './dto/guardar-pronunciacion.dto';
  * '../auth/dto/guardar-pintado.dto' o mové el archivo (recomendado) y actualizá
  * también la línea 3 de `actividades.service.ts`.
  */
+/** Lo que guarda un adulto (el profesor mostrando la actividad al curso) es
+ *  una demostración: queda marcado con es_demo para no mezclarlo con los
+ *  resultados de los alumnos. */
+const esDemo = (usuario: UsuarioToken) => usuario.idRol !== Rol.ESTUDIANTE;
+
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('actividades')
 export class ActividadesController {
@@ -50,7 +55,7 @@ export class ActividadesController {
     @UsuarioActual() usuario: UsuarioToken,
     @Body() dto: GuardarPintadoDto,
   ) {
-    return this.actividadesService.guardarPintado(usuario.idUsuario, dto);
+    return this.actividadesService.guardarPintado(usuario.idUsuario, dto, esDemo(usuario));
   }
 
   @Roles(Rol.ESTUDIANTE, Rol.PROFESOR)
@@ -59,7 +64,7 @@ export class ActividadesController {
     @UsuarioActual() usuario: UsuarioToken,
     @Body() dto: GuardarSignDto,
   ) {
-    return this.actividadesService.guardarSign(usuario.idUsuario, dto);
+    return this.actividadesService.guardarSign(usuario.idUsuario, dto, esDemo(usuario));
   }
 
 
@@ -69,7 +74,7 @@ export class ActividadesController {
     @UsuarioActual() usuario: UsuarioToken,
     @Body() dto: GuardarUnePalabrasDto,
   ) {
-    return this.actividadesService.guardarUnePalabras(usuario.idUsuario, dto);
+    return this.actividadesService.guardarUnePalabras(usuario.idUsuario, dto, esDemo(usuario));
   }
 
     @Roles(Rol.ESTUDIANTE, Rol.PROFESOR)
@@ -78,7 +83,7 @@ export class ActividadesController {
     @UsuarioActual() usuario: UsuarioToken,
     @Body() dto: GuardarPronunciacionDto,
   ) {
-    return this.actividadesService.guardarPronunciacion(usuario.idUsuario, dto);
+    return this.actividadesService.guardarPronunciacion(usuario.idUsuario, dto, esDemo(usuario));
   }
 
 

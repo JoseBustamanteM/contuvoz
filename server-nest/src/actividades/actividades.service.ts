@@ -169,7 +169,7 @@ export class ActividadesService {
     return { ...resultado, duracion: actividad.duracion };
   }
 
-  async guardarPintado(idUsuario: number, dto: GuardarPintadoDto) {
+  async guardarPintado(idUsuario: number, dto: GuardarPintadoDto, esDemo = false) {
     // Los dos inserts van juntos: si falla el segundo, no queda una actividad huérfana
     return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
@@ -179,6 +179,7 @@ export class ActividadesService {
           duracion: dto.duracion,
           idIntento: dto.idIntento,
           versionReglas: VERSION_REGLAS[TIPO_PINTADO],
+          esDemo,
         },
       });
 
@@ -203,10 +204,10 @@ export class ActividadesService {
     }));
   }
 
-  async guardarSign(idUsuario: number, dto: GuardarSignDto) {
+  async guardarSign(idUsuario: number, dto: GuardarSignDto, esDemo = false) {
   return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
     const actividad = await tx.actividad.create({
-      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_SIGN] },
+      data: { idUsuario, idTipoActividad: TIPO_SIGN, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_SIGN], esDemo },
     });
 
     const resultado = await tx.resultadoSign.create({
@@ -229,7 +230,7 @@ export class ActividadesService {
 }
 
 
-  async guardarUnePalabras(idUsuario: number, dto: GuardarUnePalabrasDto) {
+  async guardarUnePalabras(idUsuario: number, dto: GuardarUnePalabrasDto, esDemo = false) {
     validarRondaUne(dto);
 
     // El puntaje llega calculado del cliente igual que en las otras actividades,
@@ -241,7 +242,7 @@ export class ActividadesService {
 
     return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_UNE] },
+        data: { idUsuario, idTipoActividad: TIPO_UNE, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_UNE], esDemo },
       });
 
       const resultado = await tx.resultadoUnePalabras.create({
@@ -272,7 +273,7 @@ export class ActividadesService {
     }));
   }
 
-    async guardarPronunciacion(idUsuario: number, dto: GuardarPronunciacionDto) {
+    async guardarPronunciacion(idUsuario: number, dto: GuardarPronunciacionDto, esDemo = false) {
     // La aprobación NO depende solo de la confianza: el detector puede estar
     // muy seguro de que dijo una E cuando se pidió una A. Hay que exigir
     // ambas cosas, igual que en señas.
@@ -281,7 +282,7 @@ export class ActividadesService {
 
     return this.guardarUnaVez(idUsuario, dto.idIntento, () => this.prisma.$transaction(async (tx) => {
       const actividad = await tx.actividad.create({
-        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_PRONUNCIACION] },
+        data: { idUsuario, idTipoActividad: TIPO_PRONUNCIACION, duracion: dto.duracion, idIntento: dto.idIntento, versionReglas: VERSION_REGLAS[TIPO_PRONUNCIACION], esDemo },
       });
 
       const resultado = await tx.resultadoPronunciacion.create({
