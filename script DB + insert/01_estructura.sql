@@ -89,6 +89,20 @@ CREATE TABLE `auditoria` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `cambios_aplicados`
+--
+
+DROP TABLE IF EXISTS `cambios_aplicados`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `cambios_aplicados` (
+  `nombre` varchar(100) NOT NULL COMMENT 'Archivo de script DB + insert/cambios/',
+  `fecha_aplicado` datetime NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`nombre`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `ciudad`
 --
 

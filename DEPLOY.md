@@ -258,11 +258,48 @@ sudo cp /opt/contuvoz/deploy/nginx-contuvoz.conf /etc/nginx/sites-available/cont
 sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Si el cambio trae un script en `script DB + insert/cambios/`, aplícalo antes:
+Si el cambio trae scripts nuevos de base de datos, `actualizar.sh` se detiene
+después de bajar el código y los lista. Aplícalos (hace un respaldo antes) y
+vuelve a ejecutar `actualizar.sh`:
 
 ```bash
-sudo mariadb contuvoz < "/opt/contuvoz/script DB + insert/cambios/NOMBRE.sql"
+sudo bash /opt/contuvoz/deploy/aplicar-cambios.sh
 ```
+
+### Registro de scripts
+
+La tabla `cambios_aplicados` guarda qué scripts de `script DB + insert/cambios/`
+tiene la base; `aplicar-cambios.sh` aplica solo los que faltan, en orden, y los
+anota. Para ver qué falta sin aplicar nada:
+`sudo bash /opt/contuvoz/deploy/aplicar-cambios.sh --revisar`.
+
+**Una sola vez, en una base que ya existía antes del registro:** crea la tabla
+y marca como aplicados todos los scripts hasta `2026-11-17_cambios_aplicados.sql`.
+Hazlo solo si la base de verdad los tiene. Para comprobarlo, esta consulta debe
+mostrar 1 en todas las columnas:
+
+```bash
+sudo mariadb contuvoz -e "SELECT
+  (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='contuvoz' AND TABLE_NAME='vinculo_estudiante') AS vinculos,
+  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='contuvoz' AND TABLE_NAME='actividad' AND COLUMN_NAME='duracion') AS duracion,
+  (SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='contuvoz' AND INDEX_NAME='idx_sesion_rut_fecha') AS indices_sesion,
+  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='contuvoz' AND TABLE_NAME='actividad' AND COLUMN_NAME='id_intento') AS intento,
+  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='contuvoz' AND TABLE_NAME='actividad' AND COLUMN_NAME='version_reglas') AS version_reglas,
+  (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='contuvoz' AND TABLE_NAME='resultado_pronunciacion' AND COLUMN_NAME='texto_esperado' AND DATA_TYPE='varchar') AS letras,
+  (SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA='contuvoz' AND CONSTRAINT_NAME='chk_une_rangos') AS checks,
+  (SELECT COUNT(DISTINCT INDEX_NAME) FROM information_schema.STATISTICS WHERE TABLE_SCHEMA='contuvoz' AND INDEX_NAME='idx_actividad_usuario_fecha') AS indice_fecha,
+  (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='contuvoz' AND TABLE_NAME='auditoria') AS auditoria;"
+```
+
+Si alguna da 0, aplica primero ese script a mano. Luego:
+
+```bash
+sudo mariadb contuvoz < "/opt/contuvoz/script DB + insert/cambios/2026-11-17_cambios_aplicados.sql"
+```
+
+Al **agregar un script nuevo** a `cambios/`: nómbralo `AAAA-MM-DD_descripcion.sql`
+(se aplican en orden alfabético), aplica el mismo cambio en `01_estructura.sql`
+y suma su nombre al `INSERT` del final de `02_datos_base.sql`.
 
 ## Respaldos
 

@@ -101,4 +101,23 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*M!100616 SET NOTE_VERBOSITY=@OLD_NOTE_VERBOSITY */;
 
+--
+-- Registro de scripts de cambios/ (cambios_aplicados)
+--
+-- 01_estructura.sql ya incluye todos los cambios, así que una base instalada
+-- desde cero los tiene todos. AL AGREGAR UN SCRIPT NUEVO en cambios/, sumar su
+-- nombre aquí (y aplicar el cambio en 01_estructura.sql).
+
+INSERT IGNORE INTO `cambios_aplicados` (`nombre`) VALUES
+  ('2026-10-06_vinculo_estudiante.sql'),
+  ('2026-10-13_duracion_actividad.sql'),
+  ('2026-11-16_checks_resultados.sql'),
+  ('2026-11-16_indice_actividad_fecha.sql'),
+  ('2026-11-16_indices_sesion.sql'),
+  ('2026-11-16_intento_actividad.sql'),
+  ('2026-11-16_letras_pronunciacion.sql'),
+  ('2026-11-16_version_reglas.sql'),
+  ('2026-11-17_auditoria.sql'),
+  ('2026-11-17_cambios_aplicados.sql');
+
 -- Dump completed

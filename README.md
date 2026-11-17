@@ -68,6 +68,7 @@ Los scripts no incluyen usuarios. El primer administrador se crea después de co
 | `2026-11-16_checks_resultados.sql` | Restricciones `CHECK` de rango en las tablas de resultados (puntajes y confianza entre 0 y 100, aciertos ≤ pares). El script indica cómo comprobar antes que ninguna fila las viola |
 | `2026-11-16_indice_actividad_fecha.sql` | Índice `(id_usuario, fecha_actividad)` en `actividad`, para el límite de intentos por minuto y Mis logros. Se puede ejecutar más de una vez |
 | `2026-11-17_auditoria.sql` | Tabla `auditoria`: quién creó, editó, desactivó o vinculó a quién (sin contraseñas) |
+| `2026-11-17_cambios_aplicados.sql` | Tabla `cambios_aplicados`, que registra qué scripts de esta carpeta tiene la base. Marca como aplicados todos los anteriores: úsalo solo si la base los tiene (ver DEPLOY.md, "Registro de scripts") |
 
 ```bash
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-06_vinculo_estudiante.sql"
@@ -79,6 +80,7 @@ mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_letras_pronu
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_checks_resultados.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-16_indice_actividad_fecha.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_auditoria.sql"
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_cambios_aplicados.sql"
 ```
 
 Luego, en `server-nest`, `npx prisma generate`.
