@@ -120,6 +120,7 @@ INSERT IGNORE INTO `cambios_aplicados` (`nombre`) VALUES
   ('2026-11-17_auditoria.sql'),
   ('2026-11-17_cambios_aplicados.sql'),
   ('2026-11-17_contacto_opcional_estudiante.sql'),
-  ('2026-11-17_actividad_demo.sql');
+  ('2026-11-17_actividad_demo.sql'),
+  ('2026-11-17_medidas_pronunciacion.sql');
 
 -- Dump completed

@@ -24,12 +24,12 @@
   <!-- Barra del tiempo de escucha -->
   @if (escuchando()) {
     <div class="practice-button__progress-track" role="progressbar"
-         [attr.aria-valuenow]="countdown()"
-         aria-valuemin="0" [attr.aria-valuemax]="segundosTotales()"
+         [attr.aria-valuenow]="progresoPorcentaje()"
+         aria-valuemin="0" aria-valuemax="100"
          aria-label="Tiempo restante de escucha">
       <div
         class="practice-button__progress-bar"
-        [style.width.%]="progressWidth()"
+        [style.width.%]="progresoPorcentaje()"
       ></div>
     </div>
   }

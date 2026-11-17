@@ -23,12 +23,29 @@ export function apruebaPronunciacion(
   );
 }
 
+/** Se guarda como "detectada" cuando el detector no está seguro: se pide
+ *  repetir y no cuenta como fallo en Mis logros. */
+export const DUDOSA = 'DUDOSA';
+/** Se guarda cuando no hubo voz suficiente. */
+export const NINGUNA = 'NINGUNA';
+
 export interface ResultadoPronunciacion {
   textoEsperado: string;
+  /** La vocal reconocida, NINGUNA (no habló) o DUDOSA (no se pudo decidir). */
   textoDetectado: string;
   porcConfianza: number;
   /** Segundos que duró el intento (se guarda en actividad.duracion). */
   duracion: number;
+
+  // Medidas de la voz (no el audio), para ajustar el detector con datos
+  // reales. Faltan si no se alcanzó a medir.
+  f0Hz?: number;
+  f1Hz?: number;
+  f2Hz?: number;
+  f3Hz?: number;
+  snrDb?: number;
+  msVoz?: number;
+  versionDetector?: number;
 }
 
 export interface ResultadoPronunciacionGuardado extends ResultadoPronunciacion {

@@ -1,12 +1,13 @@
 <div
   class="result-feedback"
   [class.result-feedback--success]="isSuccess()"
-  [class.result-feedback--failure]="!isSuccess()"
+  [class.result-feedback--failure]="!isSuccess() && !isRepeat()"
+  [class.result-feedback--repeat]="isRepeat()"
   role="status"
 >
   <!-- Ícono grande -->
   <div class="result-feedback__icon" aria-hidden="true">
-    {{ isSuccess() ? '🌟' : '🔄' }}
+    {{ icon() }}
   </div>
 
   <!-- Texto de resultado -->

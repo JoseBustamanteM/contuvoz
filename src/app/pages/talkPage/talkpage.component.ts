@@ -9,17 +9,18 @@ import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-p
 import { VowelDetectorService } from '../../services/vowel-detector.service';
 import { ActividadesService } from '../../services/actividades.service';
 import {
+  DUDOSA,
+  NINGUNA,
   ResultadoPronunciacion,
   apruebaPronunciacion,
 } from '../../interfaces/pronunciacion.interface';
 
 export type VocalLetter = 'A' | 'E' | 'I' | 'O' | 'U';
-export type PracticeState = 'idle' | 'listening' | 'success' | 'failure';
-
-/** Cuánto escucha el detector. Es la ÚNICA fuente de la duración: el botón la
- *  recibe como input para su cuenta regresiva. Antes cada uno tenía la suya y
- *  los comentarios y la barra decían 5 s mientras se escuchaba 2. */
-export const DURACION_ESCUCHA_MS = 2000;
+/** 'repeat': el detector no está seguro, o la vocal fue muy corta. Se pide
+ *  repetir sin decir que estuvo mal. */
+export type PracticeState = 'idle' | 'listening' | 'success' | 'failure' | 'repeat';
+/** Por qué se pide repetir (o por qué no se escuchó nada). */
+export type MotivoRepetir = 'dudosa' | 'muy-corta' | 'sin-voz' | null;
 
 @Component({
   selector: 'app-talk-page',
@@ -40,12 +41,13 @@ export class TalkPageComponent {
   private detector = inject(VowelDetectorService);
   private actividadesService = inject(ActividadesService);
 
-  readonly duracionEscuchaMs = DURACION_ESCUCHA_MS;
-
   /** true solo cuando el micrófono ya está abierto. Mientras el navegador pide
-   *  permiso, practiceState ya es 'listening' pero esto sigue en false: así la
-   *  cuenta regresiva no se gasta esperando que el niño acepte el permiso. */
+   *  permiso, practiceState ya es 'listening' pero esto sigue en false. */
   microfonoAbierto = this.detector.isListening;
+  /** true desde que el niño empieza a hablar. */
+  oyendoVoz = this.detector.oyendoVoz;
+  /** 1 → 0: tiempo que queda de escucha. */
+  progresoEscucha = this.detector.progreso;
 
   /** Por qué no se pudo usar el micrófono (permiso negado, no hay micrófono...). */
   errorMicrofono = this.detector.error;
@@ -53,6 +55,7 @@ export class TalkPageComponent {
   selectedVocal = signal<VocalLetter | null>(null);
   detectedVocal = signal<VocalLetter | null>(null);
   practiceState = signal<PracticeState>('idle');
+  motivoRepetir = signal<MotivoRepetir>(null);
   guardando = signal(false);
   errorGuardado = signal(false);
 
@@ -67,6 +70,7 @@ export class TalkPageComponent {
     this.selectedVocal.set(vocal);
     this.practiceState.set('idle');
     this.detectedVocal.set(null);
+    this.motivoRepetir.set(null);
   }
 
   async onPracticeStart(): Promise<void> {
@@ -75,6 +79,7 @@ export class TalkPageComponent {
 
     this.practiceState.set('listening');
     this.detectedVocal.set(null);
+    this.motivoRepetir.set(null);
     this.errorGuardado.set(false);
 
     // Duración del intento: de tocar "Practicar" al resultado (incluye la
@@ -82,29 +87,56 @@ export class TalkPageComponent {
     const inicio = performance.now();
 
     try {
-      const result = await this.detector.listen(vocal, DURACION_ESCUCHA_MS);
+      const result = await this.detector.listen(vocal);
       // El detector devuelve 0..1 y la columna espera 0..100.
       const porcConfianza = Math.round(result.confidence * 100);
+
+      // Lo que se guarda como "detectada":
+      // - correcta u otra vocal: la vocal reconocida;
+      // - dudosa o muy corta: DUDOSA (se pide repetir, no cuenta como fallo);
+      // - sin voz: NINGUNA, igual que en señas. Distingue "se equivocó de
+      //   vocal" de "no llegó a hablar", que para la profesora son distintos.
+      const textoDetectado =
+        result.resultado === 'correcta' || result.resultado === 'otra'
+          ? result.detected!
+          : result.resultado === 'sin-voz'
+            ? NINGUNA
+            : DUDOSA;
 
       // Misma regla que el servidor (vocal correcta Y confianza mínima): lo
       // que ve el niño es lo que queda en Mis logros. Se decide aquí, sin
       // esperar la respuesta, para que el resultado aparezca al instante y
       // también funcione en modo práctica, donde no se guarda nada.
-      const aprobado = apruebaPronunciacion(vocal, result.detected, porcConfianza);
+      const aprobado = apruebaPronunciacion(vocal, textoDetectado, porcConfianza);
       this.intentoActual++;
-      this.detectedVocal.set(result.detected as VocalLetter | null);
-      this.practiceState.set(aprobado ? 'success' : 'failure');
+      this.detectedVocal.set(result.resultado === 'otra' ? result.detected : null);
+      if (aprobado) {
+        this.practiceState.set('success');
+      } else if (textoDetectado === DUDOSA) {
+        this.motivoRepetir.set(result.resultado === 'muy-corta' ? 'muy-corta' : 'dudosa');
+        this.practiceState.set('repeat');
+      } else {
+        this.motivoRepetir.set(textoDetectado === NINGUNA ? 'sin-voz' : null);
+        this.practiceState.set('failure');
+      }
 
       // El intento se guarda SIEMPRE, acierte o no: un fallo es un dato
       // pedagógico tan válido como un acierto (con qué vocal se confunde).
+      const m = result.medidas;
       this.guardarIntento({
         textoEsperado: vocal,
-        // La columna es NOT NULL: cuando no hubo voz suficiente se guarda
-        // 'NINGUNA', igual que en señas. Distingue "se equivocó de vocal"
-        // de "no llegó a hablar", que son cosas distintas para la profesora.
-        textoDetectado: result.detected ?? 'NINGUNA',
+        textoDetectado,
         porcConfianza,
         duracion: Math.round((performance.now() - inicio) / 1000),
+        versionDetector: result.versionDetector,
+        ...(m && {
+          f0Hz: Math.round(m.f0),
+          f1Hz: Math.round(m.f1),
+          f2Hz: Math.round(m.f2),
+          ...(m.f3 > 0 && { f3Hz: Math.round(m.f3) }),
+          snrDb: Math.round(m.snrDb * 10) / 10,
+          msVoz: Math.round(m.msVoz),
+        }),
       });
     } catch {
       // No se pudo abrir el micrófono: no hubo intento, así que no se guarda
@@ -131,7 +163,8 @@ export class TalkPageComponent {
         // quedaran distintas (umbral cambiado en un lado y no en el otro), la
         // pantalla se corrige para mostrar lo que de verdad se guardó. Solo si
         // el niño sigue viendo este mismo intento.
-        if (intento === this.intentoActual && this.practiceState() !== 'listening') {
+        const estado = this.practiceState();
+        if (intento === this.intentoActual && estado !== 'listening' && estado !== 'repeat') {
           this.practiceState.set(guardado.aprobadoPronun ? 'success' : 'failure');
         }
       },

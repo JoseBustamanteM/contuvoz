@@ -11,8 +11,15 @@ export const ABECEDARIO = [...'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'] as const;
 /** Lo que se guarda como "detectada" cuando no hubo seña o voz suficiente. */
 export const NINGUNA = 'NINGUNA';
 
-/** Detecciones válidas en señas y voz: una vocal o NINGUNA. */
+/** Lo que se guarda en Hablemos cuando el detector no estuvo seguro y pidió
+ *  repetir. No cuenta como fallo en Mis logros. */
+export const DUDOSA = 'DUDOSA';
+
+/** Detecciones válidas en señas: una vocal o NINGUNA. */
 export const DETECCIONES_VOCAL = [...VOCALES, NINGUNA] as const;
+
+/** Detecciones válidas en Hablemos: además, DUDOSA. */
+export const DETECCIONES_VOZ = [...DETECCIONES_VOCAL, DUDOSA] as const;
 
 /** Pasa a mayúsculas antes de validar, para aceptar "a" igual que "A" (el
  *  servicio ya guarda en mayúsculas). */

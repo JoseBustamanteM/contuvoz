@@ -116,14 +116,14 @@ model Usuario {
   usuariosDeshabilitados Usuario[]           @relation("UsuarioDeshabilitador")
 
   // vinculo_estudiante: estas listas son solo de Prisma, no crean columnas.
-  vinculosComoEstudiante  VinculoEstudiante[] @relation("VinculoEstudiante")
-  vinculosComoAdulto      VinculoEstudiante[] @relation("VinculoAdulto")
-  vinculosCreados         VinculoEstudiante[] @relation("VinculoCreador")
-  vinculosDeshabilitados  VinculoEstudiante[] @relation("VinculoDeshabilitador")
+  vinculosComoEstudiante VinculoEstudiante[] @relation("VinculoEstudiante")
+  vinculosComoAdulto     VinculoEstudiante[] @relation("VinculoAdulto")
+  vinculosCreados        VinculoEstudiante[] @relation("VinculoCreador")
+  vinculosDeshabilitados VinculoEstudiante[] @relation("VinculoDeshabilitador")
 
   // auditoria: cambios que hizo y cambios que lo afectaron.
-  auditoriaComoActor      Auditoria[]         @relation("AuditoriaActor")
-  auditoriaComoAfectado   Auditoria[]         @relation("AuditoriaAfectado")
+  auditoriaComoActor    Auditoria[] @relation("AuditoriaActor")
+  auditoriaComoAfectado Auditoria[] @relation("AuditoriaAfectado")
 
   @@index([idColegio], map: "idx_usuario_colegio")
   @@index([creadoPor], map: "idx_usuario_creado_por")
@@ -176,13 +176,21 @@ model ResultadoPintado {
 }
 
 model ResultadoPronunciacion {
-  idResPronun    Int       @id @default(autoincrement()) @map("id_res_pronun")
-  idActividad    Int       @unique(map: "id_actividad") @map("id_actividad")
-  textoEsperado  String    @map("texto_esperado") @db.VarChar(10)
-  textoDetectado String    @map("texto_detectado") @db.VarChar(10)
-  porcConfianza  Float     @map("porc_confianza")
-  aprobadoPronun Boolean   @default(false) @map("aprobado_pronun")
-  actividad      Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_pronunciacion_ibfk_1")
+  idResPronun     Int       @id @default(autoincrement()) @map("id_res_pronun")
+  idActividad     Int       @unique(map: "id_actividad") @map("id_actividad")
+  textoEsperado   String    @map("texto_esperado") @db.VarChar(10)
+  textoDetectado  String    @map("texto_detectado") @db.VarChar(10)
+  porcConfianza   Float     @map("porc_confianza")
+  aprobadoPronun  Boolean   @default(false) @map("aprobado_pronun")
+  /// Medidas de la voz (no el audio). NULL en intentos del detector anterior.
+  f0Hz            Int?      @map("f0_hz") @db.UnsignedSmallInt
+  f1Hz            Int?      @map("f1_hz") @db.UnsignedSmallInt
+  f2Hz            Int?      @map("f2_hz") @db.UnsignedSmallInt
+  f3Hz            Int?      @map("f3_hz") @db.UnsignedSmallInt
+  snrDb           Float?    @map("snr_db")
+  msVoz           Int?      @map("ms_voz") @db.UnsignedSmallInt
+  versionDetector Int?      @map("version_detector") @db.UnsignedTinyInt
+  actividad       Actividad @relation(fields: [idActividad], references: [idActividad], map: "resultado_pronunciacion_ibfk_1")
 
   @@map("resultado_pronunciacion")
 }
@@ -252,7 +260,7 @@ model Sesion {
 model SesionToken {
   idSesionToken    Int      @id @default(autoincrement()) @map("id_sesion_token")
   idUsuario        Int      @map("id_usuario")
-  idSesion  Int?     @map("id_sesion")
+  idSesion         Int?     @map("id_sesion")
   refreshTokenHash String   @unique(map: "refresh_token_hash") @map("refresh_token_hash") @db.VarChar(255)
   fechaCreacion    DateTime @default(now()) @map("fecha_creacion") @db.DateTime(0)
   fechaExpiracion  DateTime @map("fecha_expiracion") @db.DateTime(0)
@@ -260,7 +268,7 @@ model SesionToken {
   ipOrigen         String?  @map("ip_origen") @db.VarChar(45)
   userAgent        String?  @map("user_agent") @db.VarChar(255)
   usuario          Usuario  @relation(fields: [idUsuario], references: [idUsuario], map: "sesion_token_ibfk_1")
-  sesion    Sesion?  @relation(fields: [idSesion], references: [idSesion], map: "sesion_token_ibfk_2")
+  sesion           Sesion?  @relation(fields: [idSesion], references: [idSesion], map: "sesion_token_ibfk_2")
 
   @@index([idUsuario], map: "idx_sesion_token_usuario")
   @@index([idSesion], map: "sesion_token_ibfk_2")

@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import type { Entorno } from '../config/entorno';
 import {
   ABECEDARIO as ABECEDARIO_VALIDO,
+  DUDOSA,
   VOCALES as VOCALES_VALIDAS,
 } from '../actividades/letras';
 
@@ -154,6 +155,10 @@ export class MisLogrosService {
         sign.push({ letra: rs.letraEsperada.toUpperCase(), aprobado: rs.aprobadoSign, detectada: rs.letraDetectada.toUpperCase() });
         if (estaSemana && rs.aprobadoSign) estrellasPorActividad.comunicate++;
       } else if (a.idTipoActividad === TIPO.HABLEMOS && rh) {
+        // DUDOSA: el detector no estuvo seguro y pidió repetir. No es un
+        // fallo del niño, así que no cuenta para el estado de la letra ni
+        // para las pistas (el día sí cuenta como día jugado).
+        if (rh.textoDetectado.toUpperCase() === DUDOSA) continue;
         hablemos.push({ letra: rh.textoEsperado.toUpperCase(), aprobado: rh.aprobadoPronun, detectada: rh.textoDetectado.toUpperCase() });
         if (estaSemana && rh.aprobadoPronun) estrellasPorActividad.hablemos++;
       } else if (a.idTipoActividad === TIPO.UNE && ru) {

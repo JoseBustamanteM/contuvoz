@@ -22,6 +22,7 @@ export class MascotHeaderComponent {
     if (state === 'listening') return `¡Escucho! Di la "${vocal}"... 👂`;
     if (state === 'success')   return '¡Genial! ¡Lo lograste! 🌟';
     if (state === 'failure')   return '¡Tú puedes! Inténtalo de nuevo 💪';
+    if (state === 'repeat')    return `¡Otra vez! Di la "${vocal}" bien larga 👂`;
     if (vocal)                 return `Ahora practica la vocal "${vocal}"`;
     return '¡Elige una vocal y practica!';
   });

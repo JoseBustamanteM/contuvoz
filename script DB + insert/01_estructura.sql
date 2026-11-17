@@ -231,10 +231,18 @@ CREATE TABLE `resultado_pronunciacion` (
   `texto_detectado` varchar(10) NOT NULL,
   `porc_confianza` double NOT NULL,
   `aprobado_pronun` tinyint(1) NOT NULL DEFAULT 0 CHECK (`aprobado_pronun` in (0,1)),
+  `f0_hz` smallint(5) unsigned DEFAULT NULL COMMENT 'Tono de la voz (Hz)',
+  `f1_hz` smallint(5) unsigned DEFAULT NULL COMMENT 'Primer formante (Hz)',
+  `f2_hz` smallint(5) unsigned DEFAULT NULL COMMENT 'Segundo formante (Hz)',
+  `f3_hz` smallint(5) unsigned DEFAULT NULL COMMENT 'Tercer formante (Hz)',
+  `snr_db` double DEFAULT NULL COMMENT 'Voz sobre el ruido de la sala (dB)',
+  `ms_voz` smallint(5) unsigned DEFAULT NULL COMMENT 'Duración de la vocal medida (ms)',
+  `version_detector` tinyint(3) unsigned DEFAULT NULL COMMENT 'NULL = detector anterior',
   PRIMARY KEY (`id_res_pronun`),
   UNIQUE KEY `id_actividad` (`id_actividad`),
   CONSTRAINT `resultado_pronunciacion_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `actividad` (`id_actividad`) ON UPDATE CASCADE,
-  CONSTRAINT `chk_pronun_confianza` CHECK (`porc_confianza` between 0 and 100)
+  CONSTRAINT `chk_pronun_confianza` CHECK (`porc_confianza` between 0 and 100),
+  CONSTRAINT `chk_pronun_medidas` CHECK ((`f0_hz` is null or `f0_hz` between 50 and 1000) and (`f1_hz` is null or `f1_hz` <= 8000) and (`f2_hz` is null or `f2_hz` <= 8000) and (`f3_hz` is null or `f3_hz` <= 8000) and (`snr_db` is null or `snr_db` between -20 and 150) and (`ms_voz` is null or `ms_voz` <= 10000))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

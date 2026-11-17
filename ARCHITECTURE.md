@@ -14,7 +14,8 @@ tools adults need to follow each child's progress:
 - **Comunícate (sign language)**: the five vowels in Chilean Sign Language (LSCh),
   recognised from the webcam with MediaPipe hand landmarks and geometric rules.
 - **Hablemos (speech)**: vowel pronunciation (A, E, I, O, U) detected from the
-  microphone by formant analysis (F1/F2) with the Web Audio API — no ML model.
+  microphone by formant analysis (LPC, speaker-normalized in Bark) with the Web
+  Audio API — no ML model, no training data.
 - **Une palabras (word matching)**: match words to pictures; first-try matches
   and confusions are recorded.
 - **Mis logros (student dashboard)**: stars, streak, letters mastered per
@@ -65,9 +66,11 @@ a save error.
   `services/signLanguage.service.ts`: MediaPipe HandLandmarker, per-vowel scores
   from finger angles/distances, a vowel counts only if held for 800 ms with a
   margin over the closest rival.
-- **`pages/talkPage`** + `services/vowel-detector.service.ts`: 2 s capture,
-  spectral envelope, F1/F2 peaks, nearest vowel in log-frequency space. Clear
-  messages for denied/missing/busy microphone.
+- **`pages/talkPage`** + `services/vowel-detector.service.ts` (capture) +
+  `services/vowel-dsp.ts` (pure analysis, tested with synthetic vowels in
+  `vowel-dsp.spec.ts`). Three verdicts: correct, other vowel, or "doubtful"
+  (asks to repeat, not counted as a failure). Clear messages for
+  denied/missing/busy microphone.
 - **`pages/unePalabras`** + `interfaces/banco-palabras.ts`: rounds of 5 words
   from a 30-word bank.
 - **`services/actividades.service.ts`**: POSTs results with retry + exponential
@@ -127,7 +130,8 @@ All routes live under the global prefix **`/api`** (`main.ts`).
   verdict; speech = tap "Practicar" → result; word matching = first touch → end
   of round. Older sign/speech rows have `NULL`.
 - Approval is decided on the server from the submitted metrics (e.g. sign:
-  confidence ≥ 70 **and** held; speech: correct vowel **and** confidence ≥ 30;
+  confidence ≥ 70 **and** held; speech: correct vowel **and** confidence ≥ 30,
+  and a `DUDOSA` attempt is neither approved nor counted as a failure in Mis logros;
   word matching: score recomputed from hits/pairs).
 - ⚠️ Scores are **self-reported** by the browser; accepted on purpose for
   classroom use (see the note in `actividades.controller.ts`).
@@ -225,12 +229,21 @@ summary → per-letter save status, "retry save" for failures
 ### 4. Vowel detection (Hablemos)
 
 ```
-TalkPage → VowelDetectorService.listen(vowel, 2000 ms)
-   ├─ getUserMedia (clear message if denied / missing / busy)
-   ├─ AnalyserNode FFT every 30 ms while there is voice (RMS gate)
-   ├─ accumulated spectrum → smoothed envelope → F1 (200–900 Hz), F2 (900–2800 Hz)
-   └─ nearest reference vowel in log(F1, F2) → { detected, confidence }
-TalkPage → success / failure feedback → POST /api/actividades/pronunciacion
+TalkPage → VowelDetectorService.listen(vowel)
+   ├─ getUserMedia with echo cancellation, noise suppression and auto gain OFF
+   ├─ raw PCM via AudioWorklet (public/audio/captura-pcm.worklet.js;
+   │  ScriptProcessor fallback), audioCtx.resume() for iOS Safari
+   ├─ waits up to 4 s for the child to start, then up to 2 s of voice;
+   │  stops early when the child goes quiet
+   └─ whole recording → vowel-dsp.ts:
+        resample to 16 kHz → 30 ms frames: energy over room noise + periodicity
+        → longest stable voiced stretch (≥ 250 ms) → f0 (autocorrelation)
+        → F1–F3 by LPC (10 kHz, order 12, polynomial roots), grouped across frames
+        → Bark: height = B(F1) − B(f0), frontness = B(F2) − B(F1)
+        → distance to Spanish vowel prototypes → correcta / otra / dudosa
+TalkPage → success / failure / "say it again" → POST /api/actividades/pronunciacion
+           (texto_detectado: vowel, NINGUNA or DUDOSA, plus f0/F1–F3/SNR/duration,
+            never the audio)
 ```
 
 ### 5. Mis logros
@@ -253,7 +266,8 @@ frontend → known words ∩ word bank → "12 of 30" line
 1. **@mediapipe/tasks-vision** — HandLandmarker (GPU delegate). The WASM files are
    copied from `node_modules` at build time and the model lives in
    `public/mediapipe/`: **no CDN at runtime** (school networks often block them).
-2. **Web Audio API** — microphone capture and FFT for Hablemos (no library).
+2. **Web Audio API** — raw microphone capture for Hablemos (AudioWorklet); the
+   analysis (LPC, Bark normalization) is plain TypeScript, no library.
 3. **Fonts** — Nunito and Playwrite CU, served from the app itself (Fontsource
    packages in `angular.json`), not from Google Fonts.
 
@@ -505,5 +519,6 @@ cd server-nest && npm run crear-admin
 - [ ] Medals computed from real data (currently fixed in code)
 - [ ] Biblioteca (library) section — `archivo_biblioteca` table exists
 - [ ] Ñ in the Pinta letras letter selector
-- [ ] Calibrate Hablemos with children's voices
+- [ ] Tune Hablemos' vowel prototypes with the measurements saved per attempt
+  (`resultado_pronunciacion.f0_hz…version_detector`) and ~10 real recordings
 - [ ] Stable public URL (named Cloudflare tunnel + domain)

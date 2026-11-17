@@ -147,6 +147,29 @@ describe('MisLogrosService', () => {
     });
   });
 
+  it('un intento DUDOSA (pidió repetir) no cuenta como fallo, pero sí como día jugado', async () => {
+    jest.useFakeTimers({ now: new Date('2026-11-18T12:00:00Z'), doNotFake: ['nextTick', 'setImmediate'] });
+    const hora = (n: number) => new Date(Date.UTC(2026, 10, 18, 11, 0) - n * 60_000).toISOString();
+    const dudosa = (utc: string) => {
+      const a = vocal(utc, 'A', false);
+      a.resultadoPronunciacion!.textoDetectado = 'DUDOSA';
+      return a;
+    };
+    const servicio = crearServicio([
+      // 5 dudosas recientes encima de 3 aprobados: la A sigue dominada.
+      dudosa(hora(1)), dudosa(hora(2)), dudosa(hora(3)), dudosa(hora(4)), dudosa(hora(5)),
+      vocal(hora(6), 'A', true), vocal(hora(7), 'A', true), vocal(hora(8), 'A', true),
+      // Ayer solo hubo dudosas: igual mantiene la racha.
+      dudosa('2026-11-17T15:00:00Z'), dudosa('2026-11-17T15:01:00Z'), dudosa('2026-11-17T15:02:00Z'),
+    ]);
+
+    const r = await servicio.resumen(1);
+
+    expect(r.hablemos.letras.find((l) => l.letra === 'A')?.estado).toBe('dominada');
+    expect(r.hablemos.pista).toBeNull();
+    expect(r.racha).toBe(2);
+  });
+
   it('Comunícate y Hablemos se evalúan por separado', async () => {
     jest.useFakeTimers({ now: new Date('2026-11-18T12:00:00Z'), doNotFake: ['nextTick', 'setImmediate'] });
     const servicio = crearServicio([vocal('2026-11-18T11:00:00Z', 'U', true, TIPO.SIGN)]);

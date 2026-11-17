@@ -40,6 +40,15 @@
     }
   }
 
+  // ── Repetir (no es un error: el detector no está seguro) ──
+  &--repeat {
+    background: #eef4ff;
+    border: 3px solid #4c6ef5;
+
+    .result-feedback__title  { color: #364fc7; }
+    .result-feedback__subtitle { color: #4c6ef5; }
+  }
+
   // ── Ícono ────────────────────────────────────────────────
   &__icon {
     font-size: 3.5rem;

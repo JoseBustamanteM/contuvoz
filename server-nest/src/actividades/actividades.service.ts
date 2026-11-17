@@ -292,6 +292,13 @@ export class ActividadesService {
           textoDetectado: dto.textoDetectado.toUpperCase(),
           porcConfianza: dto.porcConfianza,
           aprobadoPronun: acerto && dto.porcConfianza >= UMBRAL_APROBADO_PRONUN,
+          f0Hz: dto.f0Hz,
+          f1Hz: dto.f1Hz,
+          f2Hz: dto.f2Hz,
+          f3Hz: dto.f3Hz,
+          snrDb: dto.snrDb,
+          msVoz: dto.msVoz,
+          versionDetector: dto.versionDetector,
         },
       });
 

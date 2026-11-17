@@ -20,8 +20,9 @@
     <app-practice-button
       [selectedVocal]="selectedVocal()"
       [practiceState]="practiceState()"
-      [duracionMs]="duracionEscuchaMs"
       [escuchando]="microfonoAbierto()"
+      [oyendoVoz]="oyendoVoz()"
+      [progreso]="progresoEscucha()"
       (practiceStart)="onPracticeStart()"
     />
 
@@ -39,12 +40,13 @@
     </section>
   }
 
-  @if (practiceState() === 'success' || practiceState() === 'failure') {
+  @if (practiceState() === 'success' || practiceState() === 'failure' || practiceState() === 'repeat') {
     <section class="talk-page__feedback-section" aria-live="polite" aria-label="Resultado">
       <app-result-feedback
         [practiceState]="practiceState()"
         [selectedVocal]="selectedVocal()"
         [detectedVocal]="detectedVocal()"
+        [motivo]="motivoRepetir()"
       />
     </section>
   }

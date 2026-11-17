@@ -6,7 +6,7 @@ Aplicación educativa para niños con actividades de lectoescritura y comunicaci
 |---|---|---|
 | Pinta Letras | `/drawPage` | Trazado de letras sobre un canvas |
 | Comunícate | `/signPage` | Lengua de señas con detección de manos (MediaPipe) |
-| Hablemos | `/talkPage` | Pronunciación de vocales por análisis de formantes (Web Audio) |
+| Hablemos | `/talkPage` | Pronunciación de vocales: formantes por LPC, normalizados por hablante (Web Audio, sin modelos entrenados) |
 | Une Palabras | `/unePage` | Unir palabras con su dibujo |
 
 Toda la detección corre en el navegador; el backend solo guarda los resultados.
@@ -71,6 +71,7 @@ Los scripts no incluyen usuarios. El primer administrador se crea después de co
 | `2026-11-17_cambios_aplicados.sql` | Tabla `cambios_aplicados`, que registra qué scripts de esta carpeta tiene la base. Marca como aplicados todos los anteriores: úsalo solo si la base los tiene (ver DEPLOY.md, "Registro de scripts") |
 | `2026-11-17_contacto_opcional_estudiante.sql` | `correo` y `telefono_usuario` de `usuario` admiten NULL: opcionales para estudiantes (el backend los sigue exigiendo a los adultos) |
 | `2026-11-17_actividad_demo.sql` | Columna `es_demo` en `actividad`: marca las demostraciones de los adultos (las existentes se marcan según el rol) |
+| `2026-11-17_medidas_pronunciacion.sql` | Medidas de la voz en `resultado_pronunciacion` (tono, formantes F1-F3, señal/ruido, duración y versión del detector; no el audio) para ajustar Hablemos con datos reales |
 
 ```bash
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-10-06_vinculo_estudiante.sql"
@@ -85,6 +86,7 @@ mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_auditoria.sq
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_cambios_aplicados.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_contacto_opcional_estudiante.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_actividad_demo.sql"
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_medidas_pronunciacion.sql"
 ```
 
 Luego, en `server-nest`, `npx prisma generate`.
@@ -184,7 +186,7 @@ Solo los usuarios **Estudiante** y **Profesor** registran resultados de activida
 | Dónde | Comando | Qué hace |
 |---|---|---|
 | raíz | `npm run build` | Compila el frontend en `dist/` |
-| raíz | `npm test` | Tests del frontend (Vitest) |
+| raíz | `npm test` | Tests del frontend (Vitest), incluido el detector de vocales de Hablemos con vocales sintéticas (hombre, mujer y niños, con ruido) |
 | `server-nest` | `npm run build` | Compila el backend |
 | `server-nest` | `npm test` | Tests del backend (Jest): permisos de usuarios y vínculos, sesión (límite de intentos, rotación y reúso del token), fechas de Mis logros con los cambios de hora de Chile y validaciones. No usan la base: Prisma va simulado |
 | `server-nest` | `npm run crear-admin` | Crea un usuario Administrador |
