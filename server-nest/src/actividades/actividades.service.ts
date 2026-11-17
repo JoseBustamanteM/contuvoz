@@ -1,4 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException, HttpException, HttpStatus, Injectable,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { GuardarPintadoDto } from './dto/guardar-pintado.dto';
@@ -17,6 +19,9 @@ const TIPO_PRONUNCIACION = 3;
 // ⚠️ Espejo en src/app/interfaces/pronunciacion.interface.ts (el frontend
 // muestra el resultado con esta misma regla): si cambia acá, cambiar allá.
 const UMBRAL_APROBADO_PRONUN = 30;
+
+/** Ver verificarFrecuencia(). */
+const MAX_INTENTOS_POR_MINUTO = 40;
 
 /**
  * Versión de las reglas de cada actividad: umbral de aprobación y forma de
@@ -96,10 +101,16 @@ export class ActividadesService {
     idIntento: string | undefined,
     guardar: () => Promise<T>,
   ): Promise<T> {
-    if (!idIntento) return guardar();
+    if (!idIntento) {
+      await this.verificarFrecuencia(idUsuario);
+      return guardar();
+    }
 
+    // Un reintento de algo ya guardado no cuenta para el límite.
     const previo = await this.buscarIntento(idUsuario, idIntento);
     if (previo) return previo as T;
+
+    await this.verificarFrecuencia(idUsuario);
 
     try {
       return await guardar();
@@ -113,6 +124,24 @@ export class ActividadesService {
         if (ganador) return ganador as T;
       }
       throw error;
+    }
+  }
+
+  /**
+   * Límite de intentos guardados por minuto y usuario. Jugando de verdad
+   * nadie se acerca: el más rápido es Hablemos, unos 2 a 3 segundos por
+   * intento (unos 20 por minuto). Lo que se evita es que un script llene la
+   * base o las estrellas de un niño con miles de resultados.
+   */
+  private async verificarFrecuencia(idUsuario: number) {
+    const recientes = await this.prisma.actividad.count({
+      where: { idUsuario, fechaActividad: { gte: new Date(Date.now() - 60_000) } },
+    });
+    if (recientes >= MAX_INTENTOS_POR_MINUTO) {
+      throw new HttpException(
+        'Demasiados intentos seguidos. Espera un momento antes de seguir.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
     }
   }
 

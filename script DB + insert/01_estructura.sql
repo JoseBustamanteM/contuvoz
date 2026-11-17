@@ -34,6 +34,7 @@ CREATE TABLE `actividad` (
   PRIMARY KEY (`id_actividad`),
   UNIQUE KEY `uq_actividad_intento` (`id_usuario`,`id_intento`),
   KEY `idx_actividad_usuario` (`id_usuario`),
+  KEY `idx_actividad_usuario_fecha` (`id_usuario`,`fecha_actividad`),
   KEY `idx_actividad_tipo` (`id_tipo_actividad`),
   CONSTRAINT `actividad_ibfk_1` FOREIGN KEY (`id_usuario`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE,
   CONSTRAINT `actividad_ibfk_2` FOREIGN KEY (`id_tipo_actividad`) REFERENCES `tipo_actividad` (`id_tipo_actividad`) ON UPDATE CASCADE,
