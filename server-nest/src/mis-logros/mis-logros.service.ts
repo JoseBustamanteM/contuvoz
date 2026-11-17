@@ -34,6 +34,9 @@ const VOCALES: string[] = [...VOCALES_VALIDAS];
 const ABECEDARIO: string[] = [...ABECEDARIO_VALIDO];
 
 const INTENTOS_EVALUADOS = 5;
+
+/** Tope de intentos leídos por actividad en cada visita (ver resumen()). */
+const INTENTOS_LEIDOS_POR_ACTIVIDAD = 1000;
 const APROBADOS_PARA_DOMINAR = 3;
 
 /** Para las pistas solo se miran los intentos recientes: un error de hace
@@ -92,20 +95,37 @@ export class MisLogrosService {
   }
 
   async resumen(idEstudiante: number): Promise<ResumenEstudiante> {
-    // Una sola consulta: todas las actividades con su resultado, de la más
-    // reciente a la más antigua (el orden importa para "últimos 5 intentos").
-    const actividades = await this.prisma.actividad.findMany({
-      where: { idUsuario: idEstudiante },
-      orderBy: [{ fechaActividad: 'desc' }, { idActividad: 'desc' }],
-      select: {
-        idTipoActividad: true,
-        fechaActividad: true,
-        resultadoPintado: { select: { letraEsperada: true, aprobadoPintado: true, trazoExterno: true } },
-        resultadoSign: { select: { letraEsperada: true, letraDetectada: true, aprobadoSign: true } },
-        resultadoPronunciacion: { select: { textoEsperado: true, textoDetectado: true, aprobadoPronun: true } },
-        resultadoUnePalabras: { select: { detalle: true, aprobadoUne: true } },
-      },
-    });
+    // Los intentos más recientes de cada actividad, del más nuevo al más
+    // antiguo (el orden importa para "últimos 5 intentos"). Antes se leía
+    // TODO el historial en cada visita, y crece sin fin. Con un tope por
+    // actividad la consulta queda acotada sin cambiar el resultado en la
+    // práctica: 1.000 intentos alcanzan de sobra para los últimos 5 de cada
+    // letra, la semana actual y la racha. Usa el índice
+    // (id_usuario, fecha_actividad).
+    const porTipo = await Promise.all(
+      Object.values(TIPO).map((idTipoActividad) =>
+        this.prisma.actividad.findMany({
+          where: { idUsuario: idEstudiante, idTipoActividad },
+          orderBy: [{ fechaActividad: 'desc' }, { idActividad: 'desc' }],
+          take: INTENTOS_LEIDOS_POR_ACTIVIDAD,
+          select: {
+            idActividad: true,
+            idTipoActividad: true,
+            fechaActividad: true,
+            resultadoPintado: { select: { letraEsperada: true, aprobadoPintado: true, trazoExterno: true } },
+            resultadoSign: { select: { letraEsperada: true, letraDetectada: true, aprobadoSign: true } },
+            resultadoPronunciacion: { select: { textoEsperado: true, textoDetectado: true, aprobadoPronun: true } },
+            resultadoUnePalabras: { select: { detalle: true, aprobadoUne: true } },
+          },
+        }),
+      ),
+    );
+    const actividades = porTipo
+      .flat()
+      .sort(
+        (x, y) =>
+          y.fechaActividad.getTime() - x.fechaActividad.getTime() || y.idActividad - x.idActividad,
+      );
 
     const hoy = this.diaLocal(new Date());
     const lunes = this.sumarDias(hoy, -this.diaSemana(hoy));
