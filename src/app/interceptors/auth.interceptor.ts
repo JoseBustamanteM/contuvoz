@@ -25,6 +25,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(conToken(req)).pipe(
     catchError((error: HttpErrorResponse) => {
+      // El servidor pide cambiar la clave antes de seguir (por ejemplo, si un
+      // administrador se la cambió mientras la app estaba abierta).
+      if (error.status === 403 && error.error?.codigo === 'CAMBIO_CLAVE_PENDIENTE') {
+        authService.cargarUsuario().subscribe(() => router.navigate(['/perfil']));
+        return throwError(() => error);
+      }
+
       // Solo intervenimos en 401 de rutas protegidas
       if (error.status !== 401 || esRutaPublica) {
         return throwError(() => error);

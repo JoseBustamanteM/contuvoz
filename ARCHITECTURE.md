@@ -82,6 +82,20 @@ a save error.
   (stars, streak, week, per-activity cards), a "Mis habilidades" separator, and
   one collapsible drawer per activity below. Medals are still fixed in code.
 
+#### Perfil
+- **`pages/perfil`** (`/perfil`): the signed-in user's card (name, role,
+  school, RUT, e-mail). Adults change their password here (the server closes
+  every session, then the app signs in again with the new one). Students
+  don't: if they forget it, their teacher resets it.
+- **Forced change**: when someone else sets an adult's password (creating the
+  user or resetting it in Gestión de usuarios), `usuario.debe_cambiar_clave`
+  is set. `authGuard` sends that user to `/perfil` from any page, and
+  `JwtStrategy` answers 403 `CAMBIO_CLAVE_PENDIENTE` to everything except
+  `GET /api/auth/me` and `POST /api/auth/cambiar-clave`. Students are never
+  forced. Gestión de usuarios shows "🔒 Clave pendiente".
+- **`components/pestanas-estudiante`**: "Mis logros | Mi perfil" tabs on top
+  of both pages, for students only.
+
 #### User management
 - **`pages/gestion-usuarios`**: table on desktop, cards on mobile; search,
   role filter, "without guardian/teacher" filters, activate/deactivate with
@@ -94,7 +108,8 @@ a save error.
 
 #### Shell & shared UI
 - **`components/barra-superior`**: brand, Home, Mis logros (students), Biblioteca
-  (coming soon), Usuarios, profile chip, logout (`components/logout-button`).
+  (coming soon), Usuarios, profile chip (→ `/perfil`), logout
+  (`components/logout-button`).
 - **`components/shared/aviso-modo-practica`**: notice for roles that don't save.
 - **Skeleton loading**: global `.sk` class in `src/styles.css`, used wherever data
   comes from the server. Shared admin styles in `src/styles/_gestion.scss`.
@@ -112,7 +127,8 @@ All routes live under the global prefix **`/api`** (`main.ts`).
 
 #### Auth — `src/auth/`
 - `POST /api/auth/login`, `POST /api/auth/refresh`, `POST /api/auth/logout`,
-  `GET /api/auth/me`.
+  `GET /api/auth/me`, `POST /api/auth/cambiar-clave` (own password; closes all
+  sessions and clears `debe_cambiar_clave`).
 - RUT normalisation, bcrypt (10 rounds), JWT access token (default 15 min).
 - Refresh token: random, stored **hashed** in `sesion_token`, **rotated on every
   refresh** (the old one is revoked), cookie `refresh_token` with

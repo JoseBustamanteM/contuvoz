@@ -162,6 +162,9 @@
                   <span class="estado" [class.estado--activo]="u.activo">
                     {{ u.activo ? 'Activo' : 'Inactivo' }}
                   </span>
+                  @if (u.activo && u.debeCambiarClave) {
+                    <span class="clave-pendiente" title="Todavía no cambia la contraseña que le pusieron">🔒 Clave pendiente</span>
+                  }
                 </td>
                 <td class="acciones">
                   @if (mostrarBotonVinculos(u)) {
@@ -206,6 +209,9 @@
             <div class="tarjeta-usuario__datos">
               <span class="etiqueta-rol" [class]="claseRol[u.idRol]">{{ nombreRol[u.idRol] }}</span>
               <span class="estado" [class.estado--activo]="u.activo">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
+              @if (u.activo && u.debeCambiarClave) {
+                <span class="clave-pendiente" title="Todavía no cambia la contraseña que le pusieron">🔒 Clave pendiente</span>
+              }
               <span class="mono">{{ formatearRut(u.rutUsuario) }}</span>
             </div>
 

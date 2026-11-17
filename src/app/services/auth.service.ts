@@ -19,6 +19,9 @@ export interface UsuarioActual {
   urlAvatar: string | null;
   idRol: number;
   idColegio: number;
+  /** Adulto con una clave que le dio otra persona: debe cambiarla en el
+   *  perfil antes de seguir (authGuard lo lleva ahí). */
+  debeCambiarClave: boolean;
   rol: { nomRol: string };
   colegio: { nomColegio: string };
 }
@@ -102,6 +105,29 @@ restaurarSesion(): Observable<UsuarioActual | null> {
 
 
   usuario = signal<UsuarioActual | null>(null);
+
+  /**
+   * Cambia la propia contraseña. El servidor cierra TODAS las sesiones,
+   * también esta (quien conocía la clave anterior queda fuera), así que se
+   * vuelve a entrar con la clave nueva sin pedírsela otra vez. Devuelve el
+   * usuario, o null si no se pudo volver a entrar (habrá que ir al login).
+   */
+  cambiarClave(claveActual: string, claveNueva: string): Observable<UsuarioActual | null> {
+    const rut = this.usuario()?.rutUsuario ?? '';
+    return this.http
+      .post(`${this.API}/cambiar-clave`, { claveActual, claveNueva }, { withCredentials: true })
+      .pipe(
+        tap(() => this.accessToken.set(null)),
+        switchMap(() =>
+          this.login(rut, claveNueva).pipe(
+            catchError(() => {
+              this.usuario.set(null);
+              return of(null);
+            }),
+          ),
+        ),
+      );
+  }
 
 cargarUsuario(): Observable<UsuarioActual | null> {
   return this.http

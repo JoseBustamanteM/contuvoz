@@ -1,5 +1,6 @@
 import { Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { PestanasEstudianteComponent } from '../../components/pestanas-estudiante/pestanas-estudiante.component';
 import { AuthService } from '../../services/auth.service';
 import { MisLogrosService } from '../../services/mis-logros.service';
 import { ClaveActividad, LetraProgreso, ResumenEstudiante } from '../../interfaces/mis-logros.interface';
@@ -38,7 +39,7 @@ const DIAS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 @Component({
   selector: 'app-mis-logros',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PestanasEstudianteComponent],
   templateUrl: './mis-logros.component.html',
   styleUrl: './mis-logros.component.scss',
 })

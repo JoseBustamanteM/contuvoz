@@ -72,6 +72,8 @@
                    : form.controls.password.hasError('maxlength') ? 'No puede superar 72 caracteres.'
                    : 'Debe tener al menos 8 caracteres.' }}
               </small>
+            } @else if (!contactoOpcional()) {
+              <small class="ayuda">Al entrar, deberá cambiarla por una propia.</small>
             }
           </div>
         </div>

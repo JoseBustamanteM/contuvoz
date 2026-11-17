@@ -68,3 +68,46 @@ describe('UsuariosService: quién puede ver y editar a quién', () => {
     );
   });
 });
+
+describe('UsuariosService: cambio de clave obligatorio para adultos', () => {
+  /** Servicio con una base simulada donde el usuario 40 tiene el rol indicado. */
+  function conObjetivo(idRol: Rol) {
+    const tx = {
+      usuario: { update: jest.fn().mockResolvedValue({ idUsuario: 40 }), create: jest.fn().mockResolvedValue({ idUsuario: 40 }) },
+      sesion: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      sesionToken: { updateMany: jest.fn().mockResolvedValue({ count: 0 }) },
+      auditoria: { create: jest.fn().mockResolvedValue({}) },
+    };
+    const prisma = {
+      usuario: {
+        findUnique: jest.fn().mockResolvedValue({ idRol, idColegio: COLEGIO, rutUsuario: '1', correo: 'a@b.cl', telefonoUsuario: '1' }),
+        findFirst: jest.fn().mockResolvedValue(null),
+      },
+      vinculoEstudiante: { count: jest.fn().mockResolvedValue(0) },
+      actividad: { count: jest.fn().mockResolvedValue(0) },
+      $transaction: jest.fn((fn: (t: typeof tx) => unknown) => fn(tx)),
+    };
+    const servicio = new UsuariosService(prisma as never, {} as never);
+    const datos = () => tx.usuario.update.mock.calls[0][0].data;
+    return { servicio, datos };
+  }
+  const admin = { idUsuario: 1, idRol: Rol.ADMINISTRADOR };
+
+  it('el admin le pone clave nueva a un profesor: debe cambiarla al entrar', async () => {
+    const { servicio, datos } = conObjetivo(Rol.PROFESOR);
+    await servicio.actualizar(admin, 40, { password: 'clave-temporal-1' });
+    expect(datos().debeCambiarClave).toBe(true);
+  });
+
+  it('el admin le pone clave nueva a un estudiante: NO queda obligado', async () => {
+    const { servicio, datos } = conObjetivo(Rol.ESTUDIANTE);
+    await servicio.actualizar(admin, 40, { password: 'clave-temporal-1' });
+    expect(datos().debeCambiarClave).toBe(false);
+  });
+
+  it('editar otros datos de un adulto no cambia la marca', async () => {
+    const { servicio, datos } = conObjetivo(Rol.APODERADO);
+    await servicio.actualizar(admin, 40, { primerNombre: 'Ana' });
+    expect(datos().debeCambiarClave).toBeUndefined();
+  });
+});

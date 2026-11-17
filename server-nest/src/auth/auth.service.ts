@@ -349,7 +349,7 @@ export class AuthService {
 
     const claveHash = await bcrypt.hash(claveNueva, 10);
     await this.prisma.$transaction(async (tx) => {
-      await tx.usuario.update({ where: { idUsuario }, data: { claveHash } });
+      await tx.usuario.update({ where: { idUsuario }, data: { claveHash, debeCambiarClave: false } });
       await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_clave');
       await registrarAuditoria(tx, {
         idActor: idUsuario,
@@ -374,6 +374,7 @@ export class AuthService {
         urlAvatar: true,
         idRol: true,
         idColegio: true,
+        debeCambiarClave: true,
         rol: { select: { nomRol: true } },
         colegio: { select: { nomColegio: true } },
       },

@@ -9,6 +9,10 @@ Aplicación educativa para niños con actividades de lectoescritura y comunicaci
 | Hablemos | `/talkPage` | Pronunciación de vocales: formantes por LPC, normalizados por hablante (Web Audio, sin modelos entrenados) |
 | Une Palabras | `/unePage` | Unir palabras con su dibujo |
 
+Además: **Mis logros** (`/mis-logros`, el avance del estudiante), **Mi perfil** (`/perfil`: datos y,
+para los adultos, cambiar la contraseña; un adulto con una clave puesta por otra persona debe
+cambiarla al entrar) y **Gestión de usuarios** (`/gestion-usuarios`).
+
 Toda la detección corre en el navegador; el backend solo guarda los resultados.
 
 ## Estructura
@@ -71,6 +75,7 @@ Los scripts no incluyen usuarios. El primer administrador se crea después de co
 | `2026-11-17_cambios_aplicados.sql` | Tabla `cambios_aplicados`, que registra qué scripts de esta carpeta tiene la base. Marca como aplicados todos los anteriores: úsalo solo si la base los tiene (ver DEPLOY.md, "Registro de scripts") |
 | `2026-11-17_contacto_opcional_estudiante.sql` | `correo` y `telefono_usuario` de `usuario` admiten NULL: opcionales para estudiantes (el backend los sigue exigiendo a los adultos) |
 | `2026-11-17_actividad_demo.sql` | Columna `es_demo` en `actividad`: marca las demostraciones de los adultos (las existentes se marcan según el rol) |
+| `2026-11-17_debe_cambiar_clave.sql` | Columna `debe_cambiar_clave` en `usuario`: el adulto al que otra persona le puso la clave debe cambiarla al entrar (los usuarios existentes quedan en 0) |
 | `2026-11-17_medidas_pronunciacion.sql` | Medidas de la voz en `resultado_pronunciacion` (tono, formantes F1-F3, señal/ruido, duración y versión del detector; no el audio) para ajustar Hablemos con datos reales |
 
 ```bash
@@ -87,6 +92,7 @@ mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_cambios_apli
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_contacto_opcional_estudiante.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_actividad_demo.sql"
 mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_medidas_pronunciacion.sql"
+mariadb -u root -p nest_db < "script DB + insert/cambios/2026-11-17_debe_cambiar_clave.sql"
 ```
 
 Luego, en `server-nest`, `npx prisma generate`.

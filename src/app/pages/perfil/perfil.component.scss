@@ -1,0 +1,178 @@
+// Perfil. Mismo lenguaje que Mis logros: tarjetas blancas con sombra verde
+// "sólida" hacia abajo, bordes muy redondeados y textos cortos.
+
+:host { display: block; height: 100%; }
+
+.pagina {
+  height: 100%;
+  overflow-y: auto;
+  padding: 0.5rem 1rem 2.5rem;
+}
+
+.contenedor {
+  max-width: 34rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: #064e3b;
+}
+
+.tarjeta {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 22px;
+  padding: 0.85rem 1rem;
+  box-shadow: 0 5px 0 rgba(16, 185, 129, 0.35), 0 10px 20px rgba(0, 0, 0, 0.08);
+}
+
+.etiqueta { margin: 0 0 0.6rem; font-size: 0.85rem; font-weight: 800; color: #059669; }
+
+// ── Aviso de cambio obligatorio ──────────────────────────
+.aviso {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  background: #fffbeb;
+  box-shadow: 0 5px 0 rgba(217, 119, 6, 0.45), 0 10px 20px rgba(0, 0, 0, 0.08);
+
+  &__icono { font-size: 1.8rem; line-height: 1; }
+  &__titulo { margin: 0; font-weight: 900; color: #92400e; }
+  &__texto { margin: 0.2rem 0 0; font-weight: 600; color: #78350f; }
+}
+
+// ── Ficha ────────────────────────────────────────────────
+.ficha {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+
+  &__avatar {
+    flex: none;
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 50%;
+    object-fit: cover;
+
+    &--iniciales {
+      display: grid;
+      place-items: center;
+      background: #10b981;
+      color: #fff;
+      font-size: 1.5rem;
+      font-weight: 900;
+      box-shadow: 0 3px 0 #047857;
+    }
+  }
+
+  &__datos { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+  &__nombre { margin: 0; font-size: clamp(1.2rem, 5vw, 1.45rem); font-weight: 900; color: #047857; overflow-wrap: anywhere; }
+  &__rol {
+    padding: 0.15rem 0.7rem;
+    border-radius: 999px;
+    background: #d1fae5;
+    color: #065f46;
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+}
+
+// ── Datos ────────────────────────────────────────────────
+.datos {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &__fila {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #ecfdf5;
+
+    &:last-child { border-bottom: none; padding-bottom: 0; }
+  }
+
+  dt { font-weight: 700; color: #6b7280; }
+  dd { margin: 0; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
+}
+
+.nota { margin: 0.6rem 0 0; font-size: 0.85rem; font-weight: 600; color: #6b7280; }
+.nota--grande { margin: 0; font-size: 1rem; color: #064e3b; }
+
+// ── Formulario ───────────────────────────────────────────
+form { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label { font-weight: 800; font-size: 0.9rem; }
+
+  input {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #a7f3d0;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 600;
+    color: inherit;
+    background: #fff;
+
+    &:focus-visible { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25); }
+    &.con-error { border-color: #ef4444; }
+  }
+}
+
+.ver {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  input { width: 1.1rem; height: 1.1rem; accent-color: #10b981; }
+}
+
+.error { color: #b91c1c; font-weight: 700; font-size: 0.85rem; }
+.error--bloque {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  background: #fef2f2;
+}
+
+.boton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.5rem 1.4rem;
+  border: none;
+  border-radius: 999px;
+  background: #10b981;
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 4px 0 #047857;
+  cursor: pointer;
+
+  &:focus-visible { outline: 3px solid #34d399; outline-offset: 3px; }
+  &:disabled { opacity: 0.6; cursor: wait; }
+
+  &--secundario { background: #ecfdf5; color: #047857; box-shadow: 0 4px 0 #a7f3d0; }
+}
+
+.exito {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  &__titulo { margin: 0; font-weight: 900; color: #047857; }
+  .nota { margin: 0; }
+}

@@ -35,6 +35,7 @@ const SELECT_PUBLICO = {
   idRol: true,
   idColegio: true,
   activo: true,
+  debeCambiarClave: true,
   fechaRegistro: true,
   ultActividad: true,
   rol: { select: { nomRol: true } },
@@ -179,6 +180,9 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
           idColegio,
           rutUsuario: rutLimpio,
           claveHash,
+          // La clave la escribió otra persona: un adulto debe cambiarla al
+          // entrar. Un niño no, porque podría quedar sin poder entrar.
+          debeCambiarClave: dto.idRol !== Rol.ESTUDIANTE,
           primerNombre: dto.primerNombre,
           segundoNombre: dto.segundoNombre,
           aPaterno: dto.aPaterno,
@@ -374,6 +378,15 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
 
     const claveHash = dto.password ? await bcrypt.hash(dto.password, 10) : undefined;
     const cambiaRol = dto.idRol !== undefined && dto.idRol !== objetivo.idRol;
+    const rolFinal = dto.idRol ?? objetivo.idRol;
+    // Clave puesta por otro a un adulto: debe cambiarla al entrar. Si pasa a
+    // ser estudiante, nunca queda obligado.
+    const debeCambiarClave =
+      claveHash && idUsuario !== creador.idUsuario
+        ? rolFinal !== Rol.ESTUDIANTE
+        : rolFinal === Rol.ESTUDIANTE
+          ? false
+          : undefined;
 
     return this.prisma.$transaction(async (tx) => {
       const actualizado = await tx.usuario.update({
@@ -382,6 +395,7 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
           idRol: dto.idRol,
           rutUsuario: dto.rutUsuario ? limpiarRut(dto.rutUsuario) : undefined,
           claveHash,
+          debeCambiarClave,
           primerNombre: dto.primerNombre,
           segundoNombre: dto.segundoNombre,
           aPaterno: dto.aPaterno,

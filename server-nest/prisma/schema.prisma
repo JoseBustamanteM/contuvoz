@@ -91,6 +91,8 @@ model Usuario {
   idColegio              Int                 @map("id_colegio")
   rutUsuario             String              @unique(map: "rut_usuario") @map("rut_usuario") @db.VarChar(20)
   claveHash              String              @map("clave_hash") @db.VarChar(255)
+  /// Adulto con una clave que le dio otro: debe cambiarla antes de seguir.
+  debeCambiarClave       Boolean             @default(false) @map("debe_cambiar_clave")
   primerNombre           String              @map("primer_nombre") @db.VarChar(100)
   segundoNombre          String              @map("segundo_nombre") @db.VarChar(100)
   aPaterno               String              @map("a_paterno") @db.VarChar(100)

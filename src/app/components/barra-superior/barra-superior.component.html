@@ -44,15 +44,15 @@
         </a>
       }
 
-      <!-- Perfil: la ficha del usuario. Hoy solo avisa que viene pronto. -->
-      <button type="button" class="perfil" (click)="pronto('Tu perfil')"
-              [title]="u.primerNombre + ' ' + u.aPaterno + ' · ' + nombreRol() + ' (perfil muy pronto)'">
+      <!-- Perfil: la ficha del usuario (y, para los adultos, cambiar la clave). -->
+      <a routerLink="/perfil" routerLinkActive="perfil--activo" class="perfil"
+         [title]="u.primerNombre + ' ' + u.aPaterno + ' · ' + nombreRol() + ' · Mi perfil'">
         <span class="perfil__avatar" aria-hidden="true">{{ iniciales() }}</span>
         <span class="perfil__datos">
           <span class="perfil__nombre">{{ u.primerNombre }}</span>
           <span class="perfil__rol">{{ nombreRol() }}</span>
         </span>
-      </button>
+      </a>
 
       <app-logout-button />
     </nav>

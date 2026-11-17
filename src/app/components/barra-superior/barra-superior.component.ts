@@ -52,8 +52,8 @@ export class BarraSuperiorComponent {
     return u ? (NOMBRE_ROL[u.idRol] ?? u.rol.nomRol) : '';
   });
 
-  /** Biblioteca y Perfil todavía no tienen página: en vez de un botón que no
-   *  hace nada, el gecko avisa que vienen pronto. */
+  /** La biblioteca todavía no tiene página: en vez de un botón que no hace
+   *  nada, el gecko avisa que viene pronto. */
   avisoPronto = signal<string | null>(null);
   private timerPronto?: ReturnType<typeof setTimeout>;
 

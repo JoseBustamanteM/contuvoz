@@ -384,6 +384,7 @@ CREATE TABLE `usuario` (
   `id_colegio` int(11) NOT NULL,
   `rut_usuario` varchar(20) NOT NULL,
   `clave_hash` varchar(255) NOT NULL,
+  `debe_cambiar_clave` tinyint(1) NOT NULL DEFAULT 0 COMMENT '1 = debe cambiar la clave que le dieron antes de seguir',
   `primer_nombre` varchar(100) NOT NULL,
   `segundo_nombre` varchar(100) NOT NULL,
   `a_paterno` varchar(100) NOT NULL,
@@ -406,7 +407,8 @@ CREATE TABLE `usuario` (
   CONSTRAINT `usuario_ibfk_1` FOREIGN KEY (`id_colegio`) REFERENCES `colegio` (`id_colegio`) ON UPDATE CASCADE,
   CONSTRAINT `usuario_ibfk_2` FOREIGN KEY (`id_rol`) REFERENCES `rol` (`id_rol`) ON UPDATE CASCADE,
   CONSTRAINT `usuario_ibfk_3` FOREIGN KEY (`creado_por`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE,
-  CONSTRAINT `usuario_ibfk_4` FOREIGN KEY (`deshabilitado_por`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE
+  CONSTRAINT `usuario_ibfk_4` FOREIGN KEY (`deshabilitado_por`) REFERENCES `usuario` (`id_usuario`) ON UPDATE CASCADE,
+  CONSTRAINT `chk_usuario_debe_cambiar_clave` CHECK (`debe_cambiar_clave` in (0,1))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

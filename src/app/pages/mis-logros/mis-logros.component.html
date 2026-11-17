@@ -1,6 +1,8 @@
 <div class="pagina">
   <div class="contenedor" [attr.aria-busy]="cargando()">
 
+    <app-pestanas-estudiante />
+
     @if (cargando()) {
       <!-- Skeleton: misma forma que la pantalla real, para que nada "salte" al cargar -->
       <div class="skeleton" aria-hidden="true">

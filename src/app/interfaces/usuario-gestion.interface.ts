@@ -12,6 +12,8 @@ export interface UsuarioListado {
   idRol: number;
   idColegio: number;
   activo: boolean;
+  /** Adulto que aún no cambia la clave que le pusieron. */
+  debeCambiarClave?: boolean;
   fechaRegistro: string;
   ultActividad: string | null;
   rol: { nomRol: string };

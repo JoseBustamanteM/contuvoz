@@ -1,0 +1,134 @@
+<div class="pagina">
+  @if (usuario(); as u) {
+    <div class="contenedor">
+
+      <app-pestanas-estudiante />
+
+      @if (debeCambiarClave()) {
+        <div class="tarjeta aviso" role="alert">
+          <span class="aviso__icono" aria-hidden="true">🔒</span>
+          <div>
+            <p class="aviso__titulo">Primero, cambia tu contraseña</p>
+            <p class="aviso__texto">
+              La contraseña que tienes te la dio otra persona. Cámbiala por una que solo tú conozcas
+              para seguir usando ConTuVoz.
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Ficha -->
+      <header class="tarjeta ficha">
+        @if (u.urlAvatar) {
+          <img [src]="u.urlAvatar" alt="" class="ficha__avatar" />
+        } @else {
+          <span class="ficha__avatar ficha__avatar--iniciales" aria-hidden="true">{{ iniciales() }}</span>
+        }
+        <div class="ficha__datos">
+          <h1 class="ficha__nombre">{{ nombreCompleto() }}</h1>
+          <span class="ficha__rol">{{ nombreRol() }}</span>
+        </div>
+      </header>
+
+      <!-- Datos -->
+      <section class="tarjeta" aria-labelledby="t-datos">
+        <h2 id="t-datos" class="etiqueta">Mis datos</h2>
+        <dl class="datos">
+          <div class="datos__fila"><dt>RUT</dt><dd>{{ rut() }}</dd></div>
+          <div class="datos__fila"><dt>Colegio</dt><dd>{{ u.colegio.nomColegio }}</dd></div>
+          @if (u.correo) {
+            <div class="datos__fila"><dt>Correo</dt><dd>{{ u.correo }}</dd></div>
+          }
+        </dl>
+        <p class="nota">
+          {{ esEstudiante()
+             ? '¿Algo está mal? Cuéntale a tu profesor o profesora.'
+             : '¿Algún dato está mal? Pídele al administrador de tu colegio que lo corrija.' }}
+        </p>
+      </section>
+
+      <!-- Contraseña -->
+      @if (esEstudiante()) {
+        <section class="tarjeta" aria-labelledby="t-clave">
+          <h2 id="t-clave" class="etiqueta">Mi contraseña</h2>
+          <p class="nota nota--grande">
+            🔑 Si olvidas tu contraseña, pídele a tu profesor o profesora que te ayude.
+          </p>
+        </section>
+      } @else {
+        <section class="tarjeta" aria-labelledby="t-clave">
+          <h2 id="t-clave" class="etiqueta">Cambiar contraseña</h2>
+
+          @if (listo()) {
+            <div class="exito" role="status">
+              <p class="exito__titulo">✅ ¡Listo! Tu contraseña quedó cambiada.</p>
+              <p class="nota">Se cerró tu sesión en los demás equipos donde estuviera abierta.</p>
+              @if (eraObligatorio()) {
+                <a routerLink="/" class="boton">Ir al inicio</a>
+              } @else {
+                <button type="button" class="boton boton--secundario" (click)="listo.set(false)">
+                  Cambiarla otra vez
+                </button>
+              }
+            </div>
+          } @else {
+            <form [formGroup]="form" (ngSubmit)="cambiarClave()" novalidate>
+              <!-- Para gestores de contraseñas: el usuario al que pertenece la clave -->
+              <input type="text" autocomplete="username" [value]="u.rutUsuario" hidden readonly />
+
+              <div class="campo">
+                <label for="p-actual">Contraseña actual</label>
+                <input id="p-actual" [type]="verClaves() ? 'text' : 'password'" formControlName="claveActual"
+                       autocomplete="current-password" [class.con-error]="invalido('claveActual')" />
+                @if (invalido('claveActual')) {
+                  <small class="error">Escribe tu contraseña actual.</small>
+                }
+              </div>
+
+              <div class="campo">
+                <label for="p-nueva">Contraseña nueva</label>
+                <input id="p-nueva" [type]="verClaves() ? 'text' : 'password'" formControlName="claveNueva"
+                       autocomplete="new-password" placeholder="Mínimo 8 caracteres"
+                       [class.con-error]="invalido('claveNueva')" />
+                @if (invalido('claveNueva')) {
+                  <small class="error">
+                    {{ form.controls.claveNueva.hasError('maxlength')
+                       ? 'No puede superar 72 caracteres.'
+                       : 'Debe tener al menos 8 caracteres.' }}
+                  </small>
+                }
+              </div>
+
+              <div class="campo">
+                <label for="p-repetir">Repite la contraseña nueva</label>
+                <input id="p-repetir" [type]="verClaves() ? 'text' : 'password'" formControlName="repetir"
+                       autocomplete="new-password"
+                       [class.con-error]="invalido('repetir') || (form.hasError('distintas') && form.controls.repetir.touched)" />
+                @if (form.hasError('distintas') && form.controls.repetir.touched) {
+                  <small class="error">Las dos contraseñas nuevas no coinciden.</small>
+                } @else if (invalido('repetir')) {
+                  <small class="error">Repite la contraseña nueva.</small>
+                }
+              </div>
+
+              <label class="ver">
+                <input type="checkbox" [checked]="verClaves()" (change)="verClaves.set(!verClaves())" />
+                Mostrar contraseñas
+              </label>
+
+              @if (error(); as e) {
+                <p class="error error--bloque" role="alert">{{ e }}</p>
+              }
+
+              <button type="submit" class="boton" [disabled]="enviando()">
+                {{ enviando() ? 'Guardando…' : 'Cambiar contraseña' }}
+              </button>
+              <p class="nota">Al cambiarla, se cerrará tu sesión en los demás equipos.</p>
+            </form>
+          }
+        </section>
+      }
+
+    </div>
+  }
+</div>
