@@ -67,7 +67,7 @@ export class PrecargaService {
   }
 
   private fuentePintaLetras() {
-    document.fonts?.load('310px "Playwrite CU"').catch(() => {
+    document.fonts?.load('310px "Playwrite CU Variable"').catch(() => {
       /* sin la fuente, Pinta letras usa sans-serif: no es un error */
     });
   }

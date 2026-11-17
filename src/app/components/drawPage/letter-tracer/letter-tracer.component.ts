@@ -63,7 +63,8 @@ export class LetterTracerComponent implements AfterViewInit {
   }
 
   private drawGuideLetter() {
-    const fontName = 'Playwrite CU';
+    // Nombre con que la declara @fontsource-variable/playwrite-cu (angular.json).
+    const fontName = 'Playwrite CU Variable';
     const fontSize = '310px';
     const letterToDraw = this._currentLetter.toLowerCase();
 
