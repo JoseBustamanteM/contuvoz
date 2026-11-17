@@ -1,6 +1,7 @@
 import {
   IsString, IsInt, IsEmail, IsOptional, IsIn, Length, Matches, MaxLength, MinLength,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { IsRut } from '../../common/validators/rut.validator';
 import { Rol } from '../../enums/rol.enum';
 
@@ -11,6 +12,9 @@ const ROLES_VALIDOS = Object.values(Rol).filter((v): v is Rol => typeof v === 'n
 /** Avatar: una ruta del propio sitio (/assets/...) o una dirección https.
  *  Nada de javascript:, data: u otros esquemas. */
 const PATRON_AVATAR = /^(\/|https:\/\/)[\w\-./%~]+$/;
+
+/** Un campo vacío del formulario ("") llega como null: "sin dato". */
+const VacioANull = () => Transform(({ value }) => (value === '' ? null : value));
 
 export class ActualizarUsuarioDto {
   @IsOptional()
@@ -48,15 +52,19 @@ export class ActualizarUsuarioDto {
   @Length(1, 100)
   aMaterno?: string;
 
+  // undefined = no se cambia; "" o null = se borra (solo permitido si el
+  // usuario queda como ESTUDIANTE, lo valida UsuariosService).
+  @VacioANull()
   @IsOptional()
   @IsString()
   @Length(1, 20)
-  telefonoUsuario?: string;
+  telefonoUsuario?: string | null;
 
+  @VacioANull()
   @IsOptional()
   @IsEmail()
   @MaxLength(150)
-  correo?: string;
+  correo?: string | null;
 
   @IsOptional()
   @IsString()

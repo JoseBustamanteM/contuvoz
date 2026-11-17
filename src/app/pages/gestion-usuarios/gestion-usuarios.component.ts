@@ -129,7 +129,7 @@ export class GestionUsuariosComponent implements OnInit {
       if (!inactivos && !u.activo) return false;
       if (!texto) return true;
       const nombre = this.normalizar(
-        `${u.primerNombre} ${u.segundoNombre} ${u.aPaterno} ${u.aMaterno} ${u.correo}`,
+        `${u.primerNombre} ${u.segundoNombre} ${u.aPaterno} ${u.aMaterno} ${u.correo ?? ''}`,
       );
       return nombre.includes(texto) || (!!textoRut && limpiarRut(u.rutUsuario).includes(textoRut));
     });

@@ -5,8 +5,9 @@ export interface UsuarioListado {
   segundoNombre: string;
   aPaterno: string;
   aMaterno: string;
-  correo: string;
-  telefonoUsuario: string;
+  /** null: estudiante sin correo (es opcional para ellos). */
+  correo: string | null;
+  telefonoUsuario: string | null;
   urlAvatar: string | null;
   idRol: number;
   idColegio: number;
@@ -64,6 +65,7 @@ export interface CrearUsuarioPayload {
   segundoNombre: string;
   aPaterno: string;
   aMaterno: string;
+  /** Opcionales solo para estudiantes; "" = sin dato. */
   telefonoUsuario: string;
   correo: string;
   urlAvatar?: string;

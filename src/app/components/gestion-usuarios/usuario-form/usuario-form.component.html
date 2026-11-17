@@ -116,7 +116,7 @@
 
         <div class="fila fila--doble">
           <div class="campo">
-            <label for="f-telefono">Teléfono</label>
+            <label for="f-telefono">Teléfono @if (contactoOpcional()) { <span class="opcional">(opcional)</span> }</label>
             <input id="f-telefono" type="tel" formControlName="telefonoUsuario" placeholder="+56 9 1234 5678"
                    autocomplete="tel" [class.con-error]="invalido('telefonoUsuario')" />
             @if (invalido('telefonoUsuario')) {
@@ -126,7 +126,7 @@
             }
           </div>
           <div class="campo">
-            <label for="f-correo">Correo</label>
+            <label for="f-correo">Correo @if (contactoOpcional()) { <span class="opcional">(opcional)</span> }</label>
             <input id="f-correo" type="email" formControlName="correo" placeholder="nombre@colegio.cl"
                    autocomplete="email" [class.con-error]="invalido('correo')" />
             @if (invalido('correo')) {

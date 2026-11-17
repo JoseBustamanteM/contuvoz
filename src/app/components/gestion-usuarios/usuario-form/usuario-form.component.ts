@@ -1,8 +1,9 @@
 import {
-  Component, inject, Input, Output, EventEmitter, OnInit, signal, computed,
+  Component, DestroyRef, inject, Input, Output, EventEmitter, OnInit, signal, computed,
   viewChild, effect, ElementRef,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UsuariosService } from '../../../services/usuarios.service';
 import { UsuarioListado } from '../../../interfaces/usuario-gestion.interface';
@@ -25,6 +26,7 @@ const PATRON_TELEFONO = /^\+?[\d\s]{8,20}$/;
 })
 export class UsuarioFormComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
   private usuariosService = inject(UsuariosService);
   private authService = inject(AuthService);
   private colegiosService = inject(ColegiosService);
@@ -75,6 +77,7 @@ export class UsuarioFormComponent implements OnInit {
     segundoNombre: ['', [Validators.required, Validators.maxLength(100)]],
     aPaterno: ['', [Validators.required, Validators.maxLength(100)]],
     aMaterno: ['', [Validators.required, Validators.maxLength(100)]],
+    // Obligatorios salvo para estudiantes: los ajusta ajustarContacto().
     telefonoUsuario: ['', [Validators.required, Validators.pattern(PATRON_TELEFONO)]],
     correo: ['', [Validators.required, Validators.email]],
   });
@@ -93,8 +96,8 @@ export class UsuarioFormComponent implements OnInit {
         segundoNombre: this.usuario.segundoNombre,
         aPaterno: this.usuario.aPaterno,
         aMaterno: this.usuario.aMaterno,
-        telefonoUsuario: this.usuario.telefonoUsuario,
-        correo: this.usuario.correo,
+        telefonoUsuario: this.usuario.telefonoUsuario ?? '',
+        correo: this.usuario.correo ?? '',
       });
       // En edición la contraseña es opcional: vacía = no se cambia.
       this.form.controls.password.setValidators([Validators.minLength(8), Validators.maxLength(72)]);
@@ -107,6 +110,29 @@ export class UsuarioFormComponent implements OnInit {
     }
     this.form.controls.password.updateValueAndValidity();
     this.form.controls.idColegio.updateValueAndValidity();
+
+    this.ajustarContacto(this.form.controls.idRol.value);
+    this.form.controls.idRol.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((idRol) => this.ajustarContacto(idRol));
+  }
+
+  /** true si el rol elegido es Estudiante: correo y teléfono opcionales. */
+  contactoOpcional = signal(false);
+
+  /** Correo y teléfono son obligatorios para adultos y opcionales para un
+   *  estudiante (no hay que inventarle datos a un niño). El backend aplica
+   *  la misma regla. */
+  private ajustarContacto(idRol: number) {
+    const opcional = idRol === Rol.ESTUDIANTE;
+    this.contactoOpcional.set(opcional);
+    const { telefonoUsuario, correo } = this.form.controls;
+    telefonoUsuario.setValidators(
+      opcional ? [Validators.pattern(PATRON_TELEFONO)] : [Validators.required, Validators.pattern(PATRON_TELEFONO)],
+    );
+    correo.setValidators(opcional ? [Validators.email] : [Validators.required, Validators.email]);
+    telefonoUsuario.updateValueAndValidity({ emitEvent: false });
+    correo.updateValueAndValidity({ emitEvent: false });
   }
 
   private cargarColegios() {

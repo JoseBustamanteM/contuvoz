@@ -95,8 +95,9 @@ model Usuario {
   segundoNombre          String              @map("segundo_nombre") @db.VarChar(100)
   aPaterno               String              @map("a_paterno") @db.VarChar(100)
   aMaterno               String              @map("a_materno") @db.VarChar(100)
-  telefonoUsuario        String              @map("telefono_usuario") @db.VarChar(20)
-  correo                 String              @unique(map: "correo") @db.VarChar(150)
+  /// Opcional solo para estudiantes (lo exige el backend a los adultos).
+  telefonoUsuario        String?             @map("telefono_usuario") @db.VarChar(20)
+  correo                 String?             @unique(map: "correo") @db.VarChar(150)
   urlAvatar              String?             @map("url_avatar") @db.VarChar(255)
   activo                 Boolean             @default(true)
   ultActividad           DateTime?           @default(now()) @map("ult_actividad") @db.DateTime(0)

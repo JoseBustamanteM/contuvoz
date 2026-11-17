@@ -89,6 +89,21 @@ function alcanceProfesor(idProfesor: number): Prisma.UsuarioWhereInput {
   };
 }
 
+/**
+ * Correo y teléfono son opcionales SOLO para estudiantes: obligarlos llevaba
+ * a inventarle datos a un niño. A los adultos se les siguen exigiendo.
+ */
+function exigirContactoSiEsAdulto(
+  idRol: number,
+  correo: string | null | undefined,
+  telefono: string | null | undefined,
+) {
+  if (idRol === Rol.ESTUDIANTE) return;
+  if (!correo || !telefono) {
+    throw new BadRequestException('El correo y el teléfono son obligatorios, salvo para estudiantes');
+  }
+}
+
 @Injectable()
 export class UsuariosService {
   constructor(
@@ -129,10 +144,16 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
   idColegio = creadorBD.idColegio;
 }
 
+    exigirContactoSiEsAdulto(dto.idRol, dto.correo, dto.telefonoUsuario);
+
     const rutLimpio = limpiarRut(dto.rutUsuario);
 
+    // Sin correo (estudiante) solo se busca por RUT: { correo: null } haría
+    // coincidir a todos los que tampoco tienen correo.
     const existente = await this.prisma.usuario.findFirst({
-      where: { OR: [{ rutUsuario: rutLimpio }, { correo: dto.correo }] },
+      where: {
+        OR: [{ rutUsuario: rutLimpio }, ...(dto.correo ? [{ correo: dto.correo }] : [])],
+      },
       select: { rutUsuario: true, correo: true },
     });
 
@@ -312,11 +333,18 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
   ) {
     const objetivo = await this.prisma.usuario.findUnique({
       where: { idUsuario },
-      select: { idRol: true, idColegio: true, rutUsuario: true, correo: true },
+      select: { idRol: true, idColegio: true, rutUsuario: true, correo: true, telefonoUsuario: true },
     });
     if (!objetivo) throw new NotFoundException('Usuario no encontrado');
 
     await this.verificarAlcance(creador, idUsuario, objetivo.idRol, objetivo.idColegio);
+
+    // Cómo queda después del cambio (undefined = ese campo no se toca).
+    exigirContactoSiEsAdulto(
+      dto.idRol ?? objetivo.idRol,
+      dto.correo !== undefined ? dto.correo : objetivo.correo,
+      dto.telefonoUsuario !== undefined ? dto.telefonoUsuario : objetivo.telefonoUsuario,
+    );
 
     // Si además cambia el rol, el rol NUEVO también debe estar dentro de lo permitido
     if (dto.idRol !== undefined) {

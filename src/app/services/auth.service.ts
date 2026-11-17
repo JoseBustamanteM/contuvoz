@@ -15,7 +15,7 @@ export interface UsuarioActual {
   segundoNombre: string;
   aPaterno: string;
   aMaterno: string;
-  correo: string;
+  correo: string | null;
   urlAvatar: string | null;
   idRol: number;
   idColegio: number;

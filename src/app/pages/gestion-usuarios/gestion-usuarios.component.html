@@ -157,7 +157,7 @@
                 </td>
                 <td class="mono">{{ formatearRut(u.rutUsuario) }}</td>
                 <td><span class="etiqueta-rol" [class]="claseRol[u.idRol]">{{ nombreRol[u.idRol] }}</span></td>
-                <td class="col-telefono">{{ u.telefonoUsuario }}</td>
+                <td class="col-telefono">{{ u.telefonoUsuario ?? '—' }}</td>
                 <td>
                   <span class="estado" [class.estado--activo]="u.activo">
                     {{ u.activo ? 'Activo' : 'Inactivo' }}
