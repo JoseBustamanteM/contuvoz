@@ -8,7 +8,8 @@
 //   npm run demo                       (compila el frontend y arranca esto)
 //   cloudflared tunnel --url http://localhost:8080
 //
-// Variables opcionales: PUERTO_DEMO (8080), BACKEND_DEMO (http://127.0.0.1:4000).
+// Variables opcionales: PUERTO_DEMO (8080), BACKEND_DEMO (http://127.0.0.1:4000),
+// RAIZ_DEMO (carpeta del frontend compilado, si no es dist/contuvoz/browser).
 
 const http = require('node:http');
 const fs = require('node:fs');
@@ -16,7 +17,17 @@ const path = require('node:path');
 
 const PUERTO = Number(process.env.PUERTO_DEMO ?? 8080);
 const BACKEND = new URL(process.env.BACKEND_DEMO ?? 'http://127.0.0.1:4000');
-const RAIZ = path.resolve(__dirname, '..', 'dist', 'contuvoz', 'browser');
+const RAIZ = process.env.RAIZ_DEMO
+  ? path.resolve(process.env.RAIZ_DEMO)
+  : path.resolve(__dirname, '..', 'dist', 'contuvoz', 'browser');
+
+// Las mismas cabeceras de seguridad que pone Nginx en la VPS (CSP, nosniff…),
+// leídas de nginx-seguridad.conf para que no haya dos copias que mantener.
+const CABECERAS_SEGURIDAD = Object.fromEntries(
+  [...fs.readFileSync(path.join(__dirname, 'nginx-seguridad.conf'), 'utf8')
+    .matchAll(/^add_header\s+(\S+)\s+"([^"]*)"/gm)]
+    .map(([, nombre, valor]) => [nombre, valor]),
+);
 
 const TIPOS = {
   '.html': 'text/html; charset=utf-8',
@@ -55,7 +66,7 @@ function proxyApi(req, res) {
       },
     },
     (respuesta) => {
-      res.writeHead(respuesta.statusCode ?? 502, respuesta.headers);
+      res.writeHead(respuesta.statusCode ?? 502, { ...respuesta.headers, ...CABECERAS_SEGURIDAD });
       respuesta.pipe(res);
     },
   );
@@ -88,6 +99,7 @@ function servirArchivo(req, res) {
   }
 
   res.writeHead(200, {
+    ...CABECERAS_SEGURIDAD,
     'Content-Type': TIPOS[path.extname(archivo).toLowerCase()] ?? 'application/octet-stream',
     'Cache-Control': archivo.endsWith('index.html') ? 'no-cache' : 'public, max-age=3600',
   });

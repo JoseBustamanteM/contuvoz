@@ -198,6 +198,7 @@ scp -r dist USUARIO@IP_DE_LA_VPS:/opt/contuvoz/
 ## 7. Nginx
 
 ```bash
+sudo cp /opt/contuvoz/deploy/nginx-seguridad.conf /etc/nginx/snippets/contuvoz-seguridad.conf
 sudo cp /opt/contuvoz/deploy/nginx-contuvoz.conf /etc/nginx/sites-available/contuvoz
 sudo ln -sf /etc/nginx/sites-available/contuvoz /etc/nginx/sites-enabled/contuvoz
 sudo rm -f /etc/nginx/sites-enabled/default
@@ -207,6 +208,12 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost/api/auth/me
 ```
 
 Debe dar `200` y `401`.
+
+`contuvoz-seguridad.conf` tiene las cabeceras de seguridad (política de
+contenido, cámara y micrófono solo para la app, etc.). La configuración
+principal lo incluye, así que **siempre se copian los dos**, también al
+actualizar. Para revisar que llegan:
+`curl -sI http://localhost/ | grep -i content-security`.
 
 > Si la VPS **ya tiene otros sitios en Nginx**, no borres `default` sin revisar:
 > avísame y ajustamos la configuración para que convivan.
@@ -240,6 +247,15 @@ Abre la dirección del túnel en el navegador y revisa:
 
 ```bash
 bash /opt/contuvoz/deploy/actualizar.sh
+```
+
+Si el cambio tocó la configuración de Nginx (`deploy/nginx-*.conf`), cópiala
+otra vez y recarga:
+
+```bash
+sudo cp /opt/contuvoz/deploy/nginx-seguridad.conf /etc/nginx/snippets/contuvoz-seguridad.conf
+sudo cp /opt/contuvoz/deploy/nginx-contuvoz.conf /etc/nginx/sites-available/contuvoz
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
 Si el cambio trae un script en `script DB + insert/cambios/`, aplícalo antes:
