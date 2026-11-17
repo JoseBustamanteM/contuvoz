@@ -254,8 +254,8 @@ frontend → known words ∩ word bank → "12 of 30" line
    copied from `node_modules` at build time and the model lives in
    `public/mediapipe/`: **no CDN at runtime** (school networks often block them).
 2. **Web Audio API** — microphone capture and FFT for Hablemos (no library).
-3. **Chart.js** — only used by the legacy `dashboard-page` (mock data).
-4. **Google Fonts** — Nunito and Playwrite CU (`index.html`).
+3. **Fonts** — Nunito and Playwrite CU, served from the app itself (Fontsource
+   packages in `angular.json`), not from Google Fonts.
 
 ### Server-side integrations
 - None: no third-party auth or APIs. Database is a local MariaDB/MySQL.
@@ -294,9 +294,8 @@ App
 │              WaveformVisualizer, VowelDetectorService, ActividadesService
 ├─ UnePalabras ── banco-palabras, ActividadesService
 ├─ MisLogros ── MisLogrosService
-├─ GestionUsuarios ── UsuariosService, UsuarioForm (ColegiosService),
-│                     VinculosModal (VinculosService)
-└─ DashboardPage (legacy, mock data, Chart.js)
+└─ GestionUsuarios ── UsuariosService, UsuarioForm (ColegiosService),
+                      VinculosModal (VinculosService)
 Activities also use AvisoModoPractica.
 ```
 
@@ -409,7 +408,7 @@ sequenceDiagram
 
 ### Frontend
 - Angular ^21.1.0 · TypeScript ~5.9.2 · RxJS ~7.8.0 · Tailwind CSS ^4.1.12
-- @mediapipe/tasks-vision ^0.10.32 · Chart.js ^4.5.1
+- @mediapipe/tasks-vision ^0.10.32 · @fontsource (Nunito, Playwrite CU)
 - Tests: Vitest ^4.0.8
 
 ### Backend

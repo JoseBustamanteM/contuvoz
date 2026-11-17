@@ -5,8 +5,8 @@ import { authGuard, invitadoGuard } from './guards/auth.guard';
 import { rolGuard } from './guards/rol.guard';
 
 // Login e inicio van en el paquete principal (son lo primero que se ve). El
-// resto se carga al entrar: así MediaPipe (Comunícate) y Chart.js (dashboard)
-// no se descargan hasta que se usan.
+// resto se carga al entrar: así MediaPipe (Comunícate) no se descarga hasta
+// que se usa.
 export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [invitadoGuard] },
   {
@@ -43,17 +43,6 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/mis-logros/mis-logros.component').then((m) => m.MisLogrosComponent),
     canActivate: [authGuard],
-  },
-  {
-    path: 'dashboard-page',
-    loadComponent: () =>
-      import('./pages/dashboard-page/dashboard-page.component').then(
-        (m) => m.DashboardPageComponent,
-      ),
-    canActivate: [authGuard],
-    // Dashboard antiguo con datos de ejemplo y Chart.js (225 kB), sin enlace
-    // desde ninguna parte: no vale la pena bajarlo en segundo plano.
-    data: { precargar: false },
   },
   {
     path: 'gestion-usuarios',
