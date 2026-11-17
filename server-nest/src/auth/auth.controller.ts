@@ -86,7 +86,12 @@ async cambiarClave(
   @Res({ passthrough: true }) res: Response,
 ) {
   const { idUsuario } = req.user as { idUsuario: number };
-  await this.authService.cambiarClave(idUsuario, dto.claveActual, dto.claveNueva);
+  await this.authService.cambiarClave(
+    idUsuario,
+    dto.claveActual,
+    dto.claveNueva,
+    this.datosCliente(req).ip,
+  );
   res.clearCookie('refresh_token', {
     httpOnly: true,
     secure: this.cookieSegura,

@@ -12,6 +12,7 @@ import { limpiarRut } from '../../common/validators/rut.validator';
 import { Prisma, TipoVinculo } from '@prisma/client';
 import { VIGENTE, VinculosService } from '../../vinculos/vinculos.service';
 import { cerrarSesionesDeUsuario } from '../../auth/sesiones';
+import { registrarAuditoria } from '../../auditoria/auditoria';
 
 const PUEDE_GESTIONAR: Record<number, Rol[]> = {
   [Rol.ADMINISTRADOR]: [
@@ -104,7 +105,7 @@ export class UsuariosService {
     return creador;
   }
 
-  async crear(creador: UsuarioToken, dto: CrearUsuarioDto) {
+  async crear(creador: UsuarioToken, dto: CrearUsuarioDto, ip?: string) {
     const permitidos = PUEDE_GESTIONAR[creador.idRol] ?? [];
     if (!permitidos.includes(dto.idRol)) {
       throw new ForbiddenException('No puedes crear usuarios con ese rol');
@@ -172,6 +173,14 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
       if (vincularProfesor) {
         await this.vinculosService.vincularAlCrear(tx, usuario.idUsuario, creador.idUsuario);
       }
+
+      await registrarAuditoria(tx, {
+        idActor: creador.idUsuario,
+        idUsuarioAfectado: usuario.idUsuario,
+        accion: 'crear_usuario',
+        detalle: { idRol: dto.idRol, idColegio, vinculadoComoProfesor: vincularProfesor },
+        ip,
+      });
       return usuario;
     });
   }
@@ -295,7 +304,12 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     }
   }
 
-  async actualizar(creador: UsuarioToken, idUsuario: number, dto: ActualizarUsuarioDto) {
+  async actualizar(
+    creador: UsuarioToken,
+    idUsuario: number,
+    dto: ActualizarUsuarioDto,
+    ip?: string,
+  ) {
     const objetivo = await this.prisma.usuario.findUnique({
       where: { idUsuario },
       select: { idRol: true, idColegio: true, rutUsuario: true, correo: true },
@@ -356,11 +370,26 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
       if (claveHash) await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_clave');
       else if (cambiaRol) await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_rol');
 
+      // Solo los NOMBRES de los campos enviados ("password" indica que se
+      // cambió la clave, nunca su valor) y el rol antes/después.
+      await registrarAuditoria(tx, {
+        idActor: creador.idUsuario,
+        idUsuarioAfectado: idUsuario,
+        accion: 'editar_usuario',
+        detalle: {
+          campos: Object.entries(dto)
+            .filter(([, valor]) => valor !== undefined)
+            .map(([campo]) => campo),
+          ...(cambiaRol ? { rolAntes: objetivo.idRol, rolDespues: dto.idRol } : {}),
+        },
+        ip,
+      });
+
       return actualizado;
     });
   }
 
-  async desactivar(creador: UsuarioToken, idUsuario: number) {
+  async desactivar(creador: UsuarioToken, idUsuario: number, ip?: string) {
     // Sin esto, el único administrador podía desactivarse y dejar el sistema
     // sin nadie que pudiera reactivarlo.
     if (idUsuario === creador.idUsuario) {
@@ -397,6 +426,13 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
         });
       }
 
+      await registrarAuditoria(tx, {
+        idActor: creador.idUsuario,
+        idUsuarioAfectado: idUsuario,
+        accion: 'desactivar_usuario',
+        ip,
+      });
+
       return desactivado;
     });
   }
@@ -428,7 +464,7 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
     }
   }
 
-  async reactivar(creador: UsuarioToken, idUsuario: number) {
+  async reactivar(creador: UsuarioToken, idUsuario: number, ip?: string) {
     const objetivo = await this.prisma.usuario.findUnique({
       where: { idUsuario },
       select: { idRol: true, idColegio: true },
@@ -437,10 +473,21 @@ if (creador.idRol === Rol.ADMINISTRADOR) {
 
     await this.verificarAlcance(creador, idUsuario, objetivo.idRol, objetivo.idColegio);
 
-    return this.prisma.usuario.update({
-      where: { idUsuario },
-      data: { activo: true, deshabilitadoPor: null },
-      select: SELECT_PUBLICO,
+    return this.prisma.$transaction(async (tx) => {
+      const reactivado = await tx.usuario.update({
+        where: { idUsuario },
+        data: { activo: true, deshabilitadoPor: null },
+        select: SELECT_PUBLICO,
+      });
+
+      await registrarAuditoria(tx, {
+        idActor: creador.idUsuario,
+        idUsuarioAfectado: idUsuario,
+        accion: 'reactivar_usuario',
+        ip,
+      });
+
+      return reactivado;
     });
   }
 }

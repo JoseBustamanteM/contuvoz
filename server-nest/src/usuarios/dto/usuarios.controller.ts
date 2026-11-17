@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe, ParseEnumPipe,
+  Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe, ParseEnumPipe, Ip,
   BadRequestException,
 } from '@nestjs/common';
 import { TipoVinculo } from '@prisma/client';
@@ -19,8 +19,12 @@ export class UsuariosController {
 
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
   @Post()
-  async crear(@UsuarioActual() creador: UsuarioToken, @Body() dto: CrearUsuarioDto) {
-    return this.usuariosService.crear(creador, dto);
+  async crear(
+    @UsuarioActual() creador: UsuarioToken,
+    @Body() dto: CrearUsuarioDto,
+    @Ip() ip: string,
+  ) {
+    return this.usuariosService.crear(creador, dto, ip);
   }
 
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
@@ -71,8 +75,9 @@ export class UsuariosController {
     @UsuarioActual() creador: UsuarioToken,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ActualizarUsuarioDto,
+    @Ip() ip: string,
   ) {
-    return this.usuariosService.actualizar(creador, id, dto);
+    return this.usuariosService.actualizar(creador, id, dto, ip);
   }
 
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
@@ -80,8 +85,9 @@ export class UsuariosController {
   async desactivar(
     @UsuarioActual() creador: UsuarioToken,
     @Param('id', ParseIntPipe) id: number,
+    @Ip() ip: string,
   ) {
-    return this.usuariosService.desactivar(creador, id);
+    return this.usuariosService.desactivar(creador, id, ip);
   }
 
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
@@ -89,7 +95,8 @@ export class UsuariosController {
   async reactivar(
     @UsuarioActual() creador: UsuarioToken,
     @Param('id', ParseIntPipe) id: number,
+    @Ip() ip: string,
   ) {
-    return this.usuariosService.reactivar(creador, id);
+    return this.usuariosService.reactivar(creador, id, ip);
   }
 }

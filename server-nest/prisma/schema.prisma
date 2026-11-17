@@ -120,6 +120,10 @@ model Usuario {
   vinculosCreados         VinculoEstudiante[] @relation("VinculoCreador")
   vinculosDeshabilitados  VinculoEstudiante[] @relation("VinculoDeshabilitador")
 
+  // auditoria: cambios que hizo y cambios que lo afectaron.
+  auditoriaComoActor      Auditoria[]         @relation("AuditoriaActor")
+  auditoriaComoAfectado   Auditoria[]         @relation("AuditoriaAfectado")
+
   @@index([idColegio], map: "idx_usuario_colegio")
   @@index([creadoPor], map: "idx_usuario_creado_por")
   @@index([deshabilitadoPor], map: "idx_usuario_deshabilitado_por")
@@ -294,4 +298,23 @@ model VinculoEstudiante {
   @@index([creadoPor], map: "idx_vinculo_creado_por")
   @@index([deshabilitadoPor], map: "idx_vinculo_deshabilitado_por")
   @@map("vinculo_estudiante")
+}
+
+/// Quién hizo qué cambio sobre qué usuario (ver src/auditoria/auditoria.ts).
+/// Nunca guarda contraseñas: en `detalle` van los nombres de los campos que
+/// cambiaron y, para el rol, el valor antes y después.
+model Auditoria {
+  idAuditoria       Int      @id @default(autoincrement()) @map("id_auditoria")
+  fecha             DateTime @default(now()) @db.DateTime(0)
+  idActor           Int      @map("id_actor")
+  idUsuarioAfectado Int?     @map("id_usuario_afectado")
+  accion            String   @db.VarChar(40)
+  detalle           Json?
+  ipOrigen          String?  @map("ip_origen") @db.VarChar(45)
+  actor             Usuario  @relation("AuditoriaActor", fields: [idActor], references: [idUsuario], onDelete: Restrict, onUpdate: Restrict, map: "auditoria_ibfk_1")
+  afectado          Usuario? @relation("AuditoriaAfectado", fields: [idUsuarioAfectado], references: [idUsuario], onDelete: Restrict, onUpdate: Restrict, map: "auditoria_ibfk_2")
+
+  @@index([idUsuarioAfectado, fecha], map: "idx_auditoria_afectado_fecha")
+  @@index([idActor, fecha], map: "idx_auditoria_actor_fecha")
+  @@map("auditoria")
 }

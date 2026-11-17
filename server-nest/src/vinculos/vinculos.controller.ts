@@ -1,4 +1,6 @@
-import { Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller, Get, Post, Patch, Param, Query, Body, UseGuards, ParseIntPipe, Ip,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-aut-guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -16,14 +18,18 @@ export class VinculosController {
 
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
   @Post()
-  crear(@UsuarioActual() actor: UsuarioToken, @Body() dto: CrearVinculoDto) {
-    return this.vinculosService.crear(actor, dto);
+  crear(@UsuarioActual() actor: UsuarioToken, @Body() dto: CrearVinculoDto, @Ip() ip: string) {
+    return this.vinculosService.crear(actor, dto, ip);
   }
 
   @Roles(Rol.ADMINISTRADOR, Rol.ADMIN_COLEGIO, Rol.PROFESOR)
   @Patch(':id/deshabilitar')
-  deshabilitar(@UsuarioActual() actor: UsuarioToken, @Param('id', ParseIntPipe) id: number) {
-    return this.vinculosService.deshabilitar(actor, id);
+  deshabilitar(
+    @UsuarioActual() actor: UsuarioToken,
+    @Param('id', ParseIntPipe) id: number,
+    @Ip() ip: string,
+  ) {
+    return this.vinculosService.deshabilitar(actor, id, ip);
   }
 
   /** Vínculos vigentes del estudiante; `?historial=true` incluye los cerrados (solo admins). */

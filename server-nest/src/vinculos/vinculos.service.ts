@@ -6,6 +6,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Rol } from '../enums/rol.enum';
 import { UsuarioToken } from '../auth/decorators/usuario-actual.decorator';
 import { CrearVinculoDto } from './dto/crear-vinculo.dto';
+import { registrarAuditoria } from '../auditoria/auditoria';
 
 /**
  * Filtro de vínculo VIGENTE. Usar SIEMPRE este objeto (o vigentes()) para
@@ -128,7 +129,7 @@ export class VinculosService {
 
   // ── Escritura ────────────────────────────────────────────
 
-  async crear(actor: UsuarioToken, dto: CrearVinculoDto) {
+  async crear(actor: UsuarioToken, dto: CrearVinculoDto, ip?: string) {
     const estudiante = await this.buscarEstudiante(dto.idEstudiante);
     if (!estudiante.activo) throw new BadRequestException('El estudiante está desactivado');
 
@@ -152,14 +153,24 @@ export class VinculosService {
     await this.verificarPuedeVincular(actor, estudiante, dto.tipoVinculo);
 
     try {
-      return await this.prisma.vinculoEstudiante.create({
-        data: {
-          idEstudiante: dto.idEstudiante,
-          idAdulto: dto.idAdulto,
-          tipoVinculo: dto.tipoVinculo,
-          creadoPor: actor.idUsuario,
-        },
-        select: SELECT_VINCULO,
+      return await this.prisma.$transaction(async (tx) => {
+        const vinculo = await tx.vinculoEstudiante.create({
+          data: {
+            idEstudiante: dto.idEstudiante,
+            idAdulto: dto.idAdulto,
+            tipoVinculo: dto.tipoVinculo,
+            creadoPor: actor.idUsuario,
+          },
+          select: SELECT_VINCULO,
+        });
+        await registrarAuditoria(tx, {
+          idActor: actor.idUsuario,
+          idUsuarioAfectado: dto.idEstudiante,
+          accion: 'crear_vinculo',
+          detalle: { idVinculo: vinculo.idVinculo, tipo: dto.tipoVinculo, idAdulto: dto.idAdulto },
+          ip,
+        });
+        return vinculo;
       });
     } catch (e) {
       // uq_vinculo_vigente: ya hay un vínculo vigente igual.
@@ -170,7 +181,7 @@ export class VinculosService {
     }
   }
 
-  async deshabilitar(actor: UsuarioToken, idVinculo: number) {
+  async deshabilitar(actor: UsuarioToken, idVinculo: number, ip?: string) {
     const vinculo = await this.prisma.vinculoEstudiante.findUnique({
       where: { idVinculo },
       select: {
@@ -178,6 +189,8 @@ export class VinculosService {
         tipoVinculo: true,
         creadoPor: true,
         fechaFin: true,
+        idEstudiante: true,
+        idAdulto: true,
         estudiante: { select: { idColegio: true } },
       },
     });
@@ -196,11 +209,21 @@ export class VinculosService {
 
     // updateMany con fechaFin: null: si dos personas lo deshabilitan a la vez,
     // solo la primera lo cierra y la segunda recibe el 409.
-    const { count } = await this.prisma.vinculoEstudiante.updateMany({
-      where: { idVinculo, ...VIGENTE },
-      data: { fechaFin: new Date(), deshabilitadoPor: actor.idUsuario },
+    await this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.vinculoEstudiante.updateMany({
+        where: { idVinculo, ...VIGENTE },
+        data: { fechaFin: new Date(), deshabilitadoPor: actor.idUsuario },
+      });
+      if (count === 0) throw new ConflictException('Ese vínculo ya estaba deshabilitado');
+
+      await registrarAuditoria(tx, {
+        idActor: actor.idUsuario,
+        idUsuarioAfectado: vinculo.idEstudiante,
+        accion: 'deshabilitar_vinculo',
+        detalle: { idVinculo, tipo: vinculo.tipoVinculo, idAdulto: vinculo.idAdulto },
+        ip,
+      });
     });
-    if (count === 0) throw new ConflictException('Ese vínculo ya estaba deshabilitado');
 
     return this.prisma.vinculoEstudiante.findUnique({ where: { idVinculo }, select: SELECT_VINCULO });
   }

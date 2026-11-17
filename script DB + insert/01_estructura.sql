@@ -66,6 +66,29 @@ CREATE TABLE `archivo_biblioteca` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `auditoria`
+--
+
+DROP TABLE IF EXISTS `auditoria`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8mb4 */;
+CREATE TABLE `auditoria` (
+  `id_auditoria` int(11) NOT NULL AUTO_INCREMENT,
+  `fecha` datetime NOT NULL DEFAULT current_timestamp(),
+  `id_actor` int(11) NOT NULL COMMENT 'Quién hizo el cambio',
+  `id_usuario_afectado` int(11) DEFAULT NULL COMMENT 'A quién afecta el cambio',
+  `accion` varchar(40) NOT NULL,
+  `detalle` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (`detalle` is null or json_valid(`detalle`)),
+  `ip_origen` varchar(45) DEFAULT NULL,
+  PRIMARY KEY (`id_auditoria`),
+  KEY `idx_auditoria_afectado_fecha` (`id_usuario_afectado`,`fecha`),
+  KEY `idx_auditoria_actor_fecha` (`id_actor`,`fecha`),
+  CONSTRAINT `auditoria_ibfk_1` FOREIGN KEY (`id_actor`) REFERENCES `usuario` (`id_usuario`),
+  CONSTRAINT `auditoria_ibfk_2` FOREIGN KEY (`id_usuario_afectado`) REFERENCES `usuario` (`id_usuario`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `ciudad`
 --
 

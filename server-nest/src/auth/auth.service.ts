@@ -11,6 +11,7 @@ import { limpiarRut } from '../common/validators/rut.validator';
 import { ConfigService } from '@nestjs/config';
 import type { Entorno } from '../config/entorno';
 import { cerrarSesionesDeUsuario } from './sesiones';
+import { registrarAuditoria } from '../auditoria/auditoria';
 
 const VENTANA_INTENTOS_MS = 15 * 60 * 1000;
 const MAX_FALLOS_POR_RUT = 5;
@@ -332,7 +333,7 @@ export class AuthService {
    * con la clave nueva, y cualquier otro equipo con la sesión abierta queda
    * fuera.
    */
-  async cambiarClave(idUsuario: number, claveActual: string, claveNueva: string) {
+  async cambiarClave(idUsuario: number, claveActual: string, claveNueva: string, ip?: string) {
     const usuario = await this.prisma.usuario.findFirst({
       where: { idUsuario, activo: true },
       select: { claveHash: true },
@@ -350,6 +351,12 @@ export class AuthService {
     await this.prisma.$transaction(async (tx) => {
       await tx.usuario.update({ where: { idUsuario }, data: { claveHash } });
       await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_clave');
+      await registrarAuditoria(tx, {
+        idActor: idUsuario,
+        idUsuarioAfectado: idUsuario,
+        accion: 'cambio_clave_propia',
+        ip,
+      });
     });
   }
 
