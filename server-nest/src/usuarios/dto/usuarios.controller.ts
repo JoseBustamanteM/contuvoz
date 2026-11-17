@@ -27,8 +27,9 @@ export class UsuariosController {
   @Get()
   async listar(
     @UsuarioActual() creador: UsuarioToken,
-    @Query('rol') rol?: string,
-    @Query('colegio') colegio?: string,
+    // ParseIntPipe: "?rol=abc" responde 400 en vez de llegar como NaN.
+    @Query('rol', new ParseIntPipe({ optional: true })) rol?: number,
+    @Query('colegio', new ParseIntPipe({ optional: true })) colegio?: number,
     @Query(
       'sinVinculo',
       new ParseEnumPipe(TipoVinculo, {
@@ -41,8 +42,8 @@ export class UsuariosController {
   ) {
     return this.usuariosService.listar(
       creador,
-      rol ? Number(rol) : undefined,
-      colegio ? Number(colegio) : undefined,
+      rol || undefined,
+      colegio || undefined,
       sinVinculo,
     );
   }

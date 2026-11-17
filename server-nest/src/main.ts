@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import type { Entorno } from './config/entorno';
+import { PrismaExcepcionFilter } from './common/filtros/prisma-excepcion.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -22,7 +23,14 @@ async function bootstrap() {
   app.set('etag', false);
 
   app.use(cookieParser());
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+  // whitelist + forbidNonWhitelisted: un campo que el DTO no declara se
+  // rechaza con 400 en vez de descartarse en silencio (así un error de
+  // nombre en el frontend se nota de inmediato). transform: el DTO llega
+  // como instancia de su clase, con los tipos ya convertidos.
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+  );
+  app.useGlobalFilters(new PrismaExcepcionFilter());
   const config = app.get<ConfigService<Entorno, true>>(ConfigService);
 
   app.enableCors({

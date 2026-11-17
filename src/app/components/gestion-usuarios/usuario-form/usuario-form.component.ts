@@ -97,9 +97,9 @@ export class UsuarioFormComponent implements OnInit {
         correo: this.usuario.correo,
       });
       // En edición la contraseña es opcional: vacía = no se cambia.
-      this.form.controls.password.setValidators([Validators.minLength(8)]);
+      this.form.controls.password.setValidators([Validators.minLength(8), Validators.maxLength(72)]);
     } else {
-      this.form.controls.password.setValidators([Validators.required, Validators.minLength(8)]);
+      this.form.controls.password.setValidators([Validators.required, Validators.minLength(8), Validators.maxLength(72)]);
       // Si solo puede crear un rol (p. ej. un profesor que crea estudiantes), viene elegido.
       if (this.rolesDisponibles.length === 1) {
         this.form.controls.idRol.setValue(this.rolesDisponibles[0]);

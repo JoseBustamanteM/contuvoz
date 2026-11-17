@@ -68,7 +68,9 @@
             </div>
             @if (invalido('password')) {
               <small class="error">
-                {{ form.controls.password.hasError('required') ? 'La contraseña es obligatoria.' : 'Debe tener al menos 8 caracteres.' }}
+                {{ form.controls.password.hasError('required') ? 'La contraseña es obligatoria.'
+                   : form.controls.password.hasError('maxlength') ? 'No puede superar 72 caracteres.'
+                   : 'Debe tener al menos 8 caracteres.' }}
               </small>
             }
           </div>
