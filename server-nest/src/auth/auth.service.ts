@@ -1,6 +1,6 @@
 // auth/auth.service.ts
 import {
-  HttpException, HttpStatus, Injectable, Logger, UnauthorizedException,
+  BadRequestException, HttpException, HttpStatus, Injectable, Logger, UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,7 @@ import type { SignOptions } from 'jsonwebtoken';
 import { limpiarRut } from '../common/validators/rut.validator';
 import { ConfigService } from '@nestjs/config';
 import type { Entorno } from '../config/entorno';
+import { cerrarSesionesDeUsuario } from './sesiones';
 
 const VENTANA_INTENTOS_MS = 15 * 60 * 1000;
 const MAX_FALLOS_POR_RUT = 5;
@@ -318,6 +319,37 @@ export class AuthService {
           data: { fechaFin: new Date(), motivoFin: 'logout' },
         });
       }
+    });
+  }
+
+  /**
+   * El usuario cambia su propia contraseña. Antes no podía: la clave la
+   * elegía quien creaba la cuenta y la conocía para siempre.
+   *
+   * Exige la contraseña actual, para que alguien que encuentre la sesión
+   * abierta en un equipo no pueda adueñarse de la cuenta. Al cambiarla se
+   * cierran TODAS las sesiones, también la actual: hay que volver a entrar
+   * con la clave nueva, y cualquier otro equipo con la sesión abierta queda
+   * fuera.
+   */
+  async cambiarClave(idUsuario: number, claveActual: string, claveNueva: string) {
+    const usuario = await this.prisma.usuario.findFirst({
+      where: { idUsuario, activo: true },
+      select: { claveHash: true },
+    });
+    if (!usuario) throw new UnauthorizedException('Usuario no disponible');
+
+    if (!(await bcrypt.compare(claveActual, usuario.claveHash))) {
+      throw new BadRequestException('La contraseña actual no es correcta');
+    }
+    if (claveActual === claveNueva) {
+      throw new BadRequestException('La contraseña nueva debe ser distinta de la actual');
+    }
+
+    const claveHash = await bcrypt.hash(claveNueva, 10);
+    await this.prisma.$transaction(async (tx) => {
+      await tx.usuario.update({ where: { idUsuario }, data: { claveHash } });
+      await cerrarSesionesDeUsuario(tx, idUsuario, 'cambio_clave');
     });
   }
 

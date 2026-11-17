@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { CambiarClaveDto } from './dto/cambiar-clave.dto';
 import { JwtAuthGuard } from './guards/jwt-aut-guard';
 import type { Entorno } from '../config/entorno';
 
@@ -71,6 +72,26 @@ async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     secure: this.cookieSegura,
     sameSite: 'strict',
     path: '/api/auth', // debe coincidir con setRefreshCookie
+  });
+  return { ok: true };
+}
+
+/** Cambiar la propia contraseña. Cierra todas las sesiones, también la
+ *  actual: borra la cookie y el frontend debe volver al login. */
+@UseGuards(JwtAuthGuard)
+@Post('cambiar-clave')
+async cambiarClave(
+  @Req() req: Request,
+  @Body() dto: CambiarClaveDto,
+  @Res({ passthrough: true }) res: Response,
+) {
+  const { idUsuario } = req.user as { idUsuario: number };
+  await this.authService.cambiarClave(idUsuario, dto.claveActual, dto.claveNueva);
+  res.clearCookie('refresh_token', {
+    httpOnly: true,
+    secure: this.cookieSegura,
+    sameSite: 'strict',
+    path: '/api/auth',
   });
   return { ok: true };
 }
