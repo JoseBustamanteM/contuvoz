@@ -382,6 +382,28 @@ pm2 start contuvoz-api
 El `systemctl start` de la segunda línea guarda primero el estado actual, por si
 hay que volver atrás.
 
+## Zona horaria
+
+Todas las fechas de la base están en **UTC** (el backend las convierte a la
+hora de Chile donde hace falta, como en Mis logros). Para que lo que escribe
+la propia base (`DEFAULT current_timestamp()`) también quede en UTC:
+
+```bash
+sudo mariadb -e "SELECT @@global.time_zone, @@system_time_zone, NOW(), UTC_TIMESTAMP();"
+```
+
+Si `NOW()` y `UTC_TIMESTAMP()` son iguales, ya está en UTC. Si no:
+
+```bash
+sudo cp /opt/contuvoz/deploy/mariadb-utc.cnf /etc/mysql/mariadb.conf.d/60-contuvoz-utc.cnf
+sudo systemctl restart mariadb
+pm2 restart contuvoz-api
+```
+
+Para leer fechas a mano en hora de Chile:
+`CONVERT_TZ(fecha_actividad, '+00:00', 'America/Santiago')` (requiere las
+zonas cargadas: `sudo mariadb-tzinfo-to-sql /usr/share/zoneinfo | sudo mariadb mysql`).
+
 ## Comandos útiles
 
 | Para | Comando |

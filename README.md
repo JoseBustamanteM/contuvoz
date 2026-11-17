@@ -87,6 +87,8 @@ Luego, en `server-nest`, `npx prisma generate`.
 
 > **No usar `prisma db push` ni `prisma migrate`.** El proyecto no usa migraciones de Prisma, y algunas tablas tienen restricciones (`CHECK`, columnas calculadas) que Prisma no sabe crear: `db push` las borraría o intentaría "corregir" otras tablas. Los cambios de estructura van como scripts SQL en `cambios/`.
 
+> **Fechas en UTC.** El backend (Prisma) guarda todas las fechas en UTC. Si insertas filas a mano, usa `UTC_TIMESTAMP()` y no `NOW()`: en un PC con hora de Chile, `NOW()` y los `DEFAULT current_timestamp()` quedan 3 o 4 horas corridos. En la VPS, MariaDB se deja en UTC (ver DEPLOY.md, "Zona horaria").
+
 Para regenerar los scripts después de cambiar la estructura:
 
 ```bash

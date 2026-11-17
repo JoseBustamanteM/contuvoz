@@ -1,0 +1,14 @@
+# MariaDB en UTC, igual que lo que escribe el backend.
+# Copiar a /etc/mysql/mariadb.conf.d/60-contuvoz-utc.cnf y reiniciar MariaDB
+# (ver "Zona horaria" en DEPLOY.md).
+#
+# Prisma guarda todas las fechas en UTC. Los DEFAULT current_timestamp() de
+# la base, en cambio, usan la zona del servidor: una fila insertada a mano o
+# por un script quedaría en otra zona y se mezclaría con las demás. Con esto
+# ambas coinciden.
+#
+# Seguro con datos existentes: las columnas de fecha son DATETIME, que MariaDB
+# no convierte al cambiar de zona.
+
+[mysqld]
+default-time-zone = '+00:00'
