@@ -132,7 +132,7 @@ All routes live under the global prefix **`/api`** (`main.ts`).
 - ⚠️ Scores are **self-reported** by the browser; accepted on purpose for
   classroom use (see the note in `actividades.controller.ts`).
 
-#### Users — `src/usuarios/dto/` *(module currently lives inside `dto/`)*
+#### Users — `src/usuarios/`
 - CRUD, activate/deactivate (nobody can deactivate themselves), scoped by role
   (`PUEDE_GESTIONAR`) and school.
 - `GET /api/usuarios` includes each student's **current** links and accepts
@@ -508,4 +508,3 @@ cd server-nest && npm run crear-admin
 - [ ] Ñ in the Pinta letras letter selector
 - [ ] Calibrate Hablemos with children's voices
 - [ ] Stable public URL (named Cloudflare tunnel + domain)
-- [ ] Move the users module out of `usuarios/dto/`

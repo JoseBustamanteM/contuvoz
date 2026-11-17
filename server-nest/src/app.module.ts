@@ -5,7 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ActividadesModule } from './actividades/actividades.module';
 import { ScheduleModule } from '@nestjs/schedule';
-import { UsuariosModule } from './usuarios/dto/usuarios.module';
+import { UsuariosModule } from './usuarios/usuarios.module';
 import { ColegiosModule } from './colegios/colegios.module';
 import { VinculosModule } from './vinculos/vinculos.module';
 import { MisLogrosModule } from './mis-logros/mis-logros.module';

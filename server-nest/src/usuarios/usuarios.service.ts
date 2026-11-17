@@ -3,16 +3,16 @@ import {
   BadRequestException, NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../../prisma/prisma.service';
-import { CrearUsuarioDto } from './crear-usuario.dto';
-import { ActualizarUsuarioDto } from './actualizar-usuario.dto';
-import { Rol } from '../../enums/rol.enum';
-import { UsuarioToken } from '../../auth/decorators/usuario-actual.decorator';
-import { limpiarRut } from '../../common/validators/rut.validator';
+import { PrismaService } from '../prisma/prisma.service';
+import { CrearUsuarioDto } from './dto/crear-usuario.dto';
+import { ActualizarUsuarioDto } from './dto/actualizar-usuario.dto';
+import { Rol } from '../enums/rol.enum';
+import { UsuarioToken } from '../auth/decorators/usuario-actual.decorator';
+import { limpiarRut } from '../common/validators/rut.validator';
 import { Prisma, TipoVinculo } from '@prisma/client';
-import { VIGENTE, VinculosService } from '../../vinculos/vinculos.service';
-import { cerrarSesionesDeUsuario } from '../../auth/sesiones';
-import { registrarAuditoria } from '../../auditoria/auditoria';
+import { VIGENTE, VinculosService } from '../vinculos/vinculos.service';
+import { cerrarSesionesDeUsuario } from '../auth/sesiones';
+import { registrarAuditoria } from '../auditoria/auditoria';
 
 const PUEDE_GESTIONAR: Record<number, Rol[]> = {
   [Rol.ADMINISTRADOR]: [

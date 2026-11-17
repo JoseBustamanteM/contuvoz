@@ -3,14 +3,14 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { TipoVinculo } from '@prisma/client';
-import { JwtAuthGuard } from '../../auth/guards/jwt-aut-guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
-import { UsuarioActual, type UsuarioToken } from '../../auth/decorators/usuario-actual.decorator';
-import { Rol } from '../../enums/rol.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-aut-guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { UsuarioActual, type UsuarioToken } from '../auth/decorators/usuario-actual.decorator';
+import { Rol } from '../enums/rol.enum';
 import { UsuariosService } from './usuarios.service';
-import { CrearUsuarioDto } from './crear-usuario.dto';
-import { ActualizarUsuarioDto } from './actualizar-usuario.dto';
+import { CrearUsuarioDto } from './dto/crear-usuario.dto';
+import { ActualizarUsuarioDto } from './dto/actualizar-usuario.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('usuarios')
