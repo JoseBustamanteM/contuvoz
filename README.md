@@ -186,5 +186,5 @@ Solo los usuarios **Estudiante** y **Profesor** registran resultados de activida
 | raíz | `npm run build` | Compila el frontend en `dist/` |
 | raíz | `npm test` | Tests del frontend (Vitest) |
 | `server-nest` | `npm run build` | Compila el backend |
-| `server-nest` | `npm test` | Tests del backend (Jest) |
+| `server-nest` | `npm test` | Tests del backend (Jest): permisos de usuarios y vínculos, sesión (límite de intentos, rotación y reúso del token), fechas de Mis logros con los cambios de hora de Chile y validaciones. No usan la base: Prisma va simulado |
 | `server-nest` | `npm run crear-admin` | Crea un usuario Administrador |

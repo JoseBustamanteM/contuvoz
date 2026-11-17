@@ -54,7 +54,7 @@ const VERSION_REGLAS = {
  * No se valida contra el banco de palabras porque vive en el frontend; se
  * podrá cuando pase a una tabla.
  */
-function validarRondaUne(dto: GuardarUnePalabrasDto) {
+export function validarRondaUne(dto: GuardarUnePalabrasDto) {
   const rechazar = (motivo: string) => {
     throw new BadRequestException(`Ronda de Une palabras inválida: ${motivo}`);
   };
