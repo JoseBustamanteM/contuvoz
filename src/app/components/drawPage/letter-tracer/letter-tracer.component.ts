@@ -20,6 +20,12 @@ export class LetterTracerComponent implements AfterViewInit {
 
   private bgCtx!: CanvasRenderingContext2D;
   private drawCtx!: CanvasRenderingContext2D;
+  /**
+   * La letra con que se evalúa, en un lienzo que no se ve. Es exactamente la
+   * que antes se dibujaba a la vista (relleno + borde de 5 px), así el
+   * puntaje no cambia con el diseño de pizarra: lo que se ve es solo tiza.
+   */
+  private mascaraCtx!: CanvasRenderingContext2D;
 
   private canvasSize = 700;
   private _currentLetter = 'A';
@@ -29,7 +35,7 @@ export class LetterTracerComponent implements AfterViewInit {
   private inicioTrazado: number | null = null;
 
   public resultMessage = signal<string>('');
-  public resultColor = signal<string>('black');
+  public resultColor = signal<string>('#f4f7ef');
   public tieneTrazo = signal<boolean>(false);
 
   @Input()
@@ -59,7 +65,13 @@ export class LetterTracerComponent implements AfterViewInit {
     this.drawCtx.lineWidth = 28;
     this.drawCtx.lineCap = 'round';
     this.drawCtx.lineJoin = 'round';
-    this.drawCtx.strokeStyle = 'rgba(0, 0, 255, 0.6)';
+    // Tiza amarilla: se distingue de la letra guía (blanca) sobre la pizarra.
+    this.drawCtx.strokeStyle = 'rgba(255, 221, 87, 0.92)';
+
+    const mascara = document.createElement('canvas');
+    mascara.width = this.canvasSize;
+    mascara.height = this.canvasSize;
+    this.mascaraCtx = mascara.getContext('2d', { willReadFrequently: true })!;
   }
 
   private drawGuideLetter() {
@@ -75,19 +87,36 @@ export class LetterTracerComponent implements AfterViewInit {
   }
 
   private pintarGuia(letra: string, fontSize: string, fontName: string) {
-    this.bgCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
-    this.bgCtx.fillStyle = '#e0e0ff';
-    this.bgCtx.strokeStyle = '#e0e0ff';
-    this.bgCtx.lineWidth = 5;
-    this.bgCtx.textAlign = 'center';
-    this.bgCtx.textBaseline = 'middle';
-    this.bgCtx.font = `${fontSize} "${fontName}"`;
-
     const x = this.canvasSize / 2;
     const y = this.canvasSize / 2 - 30;
+    const fuente = `${fontSize} "${fontName}"`;
 
-    this.bgCtx.fillText(letra, x, y);
-    this.bgCtx.strokeText(letra, x, y);
+    // Máscara para evaluar: igual que siempre.
+    const m = this.mascaraCtx;
+    m.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    m.fillStyle = '#e0e0ff';
+    m.strokeStyle = '#e0e0ff';
+    m.lineWidth = 5;
+    m.textAlign = 'center';
+    m.textBaseline = 'middle';
+    m.font = fuente;
+    m.fillText(letra, x, y);
+    m.strokeText(letra, x, y);
+
+    // Lo que se ve: la letra en tiza, con relleno tenue y borde punteado.
+    const g = this.bgCtx;
+    g.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.font = fuente;
+    g.fillStyle = 'rgba(255, 255, 255, 0.16)';
+    g.fillText(letra, x, y);
+    g.setLineDash([14, 12]);
+    g.lineCap = 'round';
+    g.lineWidth = 5;
+    g.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    g.strokeText(letra, x, y);
+    g.setLineDash([]);
   }
 
 
@@ -95,6 +124,7 @@ export class LetterTracerComponent implements AfterViewInit {
   private resetCanvas() {
     this.clear();
     this.bgCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
+    this.mascaraCtx.clearRect(0, 0, this.canvasSize, this.canvasSize);
     this.drawGuideLetter();
   }
 
@@ -149,7 +179,7 @@ export class LetterTracerComponent implements AfterViewInit {
   verify() {
     if (!this.tieneTrazo()) return;
 
-    const bgData = this.bgCtx.getImageData(0, 0, this.canvasSize, this.canvasSize).data;
+    const bgData = this.mascaraCtx.getImageData(0, 0, this.canvasSize, this.canvasSize).data;
     const drawData = this.drawCtx.getImageData(0, 0, this.canvasSize, this.canvasSize).data;
 
     let targetPixels = 0;
@@ -170,7 +200,7 @@ export class LetterTracerComponent implements AfterViewInit {
 
     if (targetPixels === 0) {
       this.resultMessage.set('No se pudo cargar la letra, recarga la página');
-      this.resultColor.set('#e74c3c');
+      this.resultColor.set('#ffc2b8');
       return;
     }
 
@@ -218,10 +248,11 @@ export class LetterTracerComponent implements AfterViewInit {
     let status = '';
     let color = '';
 
-    if (score > 90) { status = '¡Perfecto!'; color = '#27ae60'; }
-    else if (score > 80) { status = '¡Muy bien!'; color = '#2ecc71'; }
-    else if (score > 40) { status = 'Ten cuidado con los bordes.'; color = '#f39c12'; }
-    else { status = 'Inténtalo de nuevo, concéntrate en la letra.'; color = '#e74c3c'; }
+    // Colores de tiza: se leen sobre la pizarra verde oscuro.
+    if (score > 90) { status = '¡Perfecto! 🌟'; color = '#b9f6a0'; }
+    else if (score > 80) { status = '¡Muy bien! 🎉'; color = '#b9f6a0'; }
+    else if (score > 40) { status = 'Casi: cuidado con los bordes'; color = '#ffe066'; }
+    else { status = 'Inténtalo otra vez, siguiendo la letra'; color = '#ffc2b8'; }
 
     this.resultMessage.set(status);
     this.resultColor.set(color);

@@ -1,77 +1,72 @@
-.main-layout {
+// Pinta letras: pizarra (con el gecko adentro) y el carrete de letras al
+// lado. En pantallas verticales el carrete va arriba, acostado.
+
+:host {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 6px;
-  padding: 4px;
   height: 100%;
   min-height: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Nunito', system-ui, sans-serif;
 }
 
-h1 { color: #2c3e50; margin: 0; }
-p  { color: #7f8c8d; margin: 0; }
-
-.zona-mensajes {
-  flex: 0 0 66px;
-  width: 100%;
-  display: flex;
+.pinta {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
   align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  gap: 1.2rem;
+  padding: 0.5rem 1.5rem 1.25rem;
 }
 
-.resultado-box {
-  padding: 6px 16px;
-  border-radius: 12px;
-  text-align: center;
-  animation: aparecer 0.3s ease;
+.pinta__pizarra { align-self: stretch; }
 
-  .titulo {
-    font-size: 1.1rem;
-    font-weight: bold;
-    margin: 0;
-  }
-
-  .detalle {
-    font-size: 0.85rem;
-    margin: 4px 0 0;
-    opacity: 0.8;
-  }
-
-  &.aprobado {
-    background-color: #d4edda;
-    color: #1e7e34;
-    border: 2px solid #28a745;
-  }
-
-  &.reprobado {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 2px solid #ffc107;
-  }
+@media (max-height: 560px) {
+  .pinta { padding: 0.25rem 1rem 0.75rem; }
 }
 
-@keyframes aparecer {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
+@media (orientation: portrait) {
+  .pinta {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem 1rem;
+  }
+  .pinta__carrete { grid-row: 1; }
 }
-.error-guardado {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
+
+// ── Nota en la esquina de la pizarra ───────────────────────
+.nota {
+  margin: 0;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  background: #fff7d6;
+  color: #7a4f00;
+  font-weight: 900;
+  font-size: 1.15rem;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  transform: rotate(3deg);
+
+  &--ok { background: #e3f9d6; color: #1e6b16; }
+  &--suave { background: rgba(255, 255, 255, 0.85); color: #3f5132; font-size: 0.95rem; transform: none; }
+  &--error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffe3df;
+    color: #9a2018;
+    font-size: 0.95rem;
+    transform: none;
+  }
 }
 
 .btn-reintentar {
-  background: #dc3545;
-  color: white;
-  border: none;
-  padding: 4px 14px;
-  border-radius: 20px;
-  font-size: 0.85rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.25rem 0.8rem;
+  background: #c23a2f;
+  color: #fff;
+  font: inherit;
+  font-weight: 900;
   cursor: pointer;
-
-  &:hover { background: #c82333; }
 }

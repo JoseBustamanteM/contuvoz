@@ -1,9 +1,15 @@
-<div class="selector-container mb-5">
-  <label for="letterSelect">Letra:</label>
-
-  <select id="letterSelect" (change)="onChange($event)" class="styled-select">
-    @for (letter of alphabet; track letter) {
-      <option [value]="letter">{{ letter }}</option>
-    }
-  </select>
+<div class="carrete" role="group" aria-label="Elegir letra">
+  <button type="button" class="carrete__flecha" (click)="cambiar(-1)"
+          [attr.aria-label]="'Letra anterior: ' + anterior()">
+    <span aria-hidden="true">▲</span>
+  </button>
+  <span class="carrete__vecina" aria-hidden="true">{{ anterior().toLowerCase() }}</span>
+  <span class="carrete__actual" aria-live="polite" [attr.aria-label]="'Letra ' + actual()">
+    {{ actual().toLowerCase() }}
+  </span>
+  <span class="carrete__vecina" aria-hidden="true">{{ siguiente().toLowerCase() }}</span>
+  <button type="button" class="carrete__flecha" (click)="cambiar(1)"
+          [attr.aria-label]="'Letra siguiente: ' + siguiente()">
+    <span aria-hidden="true">▼</span>
+  </button>
 </div>

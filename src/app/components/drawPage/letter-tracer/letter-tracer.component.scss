@@ -1,39 +1,82 @@
+// Pizarra de Pinta letras: marco de madera, fondo de pizarra y la letra en
+// tiza punteada. El gecko vive dentro, en el costado (o arriba, si la
+// pantalla es vertical). Todo se mide contra .zona-pizarra (cqw/cqh) para
+// caber en la pantalla sin scroll.
+
 :host {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  flex: 1 1 auto;
+  gap: 0.9rem;
   min-height: 0;
-  width: 100%;
+  min-width: 0;
 }
 
-.tracer-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+.zona-pizarra {
   flex: 1 1 auto;
   min-height: 0;
+  container-type: size;
+  display: grid;
+  place-items: center;
+}
+
+$marco: #b9773c;
+$marco-sombra: #8e5626;
+
+.pizarra {
+  // Horizontal: 3:2. El lienzo es un cuadrado a la derecha y el costado
+  // izquierdo (un tercio) es del gecko.
+  --borde: clamp(8px, 2.2cqh, 16px);
+  --alto: min(100cqh, 100cqw * 2 / 3);
+  position: relative;
+  width: calc(var(--alto) * 1.5);
+  height: var(--alto);
+  display: grid;
+  // El lienzo es un cuadrado: su columna mide lo mismo que el alto interior.
+  grid-template-columns: minmax(0, 1fr) calc(var(--alto) - 2 * var(--borde));
+  align-items: stretch;
+  border: var(--borde) solid $marco;
+  border-radius: 22px;
+  background: radial-gradient(circle at 30% 20%, #3f7550, #2a5236 72%);
+  box-shadow: inset 0 0 0 3px $marco-sombra, 0 8px 0 $marco-sombra, 0 14px 24px rgba(0, 0, 0, 0.2);
+}
+
+.pizarra__lado {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6% 4% 0 7%;
+}
+
+// Tiza: letra redondeada blanca con un poco de polvo.
+.pizarra__texto {
+  margin: 0;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: clamp(15px, 4.4cqh, 30px);
+  line-height: 1.15;
+  color: #f4f7ef;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.pizarra__gecko {
+  align-self: flex-start;
   width: 100%;
+  max-height: 58%;
+  object-fit: contain;
+  object-position: left bottom;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.25));
 }
 
 .canvas-container {
   position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
+  width: 100%;
   aspect-ratio: 1 / 1;
-  max-width: min(100%, 700px);
-  border: 5px solid #28a745;
-  border-radius: 20px;
-  background-color: white;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
 }
 
 .canvas-layer {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
 }
@@ -46,30 +89,95 @@
   touch-action: none;
 }
 
-.controls {
-  display: flex;
-  gap: 20px;
-  margin-top: 6px;
-  flex-shrink: 0;   // 👈 que no se encoja para dejarle espacio al canvas
+.pizarra__nota {
+  position: absolute;
+  top: 3%;
+  right: 3%;
+  z-index: 3;
+  max-width: 55%;
+  &:empty { display: none; }
 }
 
-// Cartel sobre el borde superior del lienzo. Va en posición absoluta para no
-// quitarle alto al lienzo, y no captura toques: se puede seguir pintando.
-.result-box {
+// El trozo de tiza apoyado en el marco.
+.pizarra__tiza {
   position: absolute;
-  top: 10px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: fit-content;
-  z-index: 3;
-  max-width: calc(100% - 20px);
-  font-size: 1.05rem;
-  font-weight: bold;
-  line-height: 1.25;
-  padding: 6px 16px;
+  right: 8%;
+  bottom: calc(var(--borde) * -0.9);
+  width: 9%;
+  height: calc(var(--borde) * 0.8);
+  border-radius: 4px;
+  background: #fff;
+  transform: rotate(-6deg);
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+}
+
+// Pantalla vertical (celular, tablet parada): el gecko pasa arriba y el
+// lienzo ocupa todo el ancho.
+@container (max-aspect-ratio: 1 / 1) {
+  .pizarra {
+    width: min(100cqw, 100cqh / 1.3);
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  .pizarra__lado {
+    flex-direction: row-reverse;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 3%;
+    padding: 3% 4% 0;
+    height: calc(min(100cqw, 100cqh / 1.3) * 0.26);
+  }
+
+  .pizarra__gecko { width: auto; height: 100%; max-height: none; }
+  .pizarra__texto { font-size: clamp(15px, 5cqw, 26px); }
+  .canvas-container { width: 100%; height: auto; }
+}
+
+// ── Botones ───────────────────────────────────────────────
+.controls {
+  flex: none;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: 56px;
+  padding: 0 1.6rem;
+  border: 0;
   border-radius: 999px;
-  background-color: rgba(248, 249, 250, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-  pointer-events: none;
+  font-family: 'Nunito', system-ui, sans-serif;
+  font-size: 1.3rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+
+  &:active:not(:disabled) { transform: translateY(4px); }
+  &:focus-visible { outline: 3px solid #24400a; outline-offset: 3px; }
+  &:disabled { opacity: 0.7; cursor: default; }
+}
+
+.btn-verify {
+  background: #ff5a4e;
+  color: #fff;
+  box-shadow: 0 6px 0 #c23a2f;
+  &:active:not(:disabled) { box-shadow: 0 2px 0 #c23a2f; }
+}
+
+.btn-clear {
+  background: #fff;
+  color: #24400a;
+  box-shadow: 0 6px 0 rgba(36, 64, 10, 0.25);
+  &:active:not(:disabled) { box-shadow: 0 2px 0 rgba(36, 64, 10, 0.25); }
+}
+
+@media (max-height: 560px) {
+  :host { gap: 0.6rem; }
+  .btn { min-height: 44px; font-size: 1.05rem; }
 }

@@ -60,8 +60,16 @@ a save error.
   Administrador, Admin. Colegio, Profesor).
 
 #### Activities
-- **`pages/drawPage`** + `components/drawPage/letter-tracer`: canvas scoring,
-  every attempt is saved.
+Every activity fits the screen with no scroll (notebook, tablet, phone):
+layouts are sized from the available height, and each activity has its own
+colour (Pinta letras red, Hablemos blue, Une palabras lilac).
+
+- **`pages/drawPage`** + `components/drawPage/letter-tracer`: a chalkboard
+  with the gecko inside; the guide letter is drawn in dashed chalk, while the
+  scoring mask (same letter, same size as always) lives in a hidden canvas, so
+  the score does not depend on the look. `letter-selector` is a reel with
+  arrows (previous/next letter), vertical beside the board or horizontal on
+  portrait screens. Every attempt is saved.
 - **`pages/signLanguage`** + `components/signLanguage/hand-tracker` +
   `services/signLanguage.service.ts`: MediaPipe HandLandmarker, per-vowel scores
   from finger angles/distances, a vowel counts only if held for 800 ms with a
@@ -69,10 +77,15 @@ a save error.
 - **`pages/talkPage`** + `services/vowel-detector.service.ts` (capture) +
   `services/vowel-dsp.ts` (pure analysis, tested with synthetic vowels in
   `vowel-dsp.spec.ts`). Three verdicts: correct, other vowel, or "doubtful"
-  (asks to repeat, not counted as a failure). Clear messages for
-  denied/missing/busy microphone.
+  (asks to repeat, not counted as a failure). Layout: vowels as balloons
+  (`vocal-selector`), the gecko whose speech bubble gives the instruction and
+  the result (`mascot-header`, also the microphone errors), and a giant
+  round microphone whose ring shows the remaining listening time
+  (`practice-button`).
 - **`pages/unePalabras`** + `interfaces/banco-palabras.ts`: rounds of 5 words
-  from a 30-word bank.
+  from a 30-word bank. Words on wooden signs, pictures in round medallions;
+  each matched pair gets a coloured rope (SVG, measured from the real
+  positions and redrawn on resize).
 - **`services/actividades.service.ts`**: POSTs results with retry + exponential
   backoff on network/5xx errors only. `puedeGuardarProgreso` hides saving for
   roles that would get 403.
@@ -318,7 +331,7 @@ App
 ├─ Home ── Option (activity grid)
 ├─ DrawPage ── LetterSelector, LetterTracer, ActividadesService
 ├─ SignLanguage ── HandTracker ── signLanguage.service (MediaPipe), ActividadesService
-├─ TalkPage ── VocalSelector, PracticeButton, ResultFeedback, MascotHeader,
+├─ TalkPage ── VocalSelector, PracticeButton, MascotHeader,
 │              WaveformVisualizer, VowelDetectorService, ActividadesService
 ├─ UnePalabras ── banco-palabras, ActividadesService
 ├─ MisLogros ── MisLogrosService

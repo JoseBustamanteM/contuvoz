@@ -1,201 +1,241 @@
-.une-container {
+// Une palabras: palabras en letreros de madera a la izquierda, dibujos en
+// medallones a la derecha y, al acertar, una cuerda de color entre ambos.
+// Las 5 filas se reparten el alto disponible: todo cabe sin scroll.
+
+:host {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 1rem;
+  min-height: 0;
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: #24400a;
 }
 
-// ---------- Cabecera ----------
+$lila: #8b5cf6;
+$lila-sombra: #5b33b8;
+$verde: #2f7a14;
 
-.cabecera {
-  width: min(100%, 42rem);
-  margin: 0 auto 1rem;
-  text-align: center;
+.une {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 2vh, 1rem);
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0.5rem 1.5rem 1.25rem;
+}
 
-  h1 {
-    margin: 0 0 0.5rem;
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: #047857;
+// ── Arriba: gecko + instrucción + hojas de progreso ─────────
+.une__arriba {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.guia {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+
+  &__gecko {
+    flex: none;
+    height: clamp(3rem, 11vh, 5.5rem);
+    width: auto;
+    filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.18));
+  }
+
+  &__burbuja {
+    position: relative;
+    margin: 0;
+    padding: 0.6rem 1.1rem;
+    border-radius: 20px;
+    background: #fff;
+    font-weight: 900;
+    font-size: clamp(1rem, 3vh, 1.45rem);
+    line-height: 1.2;
+    box-shadow: 0 5px 0 rgba(36, 64, 10, 0.18);
+
+    strong { color: $lila; }
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: -10px;
+      top: 50%;
+      translate: 0 -50%;
+      border: 10px solid transparent;
+      border-right-color: #fff;
+      border-left: 0;
+    }
   }
 }
 
-.instruccion {
-  margin: 0 auto 0.75rem;
-  padding: 0.5rem 1rem;
-  max-width: 100%;
-  display: inline-block;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
-  color: #4b5563;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-
-  strong { color: #047857; }
+.hojas {
+  flex: none;
+  display: flex;
+  gap: 0.4rem;
 }
 
-.barra-progreso {
-  height: 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.7);
-  overflow: hidden;
+.hoja {
+  width: clamp(1.4rem, 4.5vh, 2.2rem);
+  height: clamp(1rem, 3.2vh, 1.6rem);
+  border-radius: 4px 16px 4px 16px;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 3px 0 rgba(36, 64, 10, 0.15);
+  transition: background 0.3s ease;
+
+  &--si { background: $verde; }
 }
 
-.barra-relleno {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #34d399, #059669);
-  transition: width 0.4s ease-out;
-}
-
-// ---------- Tablero ----------
-
+// ── Tablero ─────────────────────────────────────────────────
 .tablero {
-  width: min(100%, 42rem);
-  margin: 0 auto;
+  flex: 1;
+  min-height: 0;
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
-  align-items: start;
+  grid-template-columns: minmax(0, 18rem) auto;
+  justify-content: center;
+  column-gap: clamp(4rem, 22vw, 16rem);
+}
+
+.cuerdas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+
+  path { fill: none; stroke-width: 7; stroke-linecap: round; }
 }
 
 .columna {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  min-height: 0;
   margin: 0;
   padding: 0;
   list-style: none;
+  display: grid;
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+  gap: clamp(0.4rem, 1.8vh, 0.9rem);
+
+  li { min-height: 0; display: flex; }
 }
 
-// ---------- Tarjetas ----------
+.columna--dibujos li { justify-content: center; }
 
-.tarjeta {
-  width: 100%;
-  // 64px: la tarjeta entera es el objetivo táctil, no un círculo pequeño.
-  // Con dificultades motoras esa diferencia importa mucho.
-  min-height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  border: 3px solid transparent;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+button {
+  font-family: inherit;
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.2s ease;
+  transition: transform 0.12s ease;
 
+  &:focus-visible { outline: 4px solid #24400a; outline-offset: 3px; }
   &:disabled { cursor: default; }
+}
 
-  &:not(:disabled):hover { transform: translateY(-2px); }
+// Letrero de madera con la palabra.
+.letrero {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 14px;
+  background: #e9b97b;
+  box-shadow: inset 0 -6px 0 #c48a45, 0 5px 0 rgba(36, 64, 10, 0.25);
+  color: #4a2c08;
+  font-weight: 900;
+  font-size: clamp(1.1rem, 4.2vh, 2rem);
 
-  &:focus-visible {
-    outline: 4px solid #10b981;
-    outline-offset: 3px;
+  &:active:not(:disabled) { transform: translateY(3px); }
+
+  &.activa { outline: 5px solid $lila; outline-offset: 3px; }
+
+  &.resuelta {
+    background: #cfe9b6;
+    box-shadow: inset 0 -6px 0 #9fcb7a, 0 5px 0 rgba(36, 64, 10, 0.2);
+    color: $verde;
   }
 }
 
-.tarjeta-palabra .texto {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #065f46;
-}
-
-.tarjeta-dibujo .emoji {
-  font-size: 2.25rem;
+// Medallón redondo con el dibujo.
+.medallon {
+  height: 100%;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 5px 0 rgba(36, 64, 10, 0.22);
+  font-size: clamp(1.6rem, 6.5vh, 3.2rem);
   line-height: 1;
+
+  &:active:not(:disabled) { transform: translateY(3px); }
+
+  // Con una palabra elegida, los dibujos que faltan se ofrecen.
+  &.esperando { box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.55), 0 5px 0 rgba(36, 64, 10, 0.22); }
+  &.resuelta { box-shadow: 0 0 0 5px $verde, 0 5px 0 rgba(36, 64, 10, 0.22); }
+  &.error { box-shadow: 0 0 0 5px #e5484d, 0 5px 0 rgba(36, 64, 10, 0.22); animation: sacudir 0.4s ease; }
 }
 
-// Palabra seleccionada, esperando su dibujo.
-.tarjeta.activa {
-  border-color: #6366f1;
-  background: #eef2ff;
-  transform: scale(1.03);
-}
-
-// Dibujos candidatos mientras hay una palabra elegida: se realzan para que
-// quede claro que el siguiente toque va en esta columna.
-.tarjeta.esperando {
-  border-color: #c7d2fe;
-}
-
-.tarjeta.resuelta {
-  background: #ecfdf5;
-  border-color: #6ee7b7;
-  box-shadow: none;
-  opacity: 0.9;
-
-  .emoji-ok { font-size: 1.5rem; }
-
-  .texto-ok {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #047857;
-  }
-}
-
-// Error: temblor breve. Coincide con los 600ms de errorEn del componente.
-.tarjeta.error {
-  border-color: #fca5a5;
-  background: #fef2f2;
-  animation: temblor 0.4s ease;
-}
-
-@keyframes temblor {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
+@keyframes sacudir {
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tarjeta,
-  .barra-relleno { transition: none; }
-  .tarjeta.error { animation: none; }
+  .medallon.error { animation: none; }
 }
 
-// ---------- Resumen ----------
+// ── Resumen de la ronda ─────────────────────────────────────
+.resumen-zona {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
 
 .tarjeta-resumen {
   width: min(100%, 26rem);
-  margin: 1rem auto 0;
-  padding: 1.75rem 1.5rem 1.5rem;
+  max-height: 100%;
+  overflow: hidden;
+  padding: clamp(1rem, 4vh, 1.75rem) 1.5rem;
   border-radius: 28px;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  background: #fff;
+  box-shadow: 0 8px 0 $lila-sombra;
   text-align: center;
 }
 
 .emoji-resultado {
   display: block;
-  font-size: 3.5rem;
+  font-size: clamp(2.5rem, 9vh, 3.5rem);
   line-height: 1;
 }
 
 .titulo-resumen {
   margin: 0.25rem 0 0;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: #047857;
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: $lila-sombra;
 }
 
 .marcador {
   margin: 0.5rem 0 0;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: #4b5563;
 
-  strong {
-    font-size: 1.5rem;
-    color: #047857;
-  }
+  strong { font-size: 1.6rem; color: $lila; }
 }
 
 // Los errores se mencionan en gris, sin dramatizar: son parte de aprender.
 .nota-errores {
   margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-  color: #9ca3af;
+  font-size: 0.95rem;
+  color: #6b7280;
 }
 
 .estado-guardado {
@@ -205,55 +245,45 @@
 }
 
 .aviso-guardado {
-  margin-top: 1rem;
-  padding: 0.9rem 1rem;
+  margin-top: 0.9rem;
+  padding: 0.8rem 1rem;
   border-radius: 16px;
   background: #fff8e1;
-  border: 1px solid #ffe082;
 
-  p {
-    margin: 0 0 0.7rem;
-    font-size: 0.95rem;
-    color: #6d4c41;
-  }
+  p { margin: 0 0 0.6rem; font-size: 0.95rem; color: #6d4c41; }
 }
 
 .btn-reintentar {
   min-height: 44px;
-  padding: 0.55rem 1.3rem;
+  padding: 0.5rem 1.3rem;
   border: none;
   border-radius: 999px;
   background: #f57c00;
   color: #fff;
   font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
+  font-weight: 800;
 }
 
 .btn-iniciar {
   width: 100%;
   min-height: 56px;
-  margin-top: 1.25rem;
+  margin-top: clamp(0.75rem, 3vh, 1.25rem);
   border: none;
   border-radius: 999px;
-  background: #10b981;
+  background: $lila;
   color: #fff;
-  font-size: 1.2rem;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 5px 0 #059669;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  font-size: 1.25rem;
+  font-weight: 900;
+  box-shadow: 0 6px 0 $lila-sombra;
 
-  &:active {
-    transform: translateY(4px);
-    box-shadow: 0 1px 0 #059669;
-  }
+  &:active { transform: translateY(4px); box-shadow: 0 2px 0 $lila-sombra; }
 }
 
-// ---------- Móvil ----------
-
-@media (max-width: 400px) {
-  .tarjeta { min-height: 56px; padding: 0.5rem; }
-  .tarjeta-palabra .texto { font-size: 1.05rem; }
-  .tarjeta-dibujo .emoji { font-size: 1.9rem; }
+// ── Pantallas angostas (celular) ────────────────────────────
+@media (max-width: 600px) {
+  .une { padding: 0.5rem 1rem 1rem; }
+  .une__arriba { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+  .hojas { justify-content: center; }
+  .tablero { grid-template-columns: minmax(0, 1fr) auto; column-gap: 18vw; }
+  .letrero { font-size: clamp(1rem, 3.2vh, 1.4rem); }
 }

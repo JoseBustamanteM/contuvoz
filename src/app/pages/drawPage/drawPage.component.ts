@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { LetterSelectorComponent } from '../../components/drawPage/letter-selector/letter-selector.component';
 import { LetterTracerComponent } from '../../components/drawPage/letter-tracer/letter-tracer.component';
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
@@ -15,6 +16,7 @@ const UMBRAL_APROBADO = 80;
     LetterTracerComponent,
     LetterSelectorComponent,
     AvisoModoPracticaComponent,
+    DecimalPipe,
   ],
   templateUrl: './drawPage.component.html',
   styleUrls: ['./drawPage.component.scss'],

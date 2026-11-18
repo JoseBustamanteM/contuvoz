@@ -1,32 +1,63 @@
 import { Component, input, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { VocalLetter, PracticeState } from '../../../pages/talkPage/talkpage.component';
+import {
+  VocalLetter,
+  PracticeState,
+  MotivoRepetir,
+} from '../../../pages/talkPage/talkpage.component';
+import { VOCALES_HABLEMOS } from '../vocal-selector/vocal-selector.component';
 
+/**
+ * El gecko de Hablemos con su burbuja. La burbuja dice qué hacer y, después
+ * de cada intento, cómo le fue: es lo primero que el niño mira, así que el
+ * resultado va ahí y no en una tarjeta aparte.
+ */
 @Component({
   selector: 'app-mascot-header',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './mascot-header.component.html',
   styleUrl: './mascot-header.component.scss',
 })
 export class MascotHeaderComponent {
-  // ── Inputs ──────────────────────────────────────────────
   practiceState = input<PracticeState>('idle');
   selectedVocal = input<VocalLetter | null>(null);
+  /** La vocal que se reconoció en su lugar (solo cuando fue otra vocal). */
+  detectedVocal = input<VocalLetter | null>(null);
+  motivo = input<MotivoRepetir>(null);
+  /** Por qué no se pudo usar el micrófono. */
+  errorMicrofono = input<string | null>(null);
 
-  // ── Computados ──────────────────────────────────────────
-  message = computed(() => {
-    const state = this.practiceState();
+  private ejemplo = computed(() => VOCALES_HABLEMOS.find((v) => v.letter === this.selectedVocal()));
+
+  /** Título (grande) y detalle de la burbuja. */
+  mensaje = computed((): { titulo: string; detalle?: string } => {
     const vocal = this.selectedVocal();
+    const dijo = this.detectedVocal();
+    const error = this.errorMicrofono();
 
-    if (state === 'listening') return `¡Escucho! Di la "${vocal}"... 👂`;
-    if (state === 'success')   return '¡Genial! ¡Lo lograste! 🌟';
-    if (state === 'failure')   return '¡Tú puedes! Inténtalo de nuevo 💪';
-    if (state === 'repeat')    return `¡Otra vez! Di la "${vocal}" bien larga 👂`;
-    if (vocal)                 return `Ahora practica la vocal "${vocal}"`;
-    return '¡Elige una vocal y practica!';
+    if (error) return { titulo: 'No pudimos usar el micrófono 🎙️', detalle: error };
+
+    switch (this.practiceState()) {
+      case 'listening':
+        return { titulo: `¡Te escucho! Di la «${vocal}» 👂` };
+      case 'success':
+        return { titulo: '¡Muy bien! 🎉', detalle: `Dijiste la «${vocal}» perfectamente` };
+      case 'repeat':
+        return this.motivo() === 'muy-corta'
+          ? { titulo: '¡Dila otra vez!', detalle: `Fue muy cortita. Dila más larga: «${vocal}${vocal}${vocal}»` }
+          : { titulo: '¡Dila otra vez!', detalle: `No alcancé a escucharla bien. Di la «${vocal}» fuerte y larga` };
+      case 'failure':
+        if (!dijo) return { titulo: 'No te escuché 👂', detalle: 'Acércate al micrófono y habla fuerte' };
+        return { titulo: '¡Casi! 💪', detalle: `Dijiste la «${dijo}» en lugar de la «${vocal}»` };
+    }
+
+    const e = this.ejemplo();
+    if (!e) return { titulo: '¡Elige una vocal!', detalle: 'Toca un globo de arriba' };
+    return { titulo: `Di la «${e.letter}» bien larga`, detalle: `${e.emoji} ${e.letter} de ${e.word}` };
   });
 
-  // Clase CSS del estado para animaciones de la mascota
-  mascotStateClass = computed(() => `mascot--${this.practiceState()}`);
+  tono = computed(() => {
+    if (this.errorMicrofono()) return 'error';
+    const estado = this.practiceState();
+    return estado === 'success' ? 'exito' : estado === 'failure' ? 'fallo' : estado === 'repeat' ? 'repetir' : 'normal';
+  });
 }

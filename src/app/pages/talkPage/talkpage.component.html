@@ -1,22 +1,25 @@
 <app-aviso-modo-practica />
 
-<div class="talk-page">
+<div class="hablemos">
+  <h1 class="sr-only">Hablemos</h1>
 
-  <app-mascot-header
-    [practiceState]="practiceState()"
+  <app-vocal-selector
+    class="hablemos__globos"
     [selectedVocal]="selectedVocal()"
+    [practiceState]="practiceState()"
+    (vocalSelected)="onVocalSelected($event)"
   />
 
-  <section class="talk-page__selector-section" aria-label="Selecciona una vocal">
-    <h2 class="talk-page__section-label">¿Qué vocal quieres practicar?</h2>
-    <app-vocal-selector
-      [selectedVocal]="selectedVocal()"
-      [practiceState]="practiceState()"
-      (vocalSelected)="onVocalSelected($event)"
-    />
-  </section>
+  <app-mascot-header
+    class="hablemos__guia"
+    [practiceState]="practiceState()"
+    [selectedVocal]="selectedVocal()"
+    [detectedVocal]="detectedVocal()"
+    [motivo]="motivoRepetir()"
+    [errorMicrofono]="errorMicrofono()"
+  />
 
-  <section class="talk-page__action-section" aria-label="Iniciar práctica">
+  <section class="hablemos__mic" aria-label="Micrófono">
     <app-practice-button
       [selectedVocal]="selectedVocal()"
       [practiceState]="practiceState()"
@@ -26,39 +29,18 @@
       (practiceStart)="onPracticeStart()"
     />
 
-    @if (practiceState() === 'listening') {
-      <div class="talk-page__wave" aria-hidden="true">
-        <app-waveform-visualizer />
-      </div>
-    }
+    <!-- Alto fijo, haya o no algo: así el micrófono no salta de lugar. -->
+    <div class="hablemos__bajo-mic">
+      @if (practiceState() === 'listening') {
+        <app-waveform-visualizer class="hablemos__onda" aria-hidden="true" />
+      } @else if (errorGuardado()) {
+        <p class="aviso-guardado" role="status">
+          No pudimos guardar este intento.
+          <button type="button" [disabled]="guardando()" (click)="reintentarGuardado()">
+            {{ guardando() ? 'Guardando…' : 'Reintentar' }}
+          </button>
+        </p>
+      }
+    </div>
   </section>
-
-  @if (errorMicrofono()) {
-    <section class="talk-page__aviso talk-page__aviso--error" role="alert">
-      <span class="talk-page__aviso-icono" aria-hidden="true">🎙️🚫</span>
-      <p>{{ errorMicrofono() }}</p>
-    </section>
-  }
-
-  @if (practiceState() === 'success' || practiceState() === 'failure' || practiceState() === 'repeat') {
-    <section class="talk-page__feedback-section" aria-live="polite" aria-label="Resultado">
-      <app-result-feedback
-        [practiceState]="practiceState()"
-        [selectedVocal]="selectedVocal()"
-        [detectedVocal]="detectedVocal()"
-        [motivo]="motivoRepetir()"
-      />
-    </section>
-  }
-
-  @if (errorGuardado()) {
-    <section class="talk-page__aviso" role="status">
-      <p>No pudimos guardar este intento.</p>
-      <button type="button" class="talk-page__btn-reintentar" [disabled]="guardando()"
-              (click)="reintentarGuardado()">
-        {{ guardando() ? 'Guardando…' : 'Reintentar' }}
-      </button>
-    </section>
-  }
-
 </div>

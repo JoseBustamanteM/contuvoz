@@ -1,37 +1,22 @@
-<div class="practice-button-wrapper">
+<div class="mic-zona" [class]="'mic-zona--' + practiceState()">
+  <div class="mic-anillo"
+       [class.mic-anillo--contando]="escuchando()"
+       [style.--progreso]="progreso()"
+       role="progressbar"
+       aria-label="Tiempo restante de escucha"
+       aria-valuemin="0" aria-valuemax="100"
+       [attr.aria-valuenow]="escuchando() ? progresoPorcentaje() : null">
+    <button
+      type="button"
+      class="mic"
+      [class.mic--oyendo]="oyendoVoz()"
+      [disabled]="isDisabled()"
+      [attr.aria-label]="ariaLabel()"
+      (click)="onButtonClick()"
+    >
+      <span aria-hidden="true">🎤</span>
+    </button>
+  </div>
 
-  <button
-    class="practice-button"
-    [class.practice-button--listening]="isListening()"
-    [class.practice-button--disabled]="isDisabled()"
-    [disabled]="isDisabled()"
-    [attr.aria-label]="buttonLabel()"
-    (click)="onButtonClick()"
-    type="button"
-  >
-    <!-- Ondas animadas (solo con el micrófono abierto) -->
-    @if (escuchando()) {
-      <span class="practice-button__wave practice-button__wave--1" aria-hidden="true"></span>
-      <span class="practice-button__wave practice-button__wave--2" aria-hidden="true"></span>
-      <span class="practice-button__wave practice-button__wave--3" aria-hidden="true"></span>
-    }
-
-    <span class="practice-button__content">
-      {{ buttonLabel() }}
-    </span>
-  </button>
-
-  <!-- Barra del tiempo de escucha -->
-  @if (escuchando()) {
-    <div class="practice-button__progress-track" role="progressbar"
-         [attr.aria-valuenow]="progresoPorcentaje()"
-         aria-valuemin="0" aria-valuemax="100"
-         aria-label="Tiempo restante de escucha">
-      <div
-        class="practice-button__progress-bar"
-        [style.width.%]="progresoPorcentaje()"
-      ></div>
-    </div>
-  }
-
+  <span class="mic-etiqueta" aria-hidden="true">{{ etiqueta() }}</span>
 </div>

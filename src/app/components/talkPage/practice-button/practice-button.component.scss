@@ -1,120 +1,86 @@
-// =========================================================
-//  PracticeButton — Botón principal + barra del tiempo de escucha
-// =========================================================
+// Micrófono gigante. El tamaño sale del alto disponible: es el elemento
+// principal de Hablemos, pero tiene que caber sin scroll.
+:host { display: block; }
 
-.practice-button-wrapper {
+$azul: #2b7de9;
+$azul-sombra: #1a56a8;
+
+.mic-zona {
+  --tam: clamp(7.5rem, 30vh, 15rem);
+  --color-anillo: rgba(255, 255, 255, 0.75);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  width: 100%;
+  gap: clamp(0.75rem, 3vh, 1.5rem);
+  font-family: 'Nunito', system-ui, sans-serif;
+
+  &--success { --color-anillo: #6bd66b; }
+  &--failure { --color-anillo: #ffb347; }
+  &--repeat { --color-anillo: #9cc4ff; }
 }
 
-.practice-button {
-  // Layout
+// Dos anillos alrededor del botón. Mientras escucha, el de adentro se
+// vacía como un reloj (conic-gradient con --progreso de 1 a 0).
+.mic-anillo {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  min-height: 64px;
-  padding: 1rem 2rem;
-  border-radius: 50px;
-  border: none;
-  cursor: pointer;
-  overflow: hidden;
+  padding: calc(var(--tam) * 0.09);
+  border-radius: 50%;
+  background: var(--color-anillo);
 
-  // Apariencia
-  background: #2dba6a;
-  color: #fff;
-  font-size: clamp(1rem, 4vw, 1.15rem);
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  text-align: center;
-  box-shadow:
-    0 6px 0 #1e8a4c,
-    0 8px 20px rgba(45, 186, 106, 0.4);
-
-  // Transiciones
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.2s ease;
-
-  // ── Label interno ────────────────────────────────────────
-  &__content {
-    position: relative;
-    z-index: 2;
-  }
-
-  // ── Ondas de audio (animadas) ────────────────────────────
-  &__wave {
+  &::after {
+    content: '';
     position: absolute;
+    inset: calc(var(--tam) * -0.1);
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.3);
-    animation: ripple 1.5s ease-out infinite;
-    z-index: 1;
-
-    &--1 { width: 100%; height: 100%; animation-delay: 0s; }
-    &--2 { width: 100%; height: 100%; animation-delay: 0.4s; }
-    &--3 { width: 100%; height: 100%; animation-delay: 0.8s; }
+    border: 5px solid rgba(255, 255, 255, 0.4);
+    pointer-events: none;
   }
 
-  // ── Hover ────────────────────────────────────────────────
-  &:hover:not(&--disabled) {
-    transform: translateY(-2px);
-    box-shadow:
-      0 8px 0 #1e8a4c,
-      0 12px 28px rgba(45, 186, 106, 0.45);
-  }
-
-  // ── Active (tap) ─────────────────────────────────────────
-  &:active:not(&--disabled) {
-    transform: translateY(3px);
-    box-shadow:
-      0 3px 0 #1e8a4c,
-      0 4px 10px rgba(45, 186, 106, 0.3);
-  }
-
-  // ── Estado: escuchando ───────────────────────────────────
-  &--listening {
-    background: #ff6b6b;
-    box-shadow:
-      0 6px 0 #c94040,
-      0 8px 20px rgba(255, 107, 107, 0.4);
-    cursor: default;
-  }
-
-  // ── Estado: deshabilitado ────────────────────────────────
-  &--disabled:not(&--listening) {
-    background: #b0c4b1;
-    box-shadow: 0 4px 0 #8a9e8b, 0 6px 14px rgba(0, 0, 0, 0.1);
-    cursor: not-allowed;
-    opacity: 0.75;
-  }
-
-  // ── Barra de progreso ────────────────────────────────────
-  &__progress-track {
-    width: 100%;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.45);
-    border-radius: 50px;
-    overflow: hidden;
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
-  }
-
-  &__progress-bar {
-    height: 100%;
-    background: #fff;
-    border-radius: 50px;
-    // Sin transition aquí: se actualiza cada 50ms desde el signal, es suave de por sí
-    transition: width 0.05s linear;
-    box-shadow: 0 0 6px rgba(255,255,255,0.7);
+  &--contando {
+    background: conic-gradient(#fff calc(var(--progreso) * 360deg), rgba(255, 255, 255, 0.3) 0);
   }
 }
 
-// ── Animación de ondas ────────────────────────────────────
-@keyframes ripple {
-  0%   { transform: scale(0); opacity: 0.5; }
-  100% { transform: scale(2); opacity: 0; }
+.mic {
+  display: grid;
+  place-items: center;
+  width: var(--tam);
+  height: var(--tam);
+  border: 0;
+  border-radius: 50%;
+  background: $azul;
+  box-shadow: 0 10px 0 $azul-sombra;
+  font-size: calc(var(--tam) * 0.42);
+  line-height: 1;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+  &:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 4px 0 $azul-sombra; }
+  &:focus-visible { outline: 4px solid #24400a; outline-offset: 6px; }
+
+  // Sin vocal elegida: se ve, pero apagado.
+  &:disabled { cursor: default; }
+  .mic-zona--idle &:disabled { filter: grayscale(0.6); opacity: 0.7; }
+}
+
+.mic-etiqueta {
+  padding: 0.45rem 1.2rem;
+  border-radius: 999px;
+  background: #fff;
+  color: $azul-sombra;
+  font-weight: 900;
+  font-size: clamp(1rem, 3.2vh, 1.45rem);
+  box-shadow: 0 4px 0 rgba(36, 64, 10, 0.2);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mic-zona--listening .mic-anillo::after { animation: onda 1.6s ease-out infinite; }
+  .mic--oyendo { animation: latido 0.8s ease-in-out infinite; }
+
+  @keyframes onda {
+    from { transform: scale(0.92); opacity: 1; }
+    to { transform: scale(1.18); opacity: 0; }
+  }
+  @keyframes latido { 50% { transform: scale(1.04); } }
 }

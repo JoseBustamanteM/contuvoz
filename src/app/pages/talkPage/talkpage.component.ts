@@ -2,7 +2,6 @@ import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VocalSelectorComponent } from '../../components/talkPage/vocal-selector/vocal-selector.component';
 import { PracticeButtonComponent } from '../../components/talkPage/practice-button/practice-button.component';
-import { ResultFeedbackComponent } from '../../components/talkPage/result-feedback/result-feedback.component';
 import { MascotHeaderComponent } from '../../components/talkPage/mascot-header/mascot-header.component';
 import { WaveformVisualizerComponent } from '../../components/talkPage/waveform-visualizer/waveform-visualizer.component';
 import { AvisoModoPracticaComponent } from '../../components/shared/aviso-modo-practica/aviso-modo-practica.component';
@@ -29,7 +28,6 @@ export type MotivoRepetir = 'dudosa' | 'muy-corta' | 'sin-voz' | null;
     CommonModule,
     VocalSelectorComponent,
     PracticeButtonComponent,
-    ResultFeedbackComponent,
     MascotHeaderComponent,
     WaveformVisualizerComponent,
     AvisoModoPracticaComponent,

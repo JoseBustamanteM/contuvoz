@@ -231,3 +231,35 @@
 
   &:active { box-shadow: inset 0 0 0 3px #a29bfe, 0 2px 0 #a29bfe; }
 }
+
+// ── Sin scroll ──────────────────────────────────────────────
+// La cámara toma el alto que sobra (manteniendo 4:3) en vez de un ancho
+// fijo de 600 px, que en un notebook empujaba la referencia fuera de la
+// pantalla.
+:host { display: block; height: 100%; }
+
+.ls-chile-container {
+  height: 100%;
+  min-height: 0;
+  gap: 12px;
+  padding: 14px;
+
+  .camera-card {
+    flex: 1 1 0;
+    min-height: 0;
+    width: auto;
+    max-width: 100%;
+  }
+}
+
+.referencia {
+  flex: none;
+  flex-direction: row;
+  gap: 0.75rem;
+  margin-top: 0;
+}
+
+.referencia-img {
+  max-height: min(110px, 14vh);
+  max-width: min(110px, 14vh);
+}

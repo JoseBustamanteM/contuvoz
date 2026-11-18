@@ -1,121 +1,99 @@
-// =========================================================
-//  TalkPage — Pantalla principal de práctica de vocalesF
-//  Paleta verde vibrante (consistente con la app principal)
-// =========================================================
+// Hablemos: globos arriba; abajo, el gecko (con el resultado en su burbuja)
+// y el micrófono gigante. Todo cabe en la pantalla sin scroll. En pantallas
+// verticales: globos, gecko y micrófono uno debajo del otro.
 
 :host {
-  display: block;
-  width: 100%;
-  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-family: 'Nunito', system-ui, sans-serif;
 }
 
-.talk-page {
+.hablemos {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    'globos globos'
+    'guia   mic';
+  gap: 0.5rem 1.5rem;
+  max-width: 72rem;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0.25rem 1.5rem 1rem;
+}
+
+.hablemos__globos { grid-area: globos; }
+
+.hablemos__guia {
+  grid-area: guia;
+  align-self: center;
+  justify-self: end;
+  height: 100%;
+}
+
+.hablemos__mic {
+  grid-area: mic;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
-  padding: 1.5rem 1rem 3rem;
-  min-height: 100%;
-
-  // Fondo degradado suave del cielo — igual al de la app madre
-
-  // ── Sección del selector de vocales ──────────────────────
-  &__selector-section {
-    width: 100%;
-    max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  &__section-label {
-    font-size: clamp(1rem, 4vw, 1.25rem);
-    font-weight: 700;
-    color: #fff;
-    text-align: center;
-    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
-    margin: 0;
-    letter-spacing: 0.01em;
-  }
-
-  // ── Sección del botón de práctica ────────────────────────
-  &__action-section {
-    width: 100%;
-    max-width: 320px;
-    display: flex;
-    justify-content: center;
-  }
-
-  // ── Sección de feedback (resultado) ──────────────────────
-  &__feedback-section {
-    width: 100%;
-    max-width: 440px;
-
-    // Entrada animada
-    animation: slide-up 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  }
+  justify-content: center;
+  gap: 0.75rem;
 }
 
-// ── Avisos: error de micrófono y de guardado ─────────────────
-.talk-page__aviso {
-  width: 100%;
-  max-width: 440px;
+.hablemos__bajo-mic {
+  height: clamp(2.5rem, 9vh, 4.5rem);
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.hablemos__onda {
+  display: block;
+  width: min(100%, 22rem);
+  height: 100%;
+
+  ::ng-deep canvas { height: 100% !important; width: 100% !important; box-shadow: none; }
+}
+
+.aviso-guardado {
+  margin: 0;
+  display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 1rem 1.25rem;
-  border-radius: 20px;
-  background: #fff8e1;
-  border: 3px solid #ffca28;
-  color: #5d4300;
-  font-weight: 700;
-  text-align: center;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-
-  p { margin: 0; line-height: 1.35; }
-
-  &--error {
-    background: #ffebee;
-    border-color: #ef5350;
-    color: #8e1b1b;
-  }
-}
-
-.talk-page__aviso-icono { font-size: 2rem; }
-
-.talk-page__btn-reintentar {
-  min-height: 44px;
-  padding: 0.5rem 1.5rem;
-  border: none;
+  padding: 0.4rem 0.6rem 0.4rem 1rem;
   border-radius: 999px;
-  background: #ff922b;
-  color: #fff;
+  background: #fff8e1;
+  color: #5d4300;
   font-weight: 800;
-  box-shadow: 0 4px 0 #c06800;
-  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
 
-  &:active { transform: translateY(2px); box-shadow: 0 2px 0 #c06800; }
-  &:disabled { opacity: 0.6; cursor: wait; }
-}
+  button {
+    border: 0;
+    border-radius: 999px;
+    padding: 0.3rem 0.9rem;
+    background: #2b7de9;
+    color: #fff;
+    font: inherit;
+    font-weight: 900;
+    cursor: pointer;
 
-// Animación reutilizable
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(32px) scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    &:disabled { opacity: 0.6; cursor: wait; }
   }
 }
 
-// ── Responsive: tablets/escritorio ───────────────────────────
-@media (min-width: 600px) {
-  .talk-page {
-    padding: 2rem 2rem 4rem;
-    gap: 2.5rem;
+@media (orientation: portrait) {
+  .hablemos {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: 'globos' 'guia' 'mic';
+    padding: 0.25rem 1rem 1rem;
   }
+
+  .hablemos__guia { justify-self: stretch; height: auto; }
 }

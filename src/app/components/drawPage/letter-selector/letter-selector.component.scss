@@ -1,25 +1,62 @@
-.selector-container {
+// Carrete vertical junto a la pizarra; en pantallas verticales (celular,
+// tablet parada) se acuesta sobre ella.
+:host { display: block; }
+
+.carrete {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  font-family: Arial, sans-serif;
-  font-size: 1.2rem;
+  gap: clamp(0.25rem, 1.4vh, 0.6rem);
 }
 
-.styled-select {
-  padding: 8px 12px;
-  font-size: 1rem;
-  border: 2px solid #2ecc71;
-  border-radius: 8px;
-  background-color: #d1f2eb;
+
+.carrete__flecha {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: clamp(2rem, 7vh, 3rem);
+  border: 0;
+  border-radius: 16px;
+  background: #fff;
+  color: #c23a2f;
+  font-size: 1.3rem;
+  font-weight: 900;
+  box-shadow: 0 4px 0 rgba(36, 64, 10, 0.25);
   cursor: pointer;
-  outline: none;
+  transition: transform 0.12s ease;
 
-  &:hover {
-    background-color: #a3e4d7;
-  }
+  &:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(36, 64, 10, 0.25); }
+  &:focus-visible { outline: 3px solid #24400a; outline-offset: 2px; }
+}
 
-  &:focus {
-    box-shadow: 0 0 5px rgba(46, 204, 113, 0.5);
-  }
+.carrete__vecina {
+  font-family: 'Playwrite CU Variable', cursive;
+  font-size: clamp(1rem, 4vh, 1.6rem);
+  line-height: 1.3;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.carrete__actual {
+  display: grid;
+  place-items: center;
+  width: clamp(3.2rem, 14vh, 5.2rem);
+  height: clamp(3.2rem, 14vh, 5.2rem);
+  border-radius: 24px;
+  background: #ff5a4e;
+  color: #fff;
+  font-family: 'Playwrite CU Variable', cursive;
+  font-size: clamp(1.8rem, 7.5vh, 2.8rem);
+  line-height: 1;
+  padding-bottom: 0.4rem;
+  box-shadow: 0 6px 0 #c23a2f;
+}
+
+@media (orientation: portrait) {
+  .carrete { flex-direction: row; justify-content: center; }
+  .carrete__flecha span { display: inline-block; transform: rotate(-90deg); }
+  .carrete { gap: 0.5rem; }
+  .carrete__flecha { width: 2.8rem; height: 2.8rem; }
+  .carrete__actual { width: 3.6rem; height: 3.6rem; font-size: 2rem; border-radius: 18px; }
+  .carrete__vecina { font-size: 1.3rem; }
 }

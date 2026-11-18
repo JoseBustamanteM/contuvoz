@@ -1,36 +1,40 @@
-<div class="tracer-wrapper">
+<div class="zona-pizarra">
+  <div class="pizarra">
+    <!-- El gecko vive dentro de la pizarra y, encima, escrito con tiza, lo que
+         hay que hacer o cómo le fue. -->
+    <div class="pizarra__lado">
+      <p class="pizarra__texto" [style.color]="resultMessage() ? resultColor() : null" aria-live="polite">
+        {{ resultMessage() || '¡Repasa la letra con tu dedo!' }}
+      </p>
+      <img class="pizarra__gecko" src="images/gecko-dibujando.webp" alt="" />
+    </div>
 
-  <div class="canvas-container">
-    <canvas #bgCanvas class="canvas-layer background"></canvas>
+    <div class="canvas-container">
+      <canvas #bgCanvas class="canvas-layer background"></canvas>
+      <canvas #drawCanvas
+              class="canvas-layer drawing"
+              aria-label="Pizarra para dibujar la letra"
+              (mousedown)="startDrawing($event)"
+              (mousemove)="draw($event)"
+              (mouseup)="stopDrawing()"
+              (mouseleave)="stopDrawing()"
+              (touchstart)="startDrawing($event)"
+              (touchmove)="draw($event)"
+              (touchend)="stopDrawing()">
+      </canvas>
+    </div>
 
-    <canvas #drawCanvas
-            class="canvas-layer drawing"
-            (mousedown)="startDrawing($event)"
-            (mousemove)="draw($event)"
-            (mouseup)="stopDrawing()"
-            (mouseleave)="stopDrawing()"
-            (touchstart)="startDrawing($event)"
-            (touchmove)="draw($event)"
-            (touchend)="stopDrawing()">
-    </canvas>
-
-    <!-- Encima del lienzo y sin ocupar espacio: si empujara el lienzo, este se
-         achicaría y el trazo siguiente se vería más delgado. -->
-    @if (resultMessage()) {
-      <div class="result-box" [style.color]="resultColor()">
-        {{ resultMessage() }}
-      </div>
-    }
+    <!-- Lo que agregue la página (puntaje, guardado) va en la esquina. -->
+    <div class="pizarra__nota"><ng-content /></div>
+    <span class="pizarra__tiza" aria-hidden="true"></span>
   </div>
-
-
-  <div class="controls">
-  <button (click)="verify()" [disabled]="!tieneTrazo()" class="btn btn-verify">
-    Verificar ✅
-  </button>
-  <button (click)="clear()" [disabled]="!tieneTrazo()" class="btn btn-clear">
-    Borrar 🧹
-  </button>
 </div>
 
+<div class="controls">
+  <button type="button" (click)="clear()" [disabled]="!tieneTrazo()" class="btn btn-clear">
+    <span aria-hidden="true">🧽</span> Borrar
+  </button>
+  <button type="button" (click)="verify()" [disabled]="!tieneTrazo()" class="btn btn-verify">
+    <span aria-hidden="true">✅</span> ¡Listo!
+  </button>
 </div>
