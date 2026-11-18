@@ -11,7 +11,6 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { NOMBRE_ROL, Rol } from '../../interfaces/rol.enum';
 import { formatearRut } from '../../validators/rut.validator';
-import { PestanasEstudianteComponent } from '../../components/pestanas-estudiante/pestanas-estudiante.component';
 
 /** La nueva y su repetición deben coincidir. */
 function clavesIguales(grupo: AbstractControl): ValidationErrors | null {
@@ -30,7 +29,7 @@ function clavesIguales(grupo: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, PestanasEstudianteComponent],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './perfil.component.html',
   styleUrl: './perfil.component.scss',
 })

@@ -93,8 +93,6 @@ a save error.
   `JwtStrategy` answers 403 `CAMBIO_CLAVE_PENDIENTE` to everything except
   `GET /api/auth/me` and `POST /api/auth/cambiar-clave`. Students are never
   forced. Gestión de usuarios shows "🔒 Clave pendiente".
-- **`components/pestanas-estudiante`**: "Mis logros | Mi perfil" tabs on top
-  of both pages, for students only.
 
 #### User management
 - **`pages/gestion-usuarios`**: table on desktop, cards on mobile; search,
