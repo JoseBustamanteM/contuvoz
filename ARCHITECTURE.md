@@ -62,7 +62,7 @@ a save error.
 #### Activities
 Every activity fits the screen with no scroll (notebook, tablet, phone):
 layouts are sized from the available height, and each activity has its own
-colour (Pinta letras red, Hablemos blue, Une palabras lilac).
+colour (Pinta letras red, Comunícate yellow, Hablemos blue, Une palabras lilac).
 
 - **`pages/drawPage`** + `components/drawPage/letter-tracer`: a chalkboard
   with the gecko inside; the guide letter is drawn in dashed chalk, while the
@@ -74,6 +74,11 @@ colour (Pinta letras red, Hablemos blue, Une palabras lilac).
   `services/signLanguage.service.ts`: MediaPipe HandLandmarker, per-vowel scores
   from finger angles/distances, a vowel counts only if held for 800 ms with a
   margin over the closest rival.
+  Shown as a photo camera: the device camera inside a vintage camera body and,
+  beside it, a corkboard album with one instant photo per vowel plus a sticky
+  note with the reference sign. A held sign "takes a photo" (flash + photo of the
+  letter; no image of the child is ever kept). The end screen is the full album.
+  Shared styles in `src/styles/_polaroid.scss`.
 - **`pages/talkPage`** + `services/vowel-detector.service.ts` (capture) +
   `services/vowel-dsp.ts` (pure analysis, tested with synthetic vowels in
   `vowel-dsp.spec.ts`). Three verdicts: correct, other vowel, or "doubtful"

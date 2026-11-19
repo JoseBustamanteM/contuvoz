@@ -65,6 +65,9 @@ export class HandTrackerComponent implements AfterViewInit, OnDestroy {
    *  de nivel de módulo no es visible desde el HTML sin esta línea. */
   readonly VOCALES = VOCALES;
 
+  /** Segundos de cada letra, para el reloj circular. */
+  readonly SEGUNDOS = SEGUNDOS_POR_LETRA;
+
   isModelReady = computed(() => this.signService.isModelReady());
 
   /** Mientras esto sea true, el HTML debe mostrar "Preparando la cámara…" y NO

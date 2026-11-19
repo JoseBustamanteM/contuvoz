@@ -1,129 +1,361 @@
-.ls-chile-container {
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
-  background: #fdfdfd; padding: 20px; border-radius: 40px;
+// Comunícate como cámara de fotos: la cámara del equipo dentro de una cámara
+// antigua amarilla y, al lado, el álbum de corcho con una foto por vocal.
+// Todo se mide contra el host (cqw/cqh) para caber en la pantalla sin scroll.
+@use '../../../../styles/polaroid' as *;
 
-  .status-bar {
-    display: flex; gap: 15px;
-    .dot {
-      width: 45px; height: 45px; border-radius: 50%; display: flex;
-      justify-content: center; align-items: center; background: #e0e0e0;
-      font-weight: bold; transition: 0.3s;
-      &.active { background: #6c5ce7; color: white; transform: scale(1.2); }
-      &.dot--logrado { background: #00b894; color: white; }
-      &.dot--no-logrado { background: #fdcb6e; color: #7a4a00; }
-    }
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  container-type: size;
+  font-family: 'Nunito', system-ui, sans-serif;
+  color: #24400a;
+}
+
+// Alto que se reserva para la fila de botones de abajo.
+$acciones: 4.6rem;
+
+.estudio {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto $acciones;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  column-gap: 2.5cqw;
+  row-gap: 0.75rem;
+}
+
+// ── La cámara de fotos ──────────────────────────────────────
+.camara-fotos {
+  // El cuerpo es 5:4.1 y la pantalla interior, 4:3 (como la cámara del equipo).
+  --ancho: min(58cqw, calc((100cqh - #{$acciones} - 1rem) * 5 / 4.1));
+  position: relative;
+  width: var(--ancho);
+  aspect-ratio: 5 / 4.1;
+  padding: calc(var(--ancho) * 0.09) calc(var(--ancho) * 0.05) calc(var(--ancho) * 0.05);
+  border-radius: calc(var(--ancho) * 0.05);
+  background: linear-gradient(#ffd54a, #ffc11a);
+  box-shadow: inset 0 -10px 0 #e5a600, 0 8px 0 $sol-sombra;
+  transition: box-shadow 0.2s ease;
+
+  &--ok { box-shadow: inset 0 -10px 0 #e5a600, 0 0 0 6px $exito, 0 8px 0 6px #2b8a3a; }
+
+  &__visor {
+    position: absolute;
+    top: 2.8%;
+    left: 7%;
+    width: 18%;
+    height: 5%;
+    border-radius: 8px;
+    background: #3d3d46;
   }
 
-  .camera-card {
+  &__lente {
+    position: absolute;
+    top: 1.5%;
+    left: 50%;
+    translate: -50% 0;
+    width: 9%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #9fd3ff, #1c3550 60%);
+    box-shadow: 0 0 0 5px #3d3d46;
+  }
+
+  &__disparador {
+    position: absolute;
+    top: 0;
+    right: 10%;
+    width: 12%;
+    height: 4%;
+    translate: 0 -100%;
+    border-radius: 10px 10px 0 0;
+    background: #e53935;
+    box-shadow: inset 0 -4px 0 #a32622;
+  }
+
+  &__pantalla {
     position: relative;
-    width: min(600px, 92vw);
-    aspect-ratio: 4 / 3;
-    border-radius: 30px;
+    width: 100%;
+    height: 100%;
+    border-radius: calc(var(--ancho) * 0.03);
     overflow: hidden;
-    border: 8px solid #fff;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-    &.win { border-color: #00b894; }
+    background: #1c2a2e;
+    box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.15);
 
-    video, canvas {
-      position: absolute; width: 100%; height: 100%;
-      object-fit: cover; transform: scaleX(-1);
-    }
-
-    .instruction-overlay {
-      position: absolute; top: 20px; left: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 10px 25px; border-radius: 20px;
-      font-size: clamp(1rem, 4vw, 1.5rem); font-weight: bold;
-      span { color: #d63031; font-size: clamp(1.4rem, 6vw, 2rem); }
-    }
-
-    .win-msg {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      font-size: clamp(2.5rem, 10vw, 4rem); color: white;
-      text-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-      animation: bounce 0.5s infinite alternate; z-index: 5;
+    video,
+    canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
     }
   }
-
-  .hint-box { font-size: 0.9rem; color: #636e72; font-style: italic; }
 }
 
-@keyframes bounce {
-  from { transform: translate(-50%, -60%); }
-  to   { transform: translate(-50%, -40%); }
+.marcas i {
+  position: absolute;
+  z-index: 2;
+  width: 8%;
+  height: 10%;
+  border: 4px solid rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+
+  &:nth-child(1) { top: 5%; left: 4%; border-right: 0; border-bottom: 0; }
+  &:nth-child(2) { top: 5%; right: 4%; border-left: 0; border-bottom: 0; }
+  &:nth-child(3) { bottom: 5%; left: 4%; border-right: 0; border-top: 0; }
+  &:nth-child(4) { bottom: 5%; right: 4%; border-left: 0; border-top: 0; }
 }
 
-// ── Veredicto de la letra ("¡Lo lograste!" / "¡Casi lo logras!") ──
-// Misma ruta que las demás reglas de la tarjeta de cámara, para que no pierda
-// por especificidad. Ocupa el centro de la cámara: el niño mira ahí.
-.ls-chile-container .camera-card .veredicto {
+.chip {
+  position: absolute;
+  top: 4%;
+  left: 4%;
+  z-index: 3;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  font-weight: 900;
+  font-size: clamp(1rem, 4cqh, 1.6rem);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+
+  b { color: $sol-sombra; font-size: 1.35em; }
+}
+
+// Reloj circular: se vacía con los segundos que quedan (--resto de 1 a 0).
+.reloj {
+  position: absolute;
+  top: 4%;
+  right: 4%;
+  z-index: 3;
+  width: clamp(2.8rem, 11cqh, 4.4rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: conic-gradient($sol calc(var(--resto, 1) * 360deg), rgba(255, 255, 255, 0.85) 0);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 16%;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  span { position: relative; font-weight: 900; font-size: clamp(1rem, 4cqh, 1.5rem); color: $tinta-sol; }
+}
+
+.aviso {
   position: absolute;
   inset: 0;
-  z-index: 5;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.75rem;
   padding: 1rem;
+  background: rgba(28, 42, 46, 0.55);
+  color: #fff;
+  font-weight: 900;
+  font-size: clamp(1rem, 4cqh, 1.5rem);
   text-align: center;
-  background: rgba(253, 203, 110, 0.88);
-  color: #5c3700;
-  animation: veredicto-aparecer 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  &--logrado {
-    background: rgba(0, 184, 148, 0.88);
-    color: #fff;
-  }
-
-  p { margin: 0; }
+  &--error { background: rgba(183, 28, 28, 0.82); }
 }
 
-.veredicto__emoji { font-size: clamp(3rem, 14vw, 5rem); line-height: 1; }
-.veredicto__titulo { font-size: clamp(1.8rem, 8vw, 2.8rem); font-weight: 900; }
-.veredicto__texto { font-size: clamp(1rem, 4.5vw, 1.35rem); font-weight: 700; }
-
-@keyframes veredicto-aparecer {
-  from { opacity: 0; transform: scale(0.85); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.btn-siguiente {
-  min-height: 56px;
-  padding: 0.8rem 2.2rem;
+.btn-reintentar {
+  min-height: 44px;
+  padding: 0.5rem 1.3rem;
   border: none;
   border-radius: 999px;
-  background: #6c5ce7;
+  background: #fff;
+  color: #b71c1c;
+  font: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+// ¡Clic!: destello y la foto que aparece.
+.flash {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 25%, rgba(255, 255, 255, 0.45) 75%);
+  pointer-events: none;
+}
+
+.foto-sale {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  width: 34%;
+  padding: 3% 3% 11%;
+  translate: -50% -50%;
+  rotate: -4deg;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.3);
+  text-align: center;
+
+  &__imagen {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    background: $exito-claro;
+    color: $exito-tinta;
+    font-weight: 900;
+    font-size: calc(var(--ancho) * 0.16);
+    line-height: 1;
+  }
+
+  &__pie {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3%;
+    font-weight: 900;
+    font-size: clamp(0.85rem, 3cqh, 1.25rem);
+    color: $exito-tinta;
+  }
+}
+
+.casi {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  background: rgba(255, 159, 67, 0.86);
   color: #fff;
-  font-size: clamp(1.15rem, 5vw, 1.4rem);
+  text-align: center;
+
+  &__emoji { font-size: clamp(2.2rem, 11cqh, 4rem); line-height: 1; }
+  &__titulo { margin: 0; font-weight: 900; font-size: clamp(1.2rem, 5.5cqh, 2.2rem); line-height: 1.1; }
+  &__texto { margin: 0; font-weight: 800; font-size: clamp(0.95rem, 3.4cqh, 1.3rem); }
+}
+
+// ── El álbum ───────────────────────────────────────────────
+.album {
+  @include corcho;
+  width: min(34cqw, calc((100cqh - #{$acciones}) * 0.95));
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.2rem 0.9rem;
+  padding: 1.1rem 1.1rem 1rem;
+}
+
+.album__titulo {
+  @include titulo-corcho;
+  grid-column: 1 / -1;
+  font-size: clamp(0.95rem, 3.4cqh, 1.25rem);
+}
+
+.polaroid {
+  @include polaroid;
+  .polaroid__imagen { font-size: clamp(1.4rem, 7cqh, 2.6rem); }
+  .polaroid__pie { font-size: clamp(0.7rem, 2.4cqh, 0.95rem); color: #4a3300; }
+}
+
+.nota {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 0.15rem;
+  padding: 6%;
+  background: #fff176;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  rotate: -3deg;
+  text-align: center;
+
+  &__img { width: 100%; aspect-ratio: 1; object-fit: contain; mix-blend-mode: multiply; }
+  &__titulo { font-size: clamp(0.75rem, 2.6cqh, 1rem); line-height: 1.1; }
+  &__texto { font-size: clamp(0.6rem, 2cqh, 0.8rem); font-weight: 700; line-height: 1.15; color: #5c4a1a; }
+}
+
+// ── Botones ────────────────────────────────────────────────
+.acciones {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.boton,
+.acciones ::ng-deep .boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  min-height: 52px;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: $sol;
+  color: $tinta-sol;
+  font-family: inherit;
   font-weight: 900;
-  box-shadow: 0 5px 0 #4834d4;
+  font-size: 1.2rem;
+  box-shadow: 0 6px 0 $sol-sombra;
   cursor: pointer;
   transition: transform 0.12s ease;
 
-  &:hover { transform: translateY(-2px); }
-  &:active { transform: translateY(3px); box-shadow: 0 2px 0 #4834d4; }
-  &:focus-visible { outline: 4px solid #a29bfe; outline-offset: 3px; }
+  &:active { transform: translateY(4px); }
+  &:focus-visible { outline: 4px solid #24400a; outline-offset: 3px; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .ls-chile-container .camera-card .veredicto { animation: none; }
+.boton--blanco,
+.acciones ::ng-deep .boton--blanco {
+  background: #fff;
+  color: #24400a;
+  box-shadow: 0 6px 0 rgba(36, 64, 10, 0.25);
 }
 
-.timer-badge {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  font-size: 1.5rem;
-  font-weight: bold;
-  padding: 6px 16px;
-  border-radius: 50%;
-  min-width: 50px;
-  text-align: center;
+// ── Pantalla vertical (celular, tablet parada) ─────────────
+// La cámara arriba a todo lo ancho y el álbum abajo en una sola fila.
+@container (max-aspect-ratio: 1 / 1) {
+  .estudio {
+    grid-template-columns: auto;
+    grid-template-rows: auto auto $acciones;
+    row-gap: 0.9rem;
+  }
+
+  .camara-fotos {
+    // Lo que queda después del álbum (~1 fila) y los botones.
+    --ancho: min(100cqw, calc((100cqh - #{$acciones} - 100cqw / 6 * 1.35 - 4.5rem) * 5 / 4.1));
+    justify-self: center;
+  }
+
+  .album {
+    width: 100cqw;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.9rem 0.45rem;
+    padding: 0.7rem 0.7rem 0.6rem;
+  }
+
+  .nota__texto { display: none; }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .flash { animation: flash 0.6s ease-out both; }
+  .foto-sale { animation: foto 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+  .polaroid--ahora { animation: latido 2.4s ease-in-out infinite; }
+
+  @keyframes flash { from { opacity: 1; } to { opacity: 0.25; } }
+  @keyframes foto { from { scale: 0.4; rotate: 12deg; opacity: 0; } to { scale: 1; rotate: -4deg; opacity: 1; } }
+  @keyframes latido { 50% { translate: 0 -3px; } }
+}
+
+// Panel de depuración (ver el comentario en el HTML).
 .debug-panel {
   display: flex;
   flex-wrap: wrap;
@@ -135,131 +367,4 @@
   border-radius: 8px;
 
   span { background: white; padding: 2px 8px; border-radius: 6px; }
-}
-
-
-// ============================================================
-// Pegar al FINAL de hand-tracker.component.scss
-// Estilos de los estados nuevos: error de cámara, error de modelo,
-// carga, e imagen de referencia de la seña.
-// ============================================================
-
-// Overlay de error sobre el recuadro de la cámara.
-// Misma ruta que la regla base (.ls-chile-container .camera-card ...): con solo
-// `.instruction-overlay.error` perdía por especificidad y quedaba texto blanco
-// sobre el fondo blanco de la regla base, ilegible.
-.ls-chile-container .camera-card .instruction-overlay.error {
-  background: rgba(183, 28, 28, 0.92);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  line-height: 1.4;
-  text-align: center;
-  max-width: 90%;
-}
-
-.btn-reintentar {
-  // 44px es el mínimo cómodo para un dedo; los niños apuntan peor que un adulto.
-  min-height: 44px;
-  padding: 0.6rem 1.4rem;
-  border: none;
-  border-radius: 999px;
-  background: #fff;
-  color: #b71c1c;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-  &:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-  }
-
-  &:active:not(:disabled) {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: default;
-  }
-}
-
-// Referencia visual de la seña + descripción escrita.
-.referencia {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-
-.referencia-img {
-  // Acotada para que no empuje el layout ni desplace la cámara fuera de pantalla.
-  max-height: 140px;
-  max-width: 140px;
-  object-fit: contain;
-  border-radius: 12px;
-  background: #fff;
-  padding: 0.4rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-}
-
-@media (max-width: 480px) {
-  .referencia-img {
-    max-height: 100px;
-    max-width: 100px;
-  }
-}
-
-// Botones bajo el veredicto: "Intentar de nuevo" (principal) y "Siguiente".
-.acciones-veredicto {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-}
-
-.btn-siguiente--secundario {
-  background: #fff;
-  color: #4834d4;
-  box-shadow: inset 0 0 0 3px #a29bfe, 0 5px 0 #a29bfe;
-
-  &:active { box-shadow: inset 0 0 0 3px #a29bfe, 0 2px 0 #a29bfe; }
-}
-
-// ── Sin scroll ──────────────────────────────────────────────
-// La cámara toma el alto que sobra (manteniendo 4:3) en vez de un ancho
-// fijo de 600 px, que en un notebook empujaba la referencia fuera de la
-// pantalla.
-:host { display: block; height: 100%; }
-
-.ls-chile-container {
-  height: 100%;
-  min-height: 0;
-  gap: 12px;
-  padding: 14px;
-
-  .camera-card {
-    flex: 1 1 0;
-    min-height: 0;
-    width: auto;
-    max-width: 100%;
-  }
-}
-
-.referencia {
-  flex: none;
-  flex-direction: row;
-  gap: 0.75rem;
-  margin-top: 0;
-}
-
-.referencia-img {
-  max-height: min(110px, 14vh);
-  max-width: min(110px, 14vh);
 }

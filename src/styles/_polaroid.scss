@@ -1,0 +1,77 @@
+// Álbum de fotos de Comunícate: corcho con fotos instantáneas (una por
+// vocal), clavadas con un alfiler rojo. Lo usan el juego (hand-tracker) y
+// el resumen final (signLanguage).
+
+$sol: #ffc928;
+$sol-sombra: #d79c00;
+$tinta-sol: #4a3300;
+$exito: #3fb950;
+$exito-claro: #e3f9d6;
+$exito-tinta: #1e6b16;
+$casi-claro: #fff1dc;
+$casi-tinta: #b25e00;
+
+@mixin corcho {
+  border-radius: 18px;
+  background:
+    radial-gradient(circle, rgba(110, 71, 32, 0.25) 1px, transparent 1.5px) 0 0 / 9px 9px,
+    #c99a63;
+  box-shadow: inset 0 0 0 0.7rem #8a5c2c, 0 6px 0 #6e4720;
+}
+
+@mixin titulo-corcho {
+  justify-self: center;
+  padding: 0.2rem 0.9rem;
+  border-radius: 8px;
+  background: #fff7d6;
+  color: #4a3300;
+  font-weight: 900;
+  rotate: -2deg;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+}
+
+@mixin polaroid {
+  position: relative;
+  padding: 6% 6% 22%;
+  background: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.22);
+  rotate: var(--giro, 2deg);
+
+  // Alfiler.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6%;
+    left: 50%;
+    translate: -50% 0;
+    width: 16%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ff8a80, #d32f2f);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .polaroid__imagen {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    background: #eceff1;
+    color: #b0bec5;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .polaroid__pie {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3%;
+    text-align: center;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+
+  &.polaroid--ok .polaroid__imagen { background: $exito-claro; color: $exito-tinta; }
+  &.polaroid--casi .polaroid__imagen { background: $casi-claro; color: $casi-tinta; }
+  &.polaroid--ahora { box-shadow: 0 0 0 4px $sol, 0 4px 8px rgba(0, 0, 0, 0.22); }
+}

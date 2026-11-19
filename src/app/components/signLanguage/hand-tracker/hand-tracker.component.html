@@ -1,95 +1,104 @@
-<div class="ls-chile-container">
-  <div class="status-bar">
-    @for (letra of VOCALES; track letra; let i = $index) {
-      <!-- Cada letra evaluada queda verde (logrado) o naranja (no logrado). -->
-      <div
-        class="dot"
-        [class.active]="i === indiceActual() && !testFinalizado()"
-        [class.dot--logrado]="resultados()[letra] === 'logrado'"
-        [class.dot--no-logrado]="resultados()[letra] === 'no-logrado'"
-        [attr.aria-label]="letra + (resultados()[letra] === 'logrado' ? ': lograda' : resultados()[letra] === 'no-logrado' ? ': por practicar' : '')"
-      >
-        {{ letra }}
-      </div>
-    }
-  </div>
+<!-- Comunícate como una cámara de fotos: la cámara del equipo se ve dentro
+     de una cámara antigua y, al lado, el álbum con una foto por vocal. Cada
+     seña lograda "saca una foto" que se clava en el álbum. Las fotos muestran
+     la letra: no se guarda ninguna imagen del niño. -->
+<div class="estudio">
 
-  <div class="camera-card" [class.win]="isCorrect()">
-    <video #videoElement autoplay playsinline muted></video>
-    <canvas #canvasElement></canvas>
+  <div class="camara-fotos" [class.camara-fotos--ok]="isCorrect()">
+    <span class="camara-fotos__visor" aria-hidden="true"></span>
+    <span class="camara-fotos__lente" aria-hidden="true"></span>
+    <span class="camara-fotos__disparador" aria-hidden="true"></span>
 
-    @if (errorCamara()) {
-      <div class="instruction-overlay error">
-        {{ errorCamara() }}
-      </div>
-    } @else if (errorModelo()) {
-      <div class="instruction-overlay error">
-        {{ errorModelo() }}
-        <button type="button" class="btn-reintentar" (click)="reintentarModelo()">
-          Reintentar
-        </button>
-      </div>
-    } @else if (cargandoModelo()) {
-      <!-- Mientras baja el modelo NO se muestra el cronómetro: no había empezado
-           a contar todavía, y verlo congelado confunde. -->
-      <div class="instruction-overlay">Preparando la cámara…</div>
-    } @else if (veredicto(); as v) {
-      <!-- Veredicto de la letra: grande, con vocabulario para niños y sin palabras
-           de error. Se queda hasta que tocan "Siguiente". -->
-      <div class="veredicto" [class.veredicto--logrado]="v === 'logrado'" role="status">
+    <div class="camara-fotos__pantalla">
+      <video #videoElement autoplay playsinline muted></video>
+      <canvas #canvasElement></canvas>
+
+      <!-- Esquinas de encuadre, como en el visor de una cámara. -->
+      <div class="marcas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+
+      @if (errorCamara()) {
+        <div class="aviso aviso--error" role="alert">{{ errorCamara() }}</div>
+      } @else if (errorModelo()) {
+        <div class="aviso aviso--error" role="alert">
+          {{ errorModelo() }}
+          <button type="button" class="btn-reintentar" (click)="reintentarModelo()">Reintentar</button>
+        </div>
+      } @else if (cargandoModelo()) {
+        <!-- Mientras baja el modelo NO se muestra el reloj: todavía no cuenta. -->
+        <div class="aviso">Preparando la cámara…</div>
+      } @else if (veredicto(); as v) {
         @if (v === 'logrado') {
-          <span class="veredicto__emoji" aria-hidden="true">🌟</span>
-          <p class="veredicto__titulo">¡Lo lograste!</p>
-          <p class="veredicto__texto">¡Hiciste muy bien la {{ currentLevel().letter }}!</p>
+          <!-- ¡Clic! Destello y la foto que sale de la cámara. -->
+          <div class="flash" aria-hidden="true"></div>
+          <div class="foto-sale" role="status">
+            <div class="foto-sale__imagen">{{ currentLevel().letter }}</div>
+            <span class="foto-sale__pie">¡Clic! ¡Lo lograste!</span>
+          </div>
         } @else {
-          <span class="veredicto__emoji" aria-hidden="true">💪</span>
-          <p class="veredicto__titulo">¡Casi lo logras!</p>
-          <p class="veredicto__texto">La {{ currentLevel().letter }} es difícil. ¡Sigue practicando!</p>
+          <div class="casi" role="status">
+            <span class="casi__emoji" aria-hidden="true">💪</span>
+            <p class="casi__titulo">¡Casi! La {{ currentLevel().letter }} es difícil</p>
+            <p class="casi__texto">Mira la nota amarilla y prueba otra vez</p>
+          </div>
         }
-      </div>
-    } @else if (!testFinalizado()) {
-      <div class="instruction-overlay">
-        Haz la letra <span>{{ currentLevel().letter }}</span>
-      </div>
-      <div class="timer-badge">{{ tiempoRestante() }}s</div>
-    }
-
-    @if (testFinalizado()) {
-      <div class="win-msg">¡Evaluación completa! 🏆</div>
-    }
-  </div>
-
-  <!-- La letra ya no avanza sola: el niño decide. Si no la logró, lo primero
-       que se le ofrece es intentarla de nuevo. -->
-  @if (veredicto() && !testFinalizado()) {
-    <div class="acciones-veredicto">
-      @if (veredicto() === 'no-logrado') {
-        <button #btnPrincipal type="button" class="btn-siguiente" (click)="reintentarLetra()">
-          🔄 Intentar de nuevo
-        </button>
-        <button type="button" class="btn-siguiente btn-siguiente--secundario" (click)="siguienteLetra()">
-          {{ esUltimaLetra() ? 'Ver mis resultados 🏆' : 'Siguiente letra ➜' }}
-        </button>
-      } @else {
-        <button #btnPrincipal type="button" class="btn-siguiente" (click)="siguienteLetra()">
-          {{ esUltimaLetra() ? 'Ver mis resultados 🏆' : 'Siguiente letra ➜' }}
-        </button>
+      } @else if (!testFinalizado()) {
+        <span class="chip">Haz la <b>{{ currentLevel().letter }}</b></span>
+        <span class="reloj" [style.--resto]="tiempoRestante() / SEGUNDOS" [attr.aria-label]="tiempoRestante() + ' segundos'">
+          <span>{{ tiempoRestante() }}</span>
+        </span>
       }
     </div>
-  }
+  </div>
 
-  <!-- Referencia visual de la seña. El campo `image` de VowelLevel existía pero
-       no se mostraba en ningún lado: el niño solo tenía la descripción escrita. -->
-  @if (!veredicto() && !testFinalizado() && !errorCamara() && !errorModelo() && !cargandoModelo()) {
-    <div class="referencia">
-      <img
-        class="referencia-img"
-        [src]="currentLevel().image"
-        [alt]="'Seña de la letra ' + currentLevel().letter + ' en lengua de señas chilena'"
-      />
-      <p class="hint-box">{{ currentLevel().description }}</p>
+  <aside class="album" aria-label="Mi álbum de señas">
+    <span class="album__titulo">Mi álbum de señas</span>
+
+    @for (letra of VOCALES; track letra; let i = $index) {
+      <div
+        class="polaroid"
+        [style.--giro]="(i % 2 === 0 ? -3 : 2.5) + 'deg'"
+        [class.polaroid--ok]="resultados()[letra] === 'logrado'"
+        [class.polaroid--casi]="resultados()[letra] === 'no-logrado'"
+        [class.polaroid--ahora]="i === indiceActual() && !testFinalizado()"
+        [attr.aria-label]="letra + (resultados()[letra] === 'logrado' ? ': lograda' : resultados()[letra] === 'no-logrado' ? ': por practicar' : '')"
+      >
+        <div class="polaroid__imagen">{{ letra }}</div>
+        <span class="polaroid__pie">
+          @if (resultados()[letra] === 'logrado') { ⭐ }
+          @else if (resultados()[letra] === 'no-logrado') { otra vez }
+          @else if (i === indiceActual()) { ahora }
+        </span>
+      </div>
+    }
+
+    <!-- Nota amarilla con la seña de referencia de la letra actual. -->
+    <div class="nota">
+      <img class="nota__img" [src]="currentLevel().image"
+           [alt]="'Seña de la letra ' + currentLevel().letter + ' en lengua de señas chilena'" />
+      <b class="nota__titulo">Así es la {{ currentLevel().letter }}</b>
+      <span class="nota__texto">{{ currentLevel().description }}</span>
     </div>
-  }
+  </aside>
+
+  <!-- La letra no avanza sola: el niño decide. Si no la logró, lo primero
+       que se le ofrece es intentarla de nuevo. -->
+  <div class="acciones">
+    @if (veredicto() && !testFinalizado()) {
+      @if (veredicto() === 'no-logrado') {
+        <button #btnPrincipal type="button" class="boton" (click)="reintentarLetra()">🔄 Intentar de nuevo</button>
+        <button type="button" class="boton boton--blanco" (click)="siguienteLetra()">
+          {{ esUltimaLetra() ? 'Ver mi álbum 🏆' : 'Siguiente foto' }}
+        </button>
+      } @else {
+        <button #btnPrincipal type="button" class="boton" (click)="siguienteLetra()">
+          {{ esUltimaLetra() ? 'Ver mi álbum 🏆' : 'Siguiente foto 📷' }}
+        </button>
+      }
+    } @else {
+      <!-- Lo que ponga la página (el botón "Salir"). -->
+      <ng-content />
+    }
+  </div>
 
   <!-- Panel de depuración (porcentajes por vocal y medidas crudas), oculto para
        que los niños no vean los números. Para calibrar, descomentar este bloque
