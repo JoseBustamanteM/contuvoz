@@ -1,6 +1,8 @@
 // Mis logros (dashboard del estudiante). Mismo lenguaje que el resto de la
 // app: tarjetas blancas con sombra verde "sólida" hacia abajo, bordes muy
 // redondeados y textos cortos.
+// Materiales y colores: src/styles/_taller.scss.
+@use '../../../styles/taller' as *;
 
 :host { display: block; height: 100%; }
 
@@ -16,19 +18,17 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.4rem;
   font-family: 'Nunito', system-ui, sans-serif;
-  color: #064e3b;
+  color: $tinta;
 }
 
 .tarjeta {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 22px;
+  @include papel-con-marco(5px, 20px);
   padding: 0.85rem 1rem;
-  box-shadow: 0 5px 0 rgba(16, 185, 129, 0.35), 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
-.etiqueta { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 800; color: #059669; }
+.etiqueta { margin: 0 0 0.5rem; font-size: 0.85rem; font-weight: 800; color: $verde; }
 
 // ── Saludo ───────────────────────────────────────────────
 .saludo {
@@ -42,7 +42,7 @@
     margin: 0;
     font-size: clamp(1.5rem, 6vw, 1.9rem);
     font-weight: 900;
-    color: #047857;
+    color: $verde-sombra;
     -webkit-text-stroke: 5px #fff;
     paint-order: stroke fill;
   }
@@ -57,8 +57,8 @@
 
   &__estrella { font-size: 2.6rem; line-height: 1; }
   &__dato { flex: 1; display: flex; flex-direction: column; line-height: 1.1; }
-  &__numero { font-size: 2.2rem; font-weight: 900; color: #b45309; }
-  &__texto { font-weight: 700; color: #6b7280; }
+  &__numero { font-size: 2.2rem; font-weight: 900; color: $amarillo-sombra; }
+  &__texto { font-weight: 700; color: $tinta-suave; }
   &__racha {
     display: flex;
     flex-direction: column;
@@ -86,7 +86,7 @@
   color: #9ca3af;
   font-weight: 900;
 
-  &--jugado { background: #10b981; color: #fff; box-shadow: 0 3px 0 #047857; }
+  &--jugado { background: $verde; color: #fff; box-shadow: 0 3px 0 $verde-sombra; }
 }
 
 // ── Tarjetas por actividad ───────────────────────────────
@@ -110,7 +110,7 @@
 
   &:hover { transform: translateY(-2px); }
   &:active { transform: translateY(2px); }
-  &:focus-visible { outline: 3px solid #34d399; outline-offset: 3px; }
+  &:focus-visible { outline: 3px solid $amarillo; outline-offset: 3px; }
 
   &__icono { font-size: 1.7rem; }
   &__nombre { font-weight: 900; }
@@ -127,12 +127,12 @@
   padding: 0.5rem 1.4rem;
   border: none;
   border-radius: 999px;
-  background: #10b981;
+  background: $verde;
   color: #fff;
   font: inherit;
   font-weight: 900;
   text-decoration: none;
-  box-shadow: 0 4px 0 #047857;
+  box-shadow: 0 4px 0 $verde-sombra;
   cursor: pointer;
 
 }
@@ -152,9 +152,9 @@
     width: 3.6rem;
     height: 3.6rem;
     border-radius: 50%;
-    background: #f59e0b;
+    background: $amarillo;
     border: 4px solid #fff;
-    box-shadow: 0 4px 0 #b45309, 0 8px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 0 $amarillo-sombra, 0 8px 16px rgba(0, 0, 0, 0.15);
     font-size: 1.7rem;
   }
 
@@ -163,7 +163,7 @@
     text-align: center;
     font-size: clamp(1.4rem, 5.5vw, 1.7rem);
     font-weight: 900;
-    color: #047857;
+    color: $verde-sombra;
     -webkit-text-stroke: 5px #fff;
     paint-order: stroke fill;
   }
@@ -180,7 +180,7 @@
   background: rgba(255, 255, 255, 0.85);
   font-size: 0.8rem;
   font-weight: 800;
-  color: #374151;
+  color: $tinta;
 
   span { display: inline-flex; align-items: center; gap: 0.35rem; }
 }
@@ -189,16 +189,16 @@
   width: 14px;
   height: 14px;
   border-radius: 4px;
-  &--dominada { background: #10b981; }
-  &--practicando { background: #fbbf24; }
+  &--dominada { background: $verde; }
+  &--practicando { background: $amarillo; }
   &--por-descubrir { background: #e5e7eb; }
 }
 
 // ── Cajones ──────────────────────────────────────────────
 .cajon {
-  background: rgba(255, 255, 255, 0.96);
+  background: $papel;
   border-radius: 20px;
-  box-shadow: 0 4px 0 rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 0 $madera-sombra;
   overflow: hidden;
 
   &__h { margin: 0; font-size: inherit; }
@@ -217,14 +217,14 @@
     text-align: left;
     cursor: pointer;
 
-    &:hover { background: #f0fdf4; }
-    &:focus-visible { outline: 3px solid #34d399; outline-offset: -3px; }
+    &:hover { background: $amarillo-claro; }
+    &:focus-visible { outline: 3px solid $amarillo; outline-offset: -3px; }
   }
 
   &__icono { font-size: 1.4rem; }
   &__nombre { flex: 1; font-weight: 900; font-size: 1.05rem; }
-  &__contador { font-weight: 800; color: #059669; }
-  &__flecha { font-size: 1.1rem; color: #059669; transition: transform 0.2s ease; }
+  &__contador { font-weight: 800; color: $verde; }
+  &__flecha { font-size: 1.1rem; color: $verde; transition: transform 0.2s ease; }
   &__flecha--abierta { transform: rotate(180deg); }
 
   &__cuerpo {
@@ -239,7 +239,7 @@
     align-self: flex-end;
     font-weight: 900;
     font-size: 0.9rem;
-    color: #047857;
+    color: $verde-sombra;
     text-decoration: none;
     &:hover { text-decoration: underline; }
   }
@@ -268,8 +268,8 @@
   font-weight: 900;
   font-size: 1.35rem;
 
-  &--dominada { background: #10b981; color: #fff; box-shadow: 0 3px 0 #047857; }
-  &--practicando { background: #fde68a; color: #92400e; box-shadow: 0 3px 0 #fbbf24; }
+  &--dominada { background: $verde; color: #fff; box-shadow: 0 3px 0 $verde-sombra; }
+  &--practicando { background: #fde68a; color: #92400e; box-shadow: 0 3px 0 $amarillo; }
   &--por-descubrir { background: #f3f4f6; color: #9ca3af; }
 }
 
@@ -296,7 +296,7 @@
   &__relleno {
     height: 100%;
     border-radius: 999px;
-    background: #10b981;
+    background: $verde;
     transition: width 0.6s ease;
   }
 
@@ -327,7 +327,7 @@
     margin-top: 0.4rem;
     font-size: 0.75rem;
     font-weight: 800;
-    color: #6b7280;
+    color: $tinta-suave;
 
     span { position: absolute; transform: translateX(-50%); }
     span:first-child { left: 0; transform: none; }
@@ -335,7 +335,7 @@
 
   &__marcas-fin { right: 0; transform: none !important; }
 
-  &__mensaje { margin: 0; text-align: center; font-weight: 900; color: #047857; }
+  &__mensaje { margin: 0; text-align: center; font-weight: 900; color: $verde-sombra; }
 }
 
 // ── Medallas ─────────────────────────────────────────────
@@ -382,7 +382,7 @@
 
   &__gecko { width: 80px; height: 80px; object-fit: contain; }
   &__titulo { margin: 0; font-size: 1.15rem; font-weight: 900; }
-  &__texto { margin: 0 0 0.25rem; font-weight: 700; color: #6b7280; }
+  &__texto { margin: 0 0 0.25rem; font-weight: 700; color: $tinta-suave; }
 }
 
 // ── Skeleton ─────────────────────────────────────────────

@@ -6,7 +6,7 @@ import { RouterLink } from '@angular/router';
   selector: 'option-component',
   imports: [RouterLink],
   templateUrl: './option.component.html',
-  host: { class: 'block w-full h-full' },
+  styleUrl: './option.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OptionComponent {

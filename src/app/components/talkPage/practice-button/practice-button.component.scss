@@ -1,22 +1,22 @@
 // Micrófono gigante. El tamaño sale del alto disponible: es el elemento
-// principal de Hablemos, pero tiene que caber sin scroll.
-:host { display: block; }
+// principal de Hablemos, pero tiene que caber sin scroll. Es el botón
+// principal del taller (verde) con un aro de madera (src/styles/_taller.scss).
+@use '../../../../styles/taller' as *;
 
-$azul: #2b7de9;
-$azul-sombra: #1a56a8;
+:host { display: block; }
 
 .mic-zona {
   --tam: clamp(7.5rem, 30vh, 15rem);
-  --color-anillo: rgba(255, 255, 255, 0.75);
+  --color-anillo: #{$madera};
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: clamp(0.75rem, 3vh, 1.5rem);
   font-family: 'Nunito', system-ui, sans-serif;
 
-  &--success { --color-anillo: #6bd66b; }
-  &--failure { --color-anillo: #ffb347; }
-  &--repeat { --color-anillo: #9cc4ff; }
+  &--success { --color-anillo: #{$exito}; }
+  &--failure { --color-anillo: #{$casi}; }
+  &--repeat { --color-anillo: #{$amarillo}; }
 }
 
 // Dos anillos alrededor del botón. Mientras escucha, el de adentro se
@@ -26,6 +26,7 @@ $azul-sombra: #1a56a8;
   padding: calc(var(--tam) * 0.09);
   border-radius: 50%;
   background: var(--color-anillo);
+  box-shadow: 0 8px 0 $madera-sombra;
 
   &::after {
     content: '';
@@ -37,7 +38,7 @@ $azul-sombra: #1a56a8;
   }
 
   &--contando {
-    background: conic-gradient(#fff calc(var(--progreso) * 360deg), rgba(255, 255, 255, 0.3) 0);
+    background: conic-gradient($amarillo calc(var(--progreso) * 360deg), $madera 0);
   }
 }
 
@@ -48,15 +49,15 @@ $azul-sombra: #1a56a8;
   height: var(--tam);
   border: 0;
   border-radius: 50%;
-  background: $azul;
-  box-shadow: 0 10px 0 $azul-sombra;
+  background: $verde;
+  box-shadow: 0 10px 0 $verde-sombra;
   font-size: calc(var(--tam) * 0.42);
   line-height: 1;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
 
-  &:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 4px 0 $azul-sombra; }
-  &:focus-visible { outline: 4px solid #24400a; outline-offset: 6px; }
+  &:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 4px 0 $verde-sombra; }
+  &:focus-visible { outline: 4px solid $tinta; outline-offset: 6px; }
 
   // Sin vocal elegida: se ve, pero apagado.
   &:disabled { cursor: default; }
@@ -66,11 +67,11 @@ $azul-sombra: #1a56a8;
 .mic-etiqueta {
   padding: 0.45rem 1.2rem;
   border-radius: 999px;
-  background: #fff;
-  color: $azul-sombra;
+  background: $papel;
+  color: $tinta;
   font-weight: 900;
   font-size: clamp(1rem, 3.2vh, 1.45rem);
-  box-shadow: 0 4px 0 rgba(36, 64, 10, 0.2);
+  box-shadow: 0 4px 0 rgba(59, 42, 26, 0.22);
   text-align: center;
 }
 

@@ -15,6 +15,7 @@ const TIMEOUT_LOGIN_MS = 15_000;
   standalone: true,
   imports: [ReactiveFormsModule],
   templateUrl: './login.component.html',
+  styleUrl: './login.component.scss',
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);

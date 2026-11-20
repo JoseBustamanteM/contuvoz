@@ -5,6 +5,7 @@ import { OptionComponent } from '../../components/homePage/option/option.compone
   selector: 'homePage',
   imports: [OptionComponent],
   templateUrl: './homePage.component.html',
+  styleUrl: './homePage.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {}

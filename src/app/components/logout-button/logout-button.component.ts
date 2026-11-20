@@ -53,8 +53,8 @@ import { AuthService } from '../../services/auth.service';
       >
         <!-- stopPropagation: tocar la tarjeta no debe cerrarla -->
         <div
-          class="w-full max-w-sm rounded-3xl bg-white p-6 text-center shadow-2xl
-                 ring-4 ring-emerald-300"
+          class="w-full max-w-sm rounded-3xl bg-[#fffaf0] p-6 text-center
+                 shadow-[0_0_0_8px_#c98a4b,0_14px_0_8px_#8e5626]"
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="titulo-logout"
@@ -67,10 +67,10 @@ import { AuthService } from '../../services/auth.service';
             class="mx-auto mb-3 h-24 w-24 object-contain"
           />
 
-          <h2 id="titulo-logout" class="text-2xl font-extrabold text-emerald-700">
+          <h2 id="titulo-logout" class="text-2xl font-extrabold text-[#25661f]">
             ¿Ya te vas?
           </h2>
-          <p class="mt-1 text-base text-emerald-800/70">
+          <p class="mt-1 text-base font-semibold text-[#7a6450]">
             Puedes volver cuando quieras. 👋
           </p>
 
@@ -80,11 +80,11 @@ import { AuthService } from '../../services/auth.service';
             <button
               type="button"
               (click)="cancelar()"
-              class="min-h-[48px] flex-1 rounded-full bg-emerald-500 px-5 text-lg
-                     font-extrabold text-white shadow-md transition
-                     hover:-translate-y-0.5 hover:bg-emerald-400 hover:shadow-lg
+              class="min-h-[48px] flex-1 rounded-full bg-[#3f9b3f] px-5 text-lg
+                     font-extrabold text-white shadow-[0_5px_0_#25661f] transition
+                     active:translate-y-1 active:shadow-[0_1px_0_#25661f]
                      focus-visible:outline focus-visible:outline-4
-                     focus-visible:outline-offset-2 focus-visible:outline-emerald-300"
+                     focus-visible:outline-offset-2 focus-visible:outline-[#ffc928]"
             >
               Me quedo 🎮
             </button>

@@ -18,7 +18,7 @@ const PARES_POR_RONDA = 5;
 const UMBRAL_APROBADO = 80;
 
 /** Colores de las cuerdas, uno por par (en el orden de las palabras). */
-const COLORES_CUERDA = ['#8b5cf6', '#ff922b', '#2b7de9', '#e8457a', '#2f9e44'];
+const COLORES_CUERDA = ['#3f9b3f', '#c99400', '#8e5626', '#f08c2e', '#25661f'];
 
 /** Cuerda dibujada entre una palabra y su dibujo, en px del tablero. */
 interface Cuerda {

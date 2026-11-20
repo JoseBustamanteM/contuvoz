@@ -1,5 +1,7 @@
 // Gecko de Hablemos con su burbuja: arriba la burbuja (con la cola hacia
 // el gecko), abajo el gecko. En pantallas verticales van lado a lado.
+@use '../../../../styles/taller' as *;
+
 :host { display: block; min-height: 0; }
 
 .guia {
@@ -17,10 +19,8 @@
   position: relative;
   max-width: 22rem;
   padding: 0.8rem 1.1rem;
-  border-radius: 22px;
-  background: #fff;
-  color: #24400a;
-  box-shadow: 0 5px 0 rgba(36, 64, 10, 0.2);
+  @include burbuja;
+  --fondo-burbuja: #{$papel};
 
   // Cola hacia el gecko (abajo).
   &::after {
@@ -29,7 +29,7 @@
     left: 2.2rem;
     bottom: -11px;
     border: 11px solid transparent;
-    border-top-color: var(--fondo-burbuja, #fff);
+    border-top-color: var(--fondo-burbuja);
     border-bottom: 0;
   }
 
@@ -47,10 +47,10 @@
     line-height: 1.25;
   }
 
-  &--exito { --fondo-burbuja: #e3f9d6; background: #e3f9d6; color: #1e6b16; }
-  &--fallo { --fondo-burbuja: #fff1dc; background: #fff1dc; color: #8a4a00; }
-  &--repetir { --fondo-burbuja: #e5f0ff; background: #e5f0ff; color: #1a56a8; }
-  &--error { --fondo-burbuja: #ffe3df; background: #ffe3df; color: #9a2018; }
+  &--exito { --fondo-burbuja: #{$exito-claro}; background: $exito-claro; color: $exito-tinta; }
+  &--fallo { --fondo-burbuja: #{$casi-claro}; background: $casi-claro; color: $casi-tinta; }
+  &--repetir { --fondo-burbuja: #{$amarillo-claro}; background: $amarillo-claro; color: $amarillo-tinta; }
+  &--error { --fondo-burbuja: #{$error-claro}; background: $error-claro; color: $error-tinta; }
 }
 
 .guia__gecko {
@@ -80,7 +80,7 @@
       bottom: auto;
       translate: 0 -50%;
       border: 11px solid transparent;
-      border-right-color: var(--fondo-burbuja, #fff);
+      border-right-color: var(--fondo-burbuja);
       border-left: 0;
     }
   }

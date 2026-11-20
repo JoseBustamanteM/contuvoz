@@ -8,7 +8,7 @@
   height: 100%;
   min-height: 0;
   font-family: 'Nunito', system-ui, sans-serif;
-  color: #24400a;
+  color: $tinta;
 }
 
 .comunicate {
@@ -35,21 +35,18 @@
   &__emoji { font-size: clamp(3rem, 12vh, 5rem); line-height: 1; }
 
   &__titulo {
-    margin: 0;
-    font-weight: 900;
+    @include titulo-sobre-fondo;
     font-size: clamp(1.6rem, 6vh, 2.6rem);
-    color: #fff;
-    text-shadow: 0 4px 0 $sol-sombra, 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
   &__texto {
     margin: 0;
     padding: 0.4rem 1.2rem;
     border-radius: 999px;
-    background: #fff;
+    background: $papel;
     font-weight: 800;
     font-size: clamp(1rem, 3vh, 1.25rem);
-    box-shadow: 0 4px 0 rgba(36, 64, 10, 0.2);
+    box-shadow: 0 4px 0 rgba(59, 42, 26, 0.22);
   }
 }
 
@@ -65,7 +62,7 @@
 .polaroid {
   @include polaroid;
   .polaroid__imagen { font-size: clamp(1.6rem, 7vh, 3.2rem); }
-  .polaroid__pie { font-size: clamp(0.7rem, 2.2vh, 1rem); color: #4a3300; }
+  .polaroid__pie { font-size: clamp(0.7rem, 2.2vh, 1rem); color: $tinta; }
 }
 
 .polaroid__guardado {
@@ -90,41 +87,15 @@
 }
 
 .btn-reintentar {
-  min-height: 40px;
-  padding: 0.4rem 1.1rem;
-  border: none;
-  border-radius: 999px;
-  background: #f57c00;
-  color: #fff;
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
-
-  &:disabled { opacity: 0.6; cursor: default; }
+  @include boton(40px);
+  padding: 0 1.1rem;
+  font-size: 1rem;
+  box-shadow: 0 4px 0 $verde-sombra;
 }
 
-.boton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45em;
-  min-height: 56px;
-  padding: 0 1.8rem;
-  border: 0;
-  border-radius: 999px;
-  background: $sol;
-  color: $tinta-sol;
-  font-family: inherit;
-  font-weight: 900;
-  font-size: 1.25rem;
-  box-shadow: 0 6px 0 $sol-sombra;
-  cursor: pointer;
+.boton { @include boton; }
 
-  &:active { transform: translateY(4px); box-shadow: 0 2px 0 $sol-sombra; }
-  &:focus-visible { outline: 4px solid #24400a; outline-offset: 3px; }
-}
-
-.boton--blanco { background: #fff; color: #24400a; box-shadow: 0 6px 0 rgba(36, 64, 10, 0.25); }
+.boton--blanco { @include boton-secundario; }
 
 @media (max-width: 600px) {
   .comunicate { padding: 0.5rem 0.75rem 0.75rem; }

@@ -1,5 +1,7 @@
 // Perfil. Mismo lenguaje que Mis logros: tarjetas blancas con sombra verde
 // "sólida" hacia abajo, bordes muy redondeados y textos cortos.
+// Materiales y colores: src/styles/_taller.scss.
+@use '../../../styles/taller' as *;
 
 :host { display: block; height: 100%; }
 
@@ -14,19 +16,17 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1.4rem;
   font-family: 'Nunito', system-ui, sans-serif;
-  color: #064e3b;
+  color: $tinta;
 }
 
 .tarjeta {
-  background: rgba(255, 255, 255, 0.96);
-  border-radius: 22px;
+  @include papel-con-marco(5px, 20px);
   padding: 0.85rem 1rem;
-  box-shadow: 0 5px 0 rgba(16, 185, 129, 0.35), 0 10px 20px rgba(0, 0, 0, 0.08);
 }
 
-.etiqueta { margin: 0 0 0.6rem; font-size: 0.85rem; font-weight: 800; color: #059669; }
+.etiqueta { margin: 0 0 0.6rem; font-size: 0.85rem; font-weight: 800; color: $verde; }
 
 // ── Aviso de cambio obligatorio ──────────────────────────
 .aviso {
@@ -57,21 +57,21 @@
     &--iniciales {
       display: grid;
       place-items: center;
-      background: #10b981;
+      background: $verde;
       color: #fff;
       font-size: 1.5rem;
       font-weight: 900;
-      box-shadow: 0 3px 0 #047857;
+      box-shadow: 0 3px 0 $verde-sombra;
     }
   }
 
   &__datos { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; }
-  &__nombre { margin: 0; font-size: clamp(1.2rem, 5vw, 1.45rem); font-weight: 900; color: #047857; overflow-wrap: anywhere; }
+  &__nombre { margin: 0; font-size: clamp(1.2rem, 5vw, 1.45rem); font-weight: 900; color: $verde-sombra; overflow-wrap: anywhere; }
   &__rol {
     padding: 0.15rem 0.7rem;
     border-radius: 999px;
-    background: #d1fae5;
-    color: #065f46;
+    background: $verde-claro;
+    color: $exito-tinta;
     font-size: 0.85rem;
     font-weight: 800;
   }
@@ -89,17 +89,17 @@
     justify-content: space-between;
     gap: 1rem;
     padding-bottom: 0.4rem;
-    border-bottom: 1px solid #ecfdf5;
+    border-bottom: 1px solid $papel-linea;
 
     &:last-child { border-bottom: none; padding-bottom: 0; }
   }
 
-  dt { font-weight: 700; color: #6b7280; }
+  dt { font-weight: 700; color: $tinta-suave; }
   dd { margin: 0; font-weight: 800; text-align: right; overflow-wrap: anywhere; }
 }
 
-.nota { margin: 0.6rem 0 0; font-size: 0.85rem; font-weight: 600; color: #6b7280; }
-.nota--grande { margin: 0; font-size: 1rem; color: #064e3b; }
+.nota { margin: 0.6rem 0 0; font-size: 0.85rem; font-weight: 600; color: $tinta-suave; }
+.nota--grande { margin: 0; font-size: 1rem; color: $tinta; }
 
 // ── Formulario ───────────────────────────────────────────
 form { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -114,14 +114,14 @@ form { display: flex; flex-direction: column; gap: 0.75rem; }
   input {
     min-height: 44px;
     padding: 0.5rem 0.75rem;
-    border: 2px solid #a7f3d0;
+    border: 2px solid $papel-linea;
     border-radius: 12px;
     font: inherit;
     font-weight: 600;
     color: inherit;
     background: #fff;
 
-    &:focus-visible { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25); }
+    &:focus-visible { outline: none; border-color: $verde; box-shadow: 0 0 0 3px rgba(201, 138, 75, 0.25); }
     &.con-error { border-color: #ef4444; }
   }
 }
@@ -134,7 +134,7 @@ form { display: flex; flex-direction: column; gap: 0.75rem; }
   font-size: 0.9rem;
   cursor: pointer;
 
-  input { width: 1.1rem; height: 1.1rem; accent-color: #10b981; }
+  input { width: 1.1rem; height: 1.1rem; accent-color: $verde; }
 }
 
 .error { color: #b91c1c; font-weight: 700; font-size: 0.85rem; }
@@ -146,26 +146,12 @@ form { display: flex; flex-direction: column; gap: 0.75rem; }
 }
 
 .boton {
+  @include boton(48px);
   align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  padding: 0.5rem 1.4rem;
-  border: none;
-  border-radius: 999px;
-  background: #10b981;
-  color: #fff;
-  font: inherit;
-  font-weight: 900;
+  font-size: 1.05rem;
   text-decoration: none;
-  box-shadow: 0 4px 0 #047857;
-  cursor: pointer;
 
-  &:focus-visible { outline: 3px solid #34d399; outline-offset: 3px; }
-  &:disabled { opacity: 0.6; cursor: wait; }
-
-  &--secundario { background: #ecfdf5; color: #047857; box-shadow: 0 4px 0 #a7f3d0; }
+  &--secundario { @include boton-secundario; }
 }
 
 .exito {
@@ -173,6 +159,6 @@ form { display: flex; flex-direction: column; gap: 0.75rem; }
   flex-direction: column;
   gap: 0.6rem;
 
-  &__titulo { margin: 0; font-weight: 900; color: #047857; }
+  &__titulo { margin: 0; font-weight: 900; color: $verde-sombra; }
   .nota { margin: 0; }
 }

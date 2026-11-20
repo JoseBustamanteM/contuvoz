@@ -1,0 +1,147 @@
+// ═══════════════════════════════════════════════════════════════════
+//  Sistema de diseño de ConTuVoz: "taller de madera y papel".
+//
+//  Todas las pantallas de los niños usan los mismos materiales de una sala
+//  de clases (marcos de madera, papel crema, corcho, pizarra) y los mismos
+//  dos colores de acción: VERDE para el botón principal y AMARILLO para lo
+//  elegido o lo que toca ahora. Ninguna actividad tiene un color propio:
+//  se reconocen por su ilustración del gecko y su objeto (pizarra, cámara,
+//  globos, letreros).
+//
+//  Uso: @use '<ruta>/styles/taller' as *;
+// ═══════════════════════════════════════════════════════════════════
+
+// ── Materiales ─────────────────────────────────────────────
+$madera: #c98a4b;
+$madera-veta: #bd7f41;
+$madera-sombra: #8e5626;
+$madera-oscura: #7a4b20;
+$madera-clara: #e9b97b;
+
+$papel: #fffaf0;
+$papel-linea: #efe2c8;
+
+$corcho: #c99a63;
+$corcho-borde: #8a5c2c;
+$corcho-sombra: #6e4720;
+
+$pizarra: #2a5236;
+$pizarra-luz: #3f7550;
+
+// ── Texto ──────────────────────────────────────────────────
+$tinta: #3b2a1a;
+$tinta-suave: #7a6450;
+
+// ── Acción y resalte ───────────────────────────────────────
+$verde: #3f9b3f;
+$verde-sombra: #25661f;
+$verde-claro: #e3f5dc;
+
+$amarillo: #ffc928;
+$amarillo-sombra: #c99400;
+$amarillo-tinta: #4a3300;
+$amarillo-claro: #fff4cf;
+
+// ── Resultados (iguales en todas las actividades) ───────────
+$exito: #3f9b3f;
+$exito-claro: #e3f5dc;
+$exito-tinta: #1e5e1e;
+$casi: #f08c2e;
+$casi-claro: #fff1dc;
+$casi-tinta: #8a4a00;
+$repetir-claro: #eef3f7;
+$repetir-tinta: #35556b;
+$error-claro: #ffe3df;
+$error-tinta: #9a2018;
+
+$fuente: 'Nunito', system-ui, sans-serif;
+
+// ── Piezas ─────────────────────────────────────────────────
+
+/// Fondo de madera con vetas verticales.
+@mixin madera {
+  background: repeating-linear-gradient(90deg, $madera 0 46px, $madera-veta 46px 48px);
+}
+
+/// Hoja de papel con marco de madera: tarjetas, paneles y fichas.
+@mixin papel-con-marco($grosor: 6px, $radio: 18px) {
+  border-radius: $radio;
+  background: $papel;
+  box-shadow: 0 0 0 $grosor $madera, 0 ($grosor + 6px) 0 $grosor $madera-sombra;
+}
+
+/// Objeto de madera maciza (cuerpo de la cámara, letreros, marcos).
+@mixin objeto-madera($radio: 16px) {
+  @include madera;
+  border-radius: $radio;
+  box-shadow: inset 0 -8px 0 rgba(0, 0, 0, 0.1), 0 8px 0 $madera-sombra;
+}
+
+/// Corcho con borde de madera (el álbum).
+@mixin corcho {
+  border-radius: 18px;
+  background:
+    radial-gradient(circle, rgba(110, 71, 32, 0.25) 1px, transparent 1.5px) 0 0 / 9px 9px,
+    $corcho;
+  box-shadow: inset 0 0 0 0.7rem $corcho-borde, 0 6px 0 $corcho-sombra;
+}
+
+/// Botón principal (verde) y secundario (papel).
+@mixin boton($alto: 56px) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45em;
+  min-height: $alto;
+  padding: 0 1.6rem;
+  border: 0;
+  border-radius: 999px;
+  background: $verde;
+  color: #fff;
+  font-family: $fuente;
+  font-weight: 900;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 0 $verde-sombra;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+  &:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0 $verde-sombra; }
+  &:focus-visible { outline: 4px solid $tinta; outline-offset: 3px; }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+@mixin boton-secundario {
+  background: $papel;
+  color: $tinta;
+  box-shadow: 0 6px 0 rgba(59, 42, 26, 0.3);
+
+  &:active:not(:disabled) { box-shadow: 0 2px 0 rgba(59, 42, 26, 0.3); }
+}
+
+/// Lo elegido / lo que toca ahora.
+@mixin resalte {
+  background: $amarillo;
+  color: $amarillo-tinta;
+  box-shadow: 0 6px 0 $amarillo-sombra;
+}
+
+/// Burbuja de diálogo del gecko.
+@mixin burbuja {
+  position: relative;
+  border-radius: 20px;
+  background: $papel;
+  color: $tinta;
+  box-shadow: 0 5px 0 rgba(59, 42, 26, 0.22);
+  font-family: $fuente;
+}
+
+/// Título grande sobre el fondo de colinas (texto con borde blanco).
+@mixin titulo-sobre-fondo {
+  margin: 0;
+  font-family: $fuente;
+  font-weight: 900;
+  color: $verde-sombra;
+  -webkit-text-stroke: 6px #fff;
+  paint-order: stroke fill;
+}

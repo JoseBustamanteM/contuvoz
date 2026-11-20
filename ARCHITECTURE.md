@@ -61,8 +61,18 @@ a save error.
 
 #### Activities
 Every activity fits the screen with no scroll (notebook, tablet, phone):
-layouts are sized from the available height, and each activity has its own
-colour (Pinta letras red, Comunícate yellow, Hablemos blue, Une palabras lilac).
+layouts are sized from the available height.
+
+**Design system — "taller de madera y papel"** (`src/styles/_taller.scss`):
+every child-facing screen (login, home, the four activities, Mis logros,
+Perfil) uses the same classroom materials — wooden frames, cream paper, cork,
+chalkboard — and the same two action colours: green for the main button,
+yellow for the selected / current item. Activities have no colour of their
+own; they are told apart by their gecko illustration and their object
+(chalkboard, camera, balloons, signs). Components `@use` the partial for
+tokens and mixins (`papel-con-marco`, `objeto-madera`, `corcho`, `boton`,
+`boton-secundario`, `burbuja`, `titulo-sobre-fondo`). User management keeps
+its own admin styling.
 
 - **`pages/drawPage`** + `components/drawPage/letter-tracer`: a chalkboard
   with the gecko inside; the guide letter is drawn in dashed chalk, while the

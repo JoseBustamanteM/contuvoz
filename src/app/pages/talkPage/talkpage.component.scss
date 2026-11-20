@@ -1,6 +1,7 @@
 // Hablemos: globos arriba; abajo, el gecko (con el resultado en su burbuja)
 // y el micrófono gigante. Todo cabe en la pantalla sin scroll. En pantallas
 // verticales: globos, gecko y micrófono uno debajo del otro.
+@use '../../../styles/taller' as *;
 
 :host {
   display: flex;
@@ -74,16 +75,10 @@
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
 
   button {
-    border: 0;
-    border-radius: 999px;
-    padding: 0.3rem 0.9rem;
-    background: #2b7de9;
-    color: #fff;
-    font: inherit;
-    font-weight: 900;
-    cursor: pointer;
-
-    &:disabled { opacity: 0.6; cursor: wait; }
+    @include boton(34px);
+    padding: 0 0.9rem;
+    font-size: 0.95rem;
+    box-shadow: 0 3px 0 $verde-sombra;
   }
 }
 

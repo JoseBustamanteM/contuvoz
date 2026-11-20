@@ -6,18 +6,14 @@ export interface VocalHablemos {
   /** Dibujo y palabra de ejemplo, para la burbuja del gecko. */
   emoji: string;
   word: string;
-  /** Color del globo. */
-  color: string;
-  /** Sombra (más oscura) del globo. */
-  sombra: string;
 }
 
 export const VOCALES_HABLEMOS: readonly VocalHablemos[] = [
-  { letter: 'A', emoji: '🦅', word: 'Águila', color: '#ff6b6b', sombra: '#c94545' },
-  { letter: 'E', emoji: '⭐', word: 'Estrella', color: '#f2b705', sombra: '#b88a00' },
-  { letter: 'I', emoji: '🏝', word: 'Isla', color: '#4cb860', sombra: '#2f8a40' },
-  { letter: 'O', emoji: '🐻', word: 'Oso', color: '#ff922b', sombra: '#c86a10' },
-  { letter: 'U', emoji: '🍇', word: 'Uvas', color: '#845ef7', sombra: '#5b37c4' },
+  { letter: 'A', emoji: '🦅', word: 'Águila' },
+  { letter: 'E', emoji: '⭐', word: 'Estrella' },
+  { letter: 'I', emoji: '🏝', word: 'Isla' },
+  { letter: 'O', emoji: '🐻', word: 'Oso' },
+  { letter: 'U', emoji: '🍇', word: 'Uvas' },
 ];
 
 /** Las cinco vocales como globos; el elegido sube. */

@@ -1,0 +1,90 @@
+// Login: una hoja de papel con marco de madera sobre las colinas.
+// Materiales y colores: src/styles/_taller.scss.
+@use '../../../styles/taller' as *;
+
+.login {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  font-family: $fuente;
+  color: $tinta;
+}
+
+.login__tarjeta {
+  @include papel-con-marco(10px, 26px);
+  width: 100%;
+  max-width: 28rem;
+  padding: clamp(1.4rem, 5vw, 2rem);
+}
+
+.login__cabecera {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.4rem;
+  text-align: center;
+}
+
+.login__gecko { width: clamp(5.5rem, 22vw, 7rem); margin-bottom: 0.4rem; filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.15)); }
+
+.login__titulo {
+  @include titulo-sobre-fondo;
+  font-size: clamp(1.9rem, 7vw, 2.4rem);
+}
+
+.login__sub { margin: 0.2rem 0 0; font-weight: 700; font-size: 0.95rem; color: $tinta-suave; }
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+
+  label { padding-left: 0.25rem; font-weight: 800; font-size: 0.95rem; }
+
+  input {
+    width: 100%;
+    min-height: 50px;
+    padding: 0.7rem 1rem;
+    border: 3px solid $papel-linea;
+    border-radius: 16px;
+    background: #fff;
+    color: $tinta;
+    font: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &::placeholder { color: #b9a78f; font-weight: 600; }
+    &:focus { border-color: $madera; box-shadow: 0 0 0 4px rgba(201, 138, 75, 0.25); }
+    &.con-error { border-color: #e0786f; }
+  }
+}
+
+.error { padding-left: 0.25rem; font-size: 0.8rem; font-weight: 800; color: $error-tinta; }
+
+.login__error {
+  margin: 0 0 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 16px;
+  background: $error-claro;
+  color: $error-tinta;
+  font-weight: 800;
+  font-size: 0.9rem;
+}
+
+.login__boton {
+  @include boton(56px);
+  width: 100%;
+  font-size: 1.2rem;
+}
+
+.girando { width: 1.25rem; height: 1.25rem; animation: girar 0.9s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .girando { animation-duration: 2.5s; }
+}

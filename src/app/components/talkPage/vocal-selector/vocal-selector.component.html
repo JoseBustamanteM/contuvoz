@@ -7,8 +7,6 @@
       [disabled]="isDisabled()"
       [attr.aria-pressed]="isSelected(vocal.letter)"
       [attr.aria-label]="'Vocal ' + vocal.letter + ', de ' + vocal.word"
-      [style.--globo]="vocal.color"
-      [style.--globo-sombra]="vocal.sombra"
       (click)="selectVocal(vocal.letter)"
     >
       <span class="globo__cuerpo">{{ vocal.letter }}</span>

@@ -1,5 +1,7 @@
 // Carrete vertical junto a la pizarra; en pantallas verticales (celular,
-// tablet parada) se acuesta sobre ella.
+// tablet parada) se acuesta sobre ella. Colores: src/styles/_taller.scss.
+@use '../../../../styles/taller' as *;
+
 :host { display: block; }
 
 .carrete {
@@ -17,16 +19,16 @@
   height: clamp(2rem, 7vh, 3rem);
   border: 0;
   border-radius: 16px;
-  background: #fff;
-  color: #c23a2f;
+  background: $papel;
+  color: $madera-sombra;
   font-size: 1.3rem;
   font-weight: 900;
-  box-shadow: 0 4px 0 rgba(36, 64, 10, 0.25);
+  box-shadow: 0 4px 0 $madera-sombra;
   cursor: pointer;
   transition: transform 0.12s ease;
 
-  &:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(36, 64, 10, 0.25); }
-  &:focus-visible { outline: 3px solid #24400a; outline-offset: 2px; }
+  &:active { transform: translateY(3px); box-shadow: 0 1px 0 $madera-sombra; }
+  &:focus-visible { outline: 3px solid $tinta; outline-offset: 2px; }
 }
 
 .carrete__vecina {
@@ -43,13 +45,13 @@
   width: clamp(3.2rem, 14vh, 5.2rem);
   height: clamp(3.2rem, 14vh, 5.2rem);
   border-radius: 24px;
-  background: #ff5a4e;
-  color: #fff;
+  background: $amarillo;
+  color: $amarillo-tinta;
   font-family: 'Playwrite CU Variable', cursive;
   font-size: clamp(1.8rem, 7.5vh, 2.8rem);
   line-height: 1;
   padding-bottom: 0.4rem;
-  box-shadow: 0 6px 0 #c23a2f;
+  box-shadow: 0 6px 0 $amarillo-sombra;
 }
 
 @media (orientation: portrait) {

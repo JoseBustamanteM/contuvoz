@@ -1,5 +1,8 @@
 // Globos de vocales. El tamaño sale del alto de la pantalla para que, junto
-// con el micrófono, todo quepa sin scroll.
+// con el micrófono, todo quepa sin scroll. Son de papel con aro de madera,
+// como todo el taller (src/styles/_taller.scss); el elegido se pinta amarillo.
+@use '../../../../styles/taller' as *;
+
 :host { display: block; }
 
 .globos {
@@ -7,7 +10,7 @@
   justify-content: center;
   gap: clamp(0.5rem, 2.5vw, 1.6rem);
   // Espacio para que el globo elegido suba sin cortarse.
-  padding-top: clamp(0.5rem, 2.5vh, 1.25rem);
+  padding-top: clamp(0.9rem, 4.5vh, 2rem);
 }
 
 .globo {
@@ -23,7 +26,7 @@
   transition: transform 0.2s ease;
 
   &:focus-visible { outline: none; }
-  &:focus-visible .globo__cuerpo { box-shadow: 0 0 0 4px #fff, 0 0 0 7px #24400a; }
+  &:focus-visible .globo__cuerpo { outline: 4px solid $tinta; outline-offset: 6px; }
   &:disabled { cursor: default; }
   &:disabled:not(.globo--elegido) { opacity: 0.6; }
   &:hover:not(:disabled) { transform: translateY(-3px); }
@@ -36,26 +39,29 @@
   height: var(--alto);
   border-radius: 50% 50% 46% 46%;
   background:
-    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.55), transparent 32%),
-    var(--globo);
-  box-shadow: inset 0 -6px 0 var(--globo-sombra);
-  color: #fff;
+    radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.9), transparent 32%),
+    $papel;
+  box-shadow: 0 0 0 5px $madera, 0 6px 0 5px $madera-sombra;
+  color: $tinta;
   font-weight: 900;
   font-size: calc(var(--alto) * 0.48);
   line-height: 1;
-  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
 }
 
 .globo__hilo {
   width: 2px;
   height: calc(var(--alto) * 0.28);
-  background: rgba(36, 64, 10, 0.45);
+  background: $madera-oscura;
 }
 
 .globo--elegido {
   transform: translateY(-8px) scale(1.16);
 
-  .globo__cuerpo { box-shadow: inset 0 -6px 0 var(--globo-sombra), 0 0 0 5px #fff; }
+  .globo__cuerpo {
+    background: radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.6), transparent 32%), $amarillo;
+    color: $amarillo-tinta;
+    box-shadow: 0 0 0 5px $madera, 0 6px 0 5px $madera-sombra;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

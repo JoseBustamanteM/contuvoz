@@ -1,5 +1,6 @@
 // Pinta letras: pizarra (con el gecko adentro) y el carrete de letras al
 // lado. En pantallas verticales el carrete va arriba, acostado.
+@use '../../../styles/taller' as *;
 
 :host {
   display: flex;
@@ -40,33 +41,29 @@
   margin: 0;
   padding: 0.3rem 0.85rem;
   border-radius: 999px;
-  background: #fff7d6;
-  color: #7a4f00;
+  background: $amarillo-claro;
+  color: $amarillo-tinta;
   font-weight: 900;
   font-size: 1.15rem;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
   transform: rotate(3deg);
 
-  &--ok { background: #e3f9d6; color: #1e6b16; }
+  &--ok { background: $exito-claro; color: $exito-tinta; }
   &--suave { background: rgba(255, 255, 255, 0.85); color: #3f5132; font-size: 0.95rem; transform: none; }
   &--error {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: #ffe3df;
-    color: #9a2018;
+    background: $error-claro;
+    color: $error-tinta;
     font-size: 0.95rem;
     transform: none;
   }
 }
 
 .btn-reintentar {
-  border: 0;
-  border-radius: 999px;
-  padding: 0.25rem 0.8rem;
-  background: #c23a2f;
-  color: #fff;
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
+  @include boton(32px);
+  padding: 0 0.8rem;
+  font-size: 0.9rem;
+  box-shadow: 0 3px 0 $verde-sombra;
 }
