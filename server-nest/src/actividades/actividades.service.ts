@@ -31,9 +31,12 @@ const MAX_INTENTOS_POR_MINUTO = 40;
  * SUBIR el número de una actividad cuando cambie cualquiera de esas cosas,
  * para que sus intentos nuevos no se mezclen con los antiguos como si
  * valieran lo mismo. Todo lo guardado hasta el 2026-11-16 es la versión 1.
+ *
+ * Pinta letras v2 (2026-11-20): letra guía y pincel ×1,19 (370/34 px en vez
+ * de 310/28), misma proporción, así que la dificultad es la misma.
  */
 const VERSION_REGLAS = {
-  [TIPO_PINTADO]: 1,
+  [TIPO_PINTADO]: 2,
   [TIPO_SIGN]: 1,
   [TIPO_PRONUNCIACION]: 1,
   [TIPO_UNE]: 1,

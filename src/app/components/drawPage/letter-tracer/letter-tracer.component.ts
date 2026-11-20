@@ -5,6 +5,22 @@ import {
 import { CommonModule } from '@angular/common';
 import { ResultadoPintado } from '../../../interfaces/actividad.interface';
 
+/**
+ * Tamaño de la letra guía y grosor del pincel, en px del lienzo (700×700).
+ *
+ * Van juntos: si solo se engrosara el pincel, cubrir la letra sería más fácil
+ * y el puntaje subiría sin que el niño lo hiciera mejor. Se agrandaron los dos
+ * en la misma proporción (×1,19 respecto de 310/28) y la dificultad queda
+ * igual. 370 es lo máximo en que caben todas las letras (las altas como f y
+ * las que bajan como g, j) con margen. Si se cambian, subir VERSION_REGLAS de
+ * Pinta letras en el backend.
+ */
+const TAMANO_LETRA = 370;
+const GROSOR_PINCEL = 34;
+const BORDE_LETRA = 6;
+/** Centro vertical de la letra: compensa que la fuente sube más de lo que baja. */
+const Y_LETRA = 363;
+
 @Component({
   selector: 'letter-tracer',
   standalone: true,
@@ -62,7 +78,7 @@ export class LetterTracerComponent implements AfterViewInit {
     this.bgCtx = bgCanvas.getContext('2d', { willReadFrequently: true })!;
     this.drawCtx = drawCanvas.getContext('2d', { willReadFrequently: true })!;
 
-    this.drawCtx.lineWidth = 28;
+    this.drawCtx.lineWidth = GROSOR_PINCEL;
     this.drawCtx.lineCap = 'round';
     this.drawCtx.lineJoin = 'round';
     // Tiza amarilla: se distingue de la letra guía (blanca) sobre la pizarra.
@@ -77,7 +93,7 @@ export class LetterTracerComponent implements AfterViewInit {
   private drawGuideLetter() {
     // Nombre con que la declara @fontsource-variable/playwrite-cu (angular.json).
     const fontName = 'Playwrite CU Variable';
-    const fontSize = '310px';
+    const fontSize = `${TAMANO_LETRA}px`;
     const letterToDraw = this._currentLetter.toLowerCase();
 
     document.fonts
@@ -88,7 +104,7 @@ export class LetterTracerComponent implements AfterViewInit {
 
   private pintarGuia(letra: string, fontSize: string, fontName: string) {
     const x = this.canvasSize / 2;
-    const y = this.canvasSize / 2 - 30;
+    const y = Y_LETRA;
     const fuente = `${fontSize} "${fontName}"`;
 
     // Máscara para evaluar: igual que siempre.
@@ -96,7 +112,7 @@ export class LetterTracerComponent implements AfterViewInit {
     m.clearRect(0, 0, this.canvasSize, this.canvasSize);
     m.fillStyle = '#e0e0ff';
     m.strokeStyle = '#e0e0ff';
-    m.lineWidth = 5;
+    m.lineWidth = BORDE_LETRA;
     m.textAlign = 'center';
     m.textBaseline = 'middle';
     m.font = fuente;
@@ -113,7 +129,7 @@ export class LetterTracerComponent implements AfterViewInit {
     g.fillText(letra, x, y);
     g.setLineDash([14, 12]);
     g.lineCap = 'round';
-    g.lineWidth = 5;
+    g.lineWidth = BORDE_LETRA;
     g.strokeStyle = 'rgba(255, 255, 255, 0.9)';
     g.strokeText(letra, x, y);
     g.setLineDash([]);
